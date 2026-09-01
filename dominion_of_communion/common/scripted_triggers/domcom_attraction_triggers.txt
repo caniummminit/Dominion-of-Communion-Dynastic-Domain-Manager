@@ -1,0 +1,35 @@
+﻿# Dominion of Communion 0.6.3 — evidence created by optional Carnalitas sex hooks.
+
+domcom_has_full_sex_evidence_from_actor_trigger = {
+    any_in_list = {
+        variable = domcom_sex_evidence_patrons
+        this = scope:actor
+    }
+}
+
+domcom_has_lover_betrayal_from_actor_trigger = {
+    OR = {
+        # Persistent one-off-sex evidence supplied by optional Carnalitas.
+        any_in_list = {
+            variable = domcom_betrayal_evidence_patrons
+            this = scope:actor
+        }
+        # Standalone Dominion can also see a current ordinary Lover triangle.
+        any_relation = {
+            type = lover
+            is_alive = yes
+            age >= 18
+            OR = {
+                has_relation_lover = scope:actor
+                has_relation_soulmate = scope:actor
+                any_child = {
+                    OR = {
+                        father ?= scope:actor
+                        mother ?= scope:actor
+                        real_father ?= scope:actor
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,236 @@
+﻿# Household Intrigue — Dominion network subsystem.
+#
+# Dominion builds the relationship network. This subsystem spends that network.
+# A Crush is useful for quiet information; Lovers and Attached/Submissive/Pet
+# partners can perform progressively more consequential household actions.
+
+# Build one candidate pool from current Crush/Lover/Soulmate relations. Dominion
+# Pets are also recovered from the Patron's Pet registry if CK3 has since removed
+# the relation that originally made them visible here.
+dcint_run_monthly_intrigue_effect = {
+    save_scope_as = dcint_patron
+
+    every_relation = {
+        type = crush
+        type = lover
+        type = soulmate
+        limit = { dcint_partner_available_trigger = yes }
+        add_to_temporary_list = dcint_intrigue_candidates
+    }
+
+    # Relationless Pets still belong to the Patron. Add only those not already
+    # represented by one of the three relation types above, avoiding duplicates.
+    if = {
+        limit = { has_variable_list = domcom_pet_registry }
+        every_in_list = {
+            variable = domcom_pet_registry
+            limit = {
+                dcint_partner_available_trigger = yes
+                NOR = {
+                    has_relation_crush = scope:dcint_patron
+                    has_relation_lover = scope:dcint_patron
+                    has_relation_soulmate = scope:dcint_patron
+                }
+            }
+            add_to_temporary_list = dcint_intrigue_candidates
+        }
+    }
+
+    random_in_list = {
+        list = dcint_intrigue_candidates
+        save_scope_as = dcint_partner
+        add_character_flag = { flag = dcint_recently_used months = 1 }
+        dcint_pick_approach_effect = yes
+    }
+}
+
+# The available action now reflects Dominion depth instead of treating every
+# useful person as simply a Lover. Early links tend toward whispers. Attached,
+# Submissive and Pet partners are increasingly likely to offer material actions.
+dcint_pick_approach_effect = {
+    random_list = {
+        60 = {
+            trigger = { dcint_can_whisper_trigger = yes }
+            modifier = {
+                add = 30
+                has_relation_crush = scope:dcint_patron
+                NOT = { has_relation_lover = scope:dcint_patron }
+                NOT = { has_relation_soulmate = scope:dcint_patron }
+                NOT = { dcint_is_attached_to_patron_trigger = yes }
+            }
+            scope:dcint_patron = { trigger_event = { id = dcint.100 } }
+        }
+        35 = {
+            trigger = { dcint_can_poach_courtier_trigger = yes }
+            modifier = { add = 20 dcint_is_attached_to_patron_trigger = yes }
+            modifier = { add = 20 dcint_is_submissive_to_patron_trigger = yes }
+            modifier = { add = 25 dcint_is_pet_of_patron_trigger = yes }
+            scope:dcint_patron = { trigger_event = { id = dcint.200 } }
+        }
+        25 = {
+            trigger = { dcint_can_press_blood_claim_trigger = yes }
+            modifier = { add = 15 has_relation_soulmate = scope:dcint_patron }
+            modifier = { add = 20 dcint_is_submissive_to_patron_trigger = yes }
+            modifier = { add = 25 dcint_is_pet_of_patron_trigger = yes }
+            scope:dcint_patron = { trigger_event = { id = dcint.300 } }
+        }
+    }
+}
+
+############################################################################
+# Outcomes
+############################################################################
+
+# Rumour. The same event scales with the Dominion bond: an Attached/Submissive
+# partner can make the story bite harder, and a Pet can do so without hesitation.
+dcint_whisper_effect = {
+    scope:dcint_partner = {
+        if = {
+            limit = { exists = primary_spouse }
+            primary_spouse = {
+                if = {
+                    limit = { scope:dcint_partner = { dcint_is_pet_of_patron_trigger = yes } }
+                    add_opinion = { target = scope:dcint_patron modifier = dcint_whispered_against_pet_opinion }
+                    add_stress = 20
+                }
+                else_if = {
+                    limit = { scope:dcint_partner = { dcint_is_attached_to_patron_trigger = yes } }
+                    add_opinion = { target = scope:dcint_patron modifier = dcint_whispered_against_strong_opinion }
+                    add_stress = 15
+                }
+                else = {
+                    add_opinion = { target = scope:dcint_patron modifier = dcint_whispered_against_opinion }
+                    add_stress = 10
+                }
+            }
+        }
+        if = {
+            limit = { exists = liege NOT = { liege = scope:dcint_patron } }
+            liege = {
+                if = {
+                    limit = { scope:dcint_partner = { dcint_is_pet_of_patron_trigger = yes } }
+                    add_opinion = { target = scope:dcint_patron modifier = dcint_whispered_against_pet_opinion }
+                }
+                else_if = {
+                    limit = { scope:dcint_partner = { dcint_is_attached_to_patron_trigger = yes } }
+                    add_opinion = { target = scope:dcint_patron modifier = dcint_whispered_against_strong_opinion }
+                }
+                else = {
+                    add_opinion = { target = scope:dcint_patron modifier = dcint_whispered_against_opinion }
+                }
+            }
+        }
+        add_opinion = { target = scope:dcint_patron modifier = dcint_partner_grateful_opinion }
+    }
+    scope:dcint_patron = {
+        add_intrigue_lifestyle_xp = 40
+        add_dread = 2
+    }
+}
+
+# A courtier changes hands. Lovers can do this through intimacy; Attached and
+# higher Dominion partners can do it through obedience even if the affair itself
+# has cooled.
+dcint_poach_courtier_effect = {
+    scope:dcint_partner = {
+        random_courtier = {
+            limit = { is_alive = yes age >= 18 is_landed = no }
+            save_scope_as = dcint_poached
+        }
+    }
+    if = {
+        limit = { exists = scope:dcint_poached }
+        scope:dcint_poached = {
+            add_opinion = { target = scope:dcint_patron modifier = dcint_partner_grateful_opinion }
+            scope:dcint_patron = { add_courtier = scope:dcint_poached }
+        }
+        scope:dcint_partner = {
+            if = {
+                limit = { exists = liege NOT = { liege = scope:dcint_patron } }
+                liege = { add_opinion = { target = scope:dcint_patron modifier = dcint_courtier_poached_opinion } }
+            }
+        }
+        scope:dcint_patron = {
+            add_diplomacy_lifestyle_xp = 40
+            if = {
+                limit = { scope:dcint_partner = { dcint_is_pet_of_patron_trigger = yes } }
+                add_intrigue_lifestyle_xp = 20
+            }
+        }
+    }
+}
+
+# The blood action now works for the common Dominion case: an unlanded partner
+# married to a landed ruler. Prefer the child's publicly assumed landed parent as
+# title source; otherwise use the partner, then the partner's landed spouse.
+dcint_press_claim_effect = {
+    scope:dcint_partner = {
+        random_child = {
+            limit = {
+                is_alive = yes
+                OR = {
+                    father ?= scope:dcint_patron
+                    mother ?= scope:dcint_patron
+                    real_father ?= scope:dcint_patron
+                }
+            }
+            save_scope_as = dcint_claimant
+        }
+        if = {
+            limit = { exists = primary_spouse }
+            primary_spouse = { add_opinion = { target = scope:dcint_patron modifier = dcint_claim_pressed_opinion } }
+        }
+    }
+
+    if = {
+        limit = { exists = scope:dcint_claimant }
+
+        # Hidden-paternity case: the claimant's public father is often the ruler
+        # whose household the Patron penetrated. Use him first when appropriate.
+        scope:dcint_claimant = {
+            if = {
+                limit = {
+                    exists = father
+                    NOT = { father = scope:dcint_patron }
+                    father = { is_alive = yes is_landed = yes }
+                }
+                father = { save_scope_as = dcint_title_source }
+            }
+        }
+
+        if = {
+            limit = {
+                NOT = { exists = scope:dcint_title_source }
+                scope:dcint_partner = { is_landed = yes }
+            }
+            scope:dcint_partner = { save_scope_as = dcint_title_source }
+        }
+
+        if = {
+            limit = {
+                NOT = { exists = scope:dcint_title_source }
+                scope:dcint_partner = {
+                    exists = primary_spouse
+                    primary_spouse = { is_alive = yes is_landed = yes }
+                }
+            }
+            scope:dcint_partner.primary_spouse = { save_scope_as = dcint_title_source }
+        }
+
+        if = {
+            limit = { exists = scope:dcint_title_source }
+            scope:dcint_title_source = {
+                random_held_title = {
+                    limit = { NOT = { tier = tier_barony } }
+                    save_scope_as = dcint_claimed_title
+                }
+            }
+        }
+
+        if = {
+            limit = { exists = scope:dcint_claimed_title }
+            scope:dcint_claimant = { add_pressed_claim = scope:dcint_claimed_title }
+            scope:dcint_patron = { add_intrigue_lifestyle_xp = 60 }
+        }
+    }
+}

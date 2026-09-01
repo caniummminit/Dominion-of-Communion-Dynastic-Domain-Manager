@@ -1,0 +1,3985 @@
+﻿ddm_initialize_settings_effect = {
+    if = { limit = { NOT = { has_variable = ddm_family_scope_mode } } set_variable = { name = ddm_family_scope_mode value = 3 } }
+    if = { limit = { NOT = { has_variable = ddm_power_policy } } set_variable = { name = ddm_power_policy value = 2 } }
+    if = { limit = { NOT = { has_variable = ddm_purge_method } } set_variable = { name = ddm_purge_method value = 2 } }
+    if = { limit = { NOT = { has_variable = ddm_purge_stage } } set_variable = { name = ddm_purge_stage value = 3 } }
+    if = { limit = { NOT = { has_variable = ddm_min_dynasty_floor } } set_variable = { name = ddm_min_dynasty_floor value = 8 } }
+    if = { limit = { NOT = { has_variable = ddm_regard_mode } } set_variable = { name = ddm_regard_mode value = 1 } }
+    # v1.4 replaces named-blood gates with weighted merit bands. On the first
+    # load of an older save, migrate former named-blood stages (5-7) to the
+    # Balanced band so a lethal review cannot unexpectedly inherit old semantics.
+    if = {
+        limit = { NOT = { has_variable = ddm_scoring_model_v14 } }
+        if = { limit = { var:ddm_purge_stage >= 5 } set_variable = { name = ddm_purge_stage value = 3 } }
+        set_variable = { name = ddm_scoring_model_v14 value = 1 }
+    }
+    if = { limit = { NOT = { has_variable = ddm_protect_player_heir } } set_variable = { name = ddm_protect_player_heir value = 1 } }
+    # 1 = Absolute Core (legacy behavior), 2 = Best-Effort Core (default).
+    if = { limit = { NOT = { has_variable = ddm_core_policy } } set_variable = { name = ddm_core_policy value = 2 } }
+    # Domain-core mode: 1 = adaptive best-domain core (default), 2 = locked snapshot.
+    # The adaptive core explicitly marks the best domain_limit holdings before any surplus grant.
+    if = { limit = { NOT = { has_variable = ddm_domain_core_mode } } set_variable = { name = ddm_domain_core_mode value = 1 } }
+    # Alliance policy: 0 = off, 1 = all dynastic landed recipients, 2 = direct vassals only, 3 = dukes and above only.
+    # Migrate legacy saves that only knew the binary ddm_auto_alliance variable.
+    if = {
+        limit = { NOT = { has_variable = ddm_alliance_policy } }
+        if = {
+            limit = { has_variable = ddm_auto_alliance var:ddm_auto_alliance = 0 }
+            set_variable = { name = ddm_alliance_policy value = 0 }
+        }
+        else = { set_variable = { name = ddm_alliance_policy value = 1 } }
+    }
+    # Succession influence: 1 = Neutral (default), 2 = Respect Current Heir,
+    # 3 = Preserve Primary Estate. Succession modifies rightfulness only.
+    if = { limit = { NOT = { has_variable = ddm_succession_policy } } set_variable = { name = ddm_succession_policy value = 1 } }
+    # v1.7 migration: policy 3 is now an heir-settlement mode. It is allowed to
+    # use the primary heir as one of the legal recipients, so the old blanket
+    # heir-protection default no longer prevents a two-son partition split.
+    if = {
+        limit = { NOT = { has_variable = ddm_scoring_model_v17 } }
+        set_variable = { name = ddm_scoring_model_v17 value = 1 }
+    }
+    # Align automatic grants with active succession gender law. Male/Female Only
+    # hard-filters recipients; preference laws influence ranking rather than ban.
+    if = { limit = { NOT = { has_variable = ddm_gender_alignment } } set_variable = { name = ddm_gender_alignment value = 1 } }
+    # Realm-integrity heuristic penalizes recipients whose current primary heir is outside the player's realm.
+    if = { limit = { NOT = { has_variable = ddm_realm_integrity } } set_variable = { name = ddm_realm_integrity value = 1 } }
+    # Construction reserve in gold. Bulk projects stop before crossing this reserve.
+    if = { limit = { NOT = { has_variable = ddm_build_reserve } } set_variable = { name = ddm_build_reserve value = 1000 } }
+    # v1.14 outsider-holding policy: 0 = respect every existing outsider grant
+    # (safe default), 1 = reclaim only outsider counties that the player has not
+    # explicitly protected on the Outsider Holdings page before normal settlement.
+    if = { limit = { NOT = { has_variable = ddm_outsider_policy } } set_variable = { name = ddm_outsider_policy value = 0 } }
+
+    # 1.1 recipient scope: 0 = dynasty only, 1 = selected non-dynastic candidates,
+    # 2 = all eligible non-dynastic candidates. Candidates may be unlanded
+    # courtiers or already-landed vassals. Checked candidates receive first-pass
+    # priority for one legal county grant while land remains.
+    if = { limit = { NOT = { has_variable = ddm_outsider_recipient_mode } } set_variable = { name = ddm_outsider_recipient_mode value = 0 } }
+    # Holding-list organization: 0 = de-jure hierarchy A-Z, 1 = development,
+    # 2 = county faith affinity, 3 = county culture affinity. Direction 1 is
+    # the natural order for the selected mode; -1 reverses it.
+    if = { limit = { NOT = { has_variable = ddm_title_sort_mode } } set_variable = { name = ddm_title_sort_mode value = 0 } }
+    if = { limit = { NOT = { has_variable = ddm_title_sort_direction } } set_variable = { name = ddm_title_sort_direction value = 1 } }
+
+    # v1.8 migration: legacy builds could leave behind an apparently "complete"
+    # domain plan even though the player had never actually been shown the
+    # holding-by-holding chooser. Force ONE clean reclassification on upgrade.
+    # This is intentionally version-stamped so later menu openings do not erase
+    # choices the player explicitly made.
+    if = {
+        limit = { NOT = { has_variable = ddm_migrated_explicit_core_v18 } }
+        set_variable = { name = ddm_migrated_explicit_core_v18 value = 1 }
+        remove_variable = ddm_domain_plan_limit
+        clear_variable_list = ddm_domain_review_queue
+        every_held_title = {
+            limit = {
+                OR = {
+                    tier = tier_county
+                    AND = { tier = tier_barony is_capital_barony = no }
+                }
+            }
+            remove_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+        }
+        if = {
+            limit = { exists = capital_county }
+            capital_county = { set_variable = ddm_manual_core }
+        }
+    }
+
+    # v1.9 compatibility migration retained for old saves. The current rules immediately
+    # remaps this setting below into succession influence rather than allocation.
+    if = {
+        limit = { NOT = { has_variable = ddm_succession_model_v19 } }
+        set_variable = { name = ddm_succession_model_v19 value = 1 }
+        set_variable = { name = ddm_succession_policy value = 1 }
+        # This variable remains only for pruning protection compatibility. It no
+        # longer participates in land-recipient eligibility or succession policy.
+        set_variable = { name = ddm_protect_player_heir value = 1 }
+    }
+
+    # distribution is dynasty-wide rightfulness, not heir settlement.
+    # Reset the old succession distribution setting once; policy 1 now means
+    # succession-neutral rather than Balanced Children.
+    if = {
+        limit = { NOT = { has_variable = ddm_rightfulness_model_v110 } }
+        set_variable = { name = ddm_rightfulness_model_v110 value = 1 }
+        set_variable = { name = ddm_succession_policy value = 1 }
+    }
+
+    # persist the number of holdings the player actually checked in the
+    # Personal Domain Planner. Older builds always stopped at vanilla domain_limit
+    # even when the player deliberately protected fewer holdings. On migration,
+    # preserve an existing manual core if one exists; otherwise use domain_limit.
+    if = {
+        limit = { NOT = { has_variable = ddm_distribution_target_model_v111 } }
+        set_variable = { name = ddm_distribution_target_model_v111 value = 1 }
+        set_variable = { name = ddm_protected_domain_target value = 0 }
+        every_held_title = {
+            limit = {
+                has_variable = ddm_manual_core
+                OR = {
+                    tier = tier_county
+                    AND = { tier = tier_barony is_capital_barony = no }
+                }
+            }
+            holder = { change_variable = { name = ddm_protected_domain_target add = 1 } }
+        }
+        if = {
+            limit = { var:ddm_protected_domain_target < 1 }
+            set_variable = { name = ddm_protected_domain_target value = domain_limit }
+            if = { limit = { domain_size < var:ddm_protected_domain_target } set_variable = { name = ddm_protected_domain_target value = domain_size } }
+            if = { limit = { var:ddm_protected_domain_target < 1 } set_variable = { name = ddm_protected_domain_target value = 1 } }
+        }
+    }
+
+    # v1.9 domain-planner migration: replace KEEP/GIVE/DELEGATE state with one
+    # explicit concept -- selected personal core. The office recommendation is
+    # preselected for the first GUI visit, but the plan is deliberately marked
+    # stale so the player sees and can edit it before the next mass distribution.
+    if = {
+        limit = { NOT = { has_variable = ddm_domain_gui_model_v19 } }
+        set_variable = { name = ddm_domain_gui_model_v19 value = 1 }
+        remove_variable = ddm_domain_plan_limit
+        clear_variable_list = ddm_domain_review_queue
+        clear_variable_list = ddm_domain_planner_titles
+        every_held_title = {
+            limit = {
+                OR = {
+                    tier = tier_county
+                    AND = { tier = tier_barony is_capital_barony = no }
+                }
+            }
+            remove_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+            remove_variable = ddm_planner_original_core
+        }
+        # IMPORTANT: call the non-initializing worker here. Calling the public
+        # refresh effect from inside initialization creates a recursive scripted-
+        # effect expansion (initialize -> refresh -> initialize), which CK3 does
+        # not support and can crash as soon as the manager decision executes.
+        ddm_refresh_adaptive_domain_core_internal_effect = yes
+        every_held_title = {
+            limit = { has_variable = ddm_auto_core }
+            set_variable = ddm_manual_core
+        }
+        ddm_mark_capital_as_explicit_core_effect = yes
+    }
+}
+
+ddm_refresh_one_subject_regard_effect = {
+    # Run from the subject. scope:ddm_actor must be saved.
+    set_variable = { name = ddm_family_regard value = 0 }
+    set_variable = { name = ddm_family_regard_count value = 0 }
+    save_scope_as = ddm_subject
+
+    if = {
+        limit = { scope:ddm_actor.var:ddm_regard_mode = 2 }
+        dynasty = {
+            every_dynasty_member = {
+                limit = { is_alive = yes this != scope:ddm_subject }
+                save_temporary_scope_value_as = { name = ddm_observer_opinion value = "opinion(scope:ddm_subject)" }
+                scope:ddm_subject = {
+                    change_variable = { name = ddm_family_regard add = scope:ddm_observer_opinion }
+                    change_variable = { name = ddm_family_regard_count add = 1 }
+                }
+            }
+        }
+    }
+    else = {
+        every_close_or_extended_family_member = {
+            limit = { is_alive = yes exists = dynasty dynasty = scope:ddm_actor.dynasty }
+            save_temporary_scope_value_as = { name = ddm_observer_opinion value = "opinion(scope:ddm_subject)" }
+            scope:ddm_subject = {
+                change_variable = { name = ddm_family_regard add = scope:ddm_observer_opinion }
+                change_variable = { name = ddm_family_regard_count add = 1 }
+            }
+        }
+        if = {
+            limit = { exists = house.house_head house.house_head != this }
+            house.house_head = { save_temporary_scope_value_as = { name = ddm_observer_opinion value = "opinion(scope:ddm_subject)" } }
+            change_variable = { name = ddm_family_regard add = scope:ddm_observer_opinion }
+            change_variable = { name = ddm_family_regard_count add = 1 }
+        }
+        if = {
+            limit = { exists = dynasty.dynasty_head dynasty.dynasty_head != this }
+            dynasty.dynasty_head = { save_temporary_scope_value_as = { name = ddm_observer_opinion value = "opinion(scope:ddm_subject)" } }
+            change_variable = { name = ddm_family_regard add = scope:ddm_observer_opinion }
+            change_variable = { name = ddm_family_regard_count add = 1 }
+        }
+    }
+    if = {
+        limit = { var:ddm_family_regard_count > 0 }
+        change_variable = { name = ddm_family_regard divide = var:ddm_family_regard_count }
+    }
+}
+
+ddm_refresh_all_dynasty_regard_effect = {
+    save_scope_as = ddm_actor
+    dynasty = {
+        every_dynasty_member = {
+            limit = { is_alive = yes }
+            ddm_refresh_one_subject_regard_effect = yes
+        }
+    }
+}
+
+# Build a stable set of the characters CK3 currently says would inherit at
+# least one of the actor's held county-or-higher titles. This is more precise
+# than "all people somewhere in the line of succession": under partition, each
+# title's current_heir already reflects gender law, disinheritance, elections and
+# the engine's present partition assignment. Duplicate heirs are counted once.
+ddm_build_partition_settlement_pool_effect = {
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_partition_pool_count value = 0 }
+    dynasty = { every_dynasty_member = { remove_character_flag = ddm_partition_settlement_pool } }
+
+    if = {
+        limit = { ddm_actor_uses_partition_trigger = yes }
+
+        # Policy 1 is succession-neutral. Policy 3 preserves the primary estate.
+        # Use legal direct children, not can_be_granted_titles_by: vanilla's
+        # grant interaction can reject the primary heir for partition-specific
+        # reasons even though that child belongs in DDM's allocation pool.
+        if = {
+            limit = { OR = { var:ddm_succession_policy = 1 var:ddm_succession_policy = 3 } }
+            every_child = {
+                limit = {
+                    ddm_is_eligible_partition_recipient_trigger = yes
+                    trigger_if = {
+                        limit = {
+                            OR = {
+                                scope:ddm_actor = { has_realm_law = male_preference_law }
+                                scope:ddm_actor.primary_title = { has_title_law = male_preference_law }
+                            }
+                            is_female = yes
+                        }
+                        scope:ddm_actor = { NOT = { any_child = { is_male = yes ddm_is_eligible_partition_recipient_trigger = yes } } }
+                    }
+                    trigger_if = {
+                        limit = {
+                            OR = {
+                                scope:ddm_actor = { has_realm_law = female_preference_law }
+                                scope:ddm_actor.primary_title = { has_title_law = female_preference_law }
+                            }
+                            is_male = yes
+                        }
+                        scope:ddm_actor = { NOT = { any_child = { is_female = yes ddm_is_eligible_partition_recipient_trigger = yes } } }
+                    }
+                }
+                add_character_flag = ddm_partition_settlement_pool
+                scope:ddm_actor = { change_variable = { name = ddm_partition_pool_count add = 1 } }
+            }
+        }
+
+        # Policy 2: literal current succession. Deduplicate title current heirs.
+        else_if = {
+            limit = { var:ddm_succession_policy = 2 }
+            every_held_title = {
+                limit = { tier >= tier_county exists = current_heir }
+                current_heir = {
+                    if = {
+                        limit = {
+                            ddm_is_eligible_partition_recipient_trigger = yes
+                            NOT = { has_character_flag = ddm_partition_settlement_pool }
+                        }
+                        add_character_flag = ddm_partition_settlement_pool
+                        scope:ddm_actor = { change_variable = { name = ddm_partition_pool_count add = 1 } }
+                    }
+                }
+            }
+        }
+
+        # Unusual representation/succession fallback.
+        if = {
+            limit = { var:ddm_partition_pool_count = 0 }
+            every_heir = {
+                limit = {
+                    ddm_is_eligible_partition_recipient_trigger = yes
+                    NOT = { has_character_flag = ddm_partition_settlement_pool }
+                }
+                add_character_flag = ddm_partition_settlement_pool
+                scope:ddm_actor = { change_variable = { name = ddm_partition_pool_count add = 1 } }
+            }
+        }
+    }
+}
+
+# Prepare a mass land-grant run. The family-regard cache is refreshed before
+# ranking begins, then a per-batch grant counter discourages repeatedly enriching
+# the same branch unless merit, succession, or de-jure continuity still wins.
+ddm_prepare_land_distribution_batch_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    # Clean all temporary per-batch fairness state first.
+    dynasty = {
+        every_dynasty_member = {
+            limit = { is_alive = yes }
+            remove_variable = ddm_batch_land_grants
+        }
+    }
+    every_vassal_or_below = { remove_variable = ddm_batch_land_grants }
+
+    ddm_build_partition_settlement_pool_effect = yes
+    set_variable = { name = ddm_last_partition_heirs_available value = var:ddm_partition_pool_count }
+    ddm_refresh_all_dynasty_regard_effect = yes
+}
+
+ddm_clear_land_distribution_batch_effect = {
+    # Temporary candidate markers must never leak into a later ruler/batch.
+    save_scope_as = ddm_actor
+    dynasty = {
+        every_dynasty_member = {
+            remove_character_flag = ddm_partition_settlement_pool
+        }
+    }
+}
+
+# Direct scripted title changes bypass the special Grant Titles interaction's
+# on_accept block. Reapply the vanilla recipient-opinion modifier for the title
+# tier and record this recipient for fairness within the current mass-grant run.
+ddm_apply_grant_social_effect = {
+    # Run from actor with scope:ddm_recipient and scope:ddm_title saved.
+    if = {
+        limit = { exists = scope:ddm_recipient exists = scope:ddm_title }
+        scope:ddm_recipient = {
+            if = {
+                limit = { scope:ddm_title = { tier = tier_barony } }
+                hidden_effect = { add_opinion = { target = scope:ddm_actor modifier = received_title_barony } }
+            }
+            else_if = {
+                limit = { scope:ddm_title.tier = tier_county }
+                hidden_effect = { add_opinion = { target = scope:ddm_actor modifier = received_title_county } }
+            }
+            else_if = {
+                limit = { scope:ddm_title.tier = tier_duchy }
+                hidden_effect = { add_opinion = { target = scope:ddm_actor modifier = received_title_duchy } }
+            }
+            else_if = {
+                limit = { scope:ddm_title.tier = tier_kingdom }
+                hidden_effect = { add_opinion = { target = scope:ddm_actor modifier = received_title_kingdom } }
+            }
+            else_if = {
+                limit = { scope:ddm_title.tier = tier_empire }
+                hidden_effect = { add_opinion = { target = scope:ddm_actor modifier = received_title_empire } }
+            }
+            if = { limit = { NOT = { has_variable = ddm_batch_land_grants } } set_variable = { name = ddm_batch_land_grants value = 0 } }
+            change_variable = { name = ddm_batch_land_grants add = 1 }
+        }
+    }
+}
+
+
+# ---------- explicit protected-domain core ----------
+
+# Non-initializing worker. Keep this separate from the public wrapper so settings
+# migration may build the first adaptive recommendation without recursively calling
+# ddm_initialize_settings_effect. Scripted effects are macro-like; cyclic calls are
+# invalid even when an in-script variable would appear to stop a second runtime pass.
+ddm_refresh_adaptive_domain_core_internal_effect = {
+    # adaptive marks are a RECOMMENDATION, not a hard lock. The distributor
+    # only hard-protects the capital and titles explicitly marked ddm_manual_core.
+    # This lets the optimizer shed exactly the surplus instead of accidentally
+    # turning its own recommendation into an impossible blocker.
+    save_scope_as = ddm_actor
+
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony title_province = { is_county_capital = no } }
+            }
+        }
+        remove_variable = ddm_auto_core
+    }
+
+    if = {
+        limit = { domain_limit > 0 }
+        ordered_held_title = {
+            limit = {
+                OR = {
+                    tier = tier_county
+                    AND = { tier = tier_barony title_province = { is_county_capital = no } }
+                }
+                NOT = { has_variable = ddm_manual_shed }
+            }
+            order_by = ddm_holding_retention_priority
+            max = ddm_core_last_index
+            check_range_bounds = no
+            set_variable = ddm_auto_core
+        }
+    }
+}
+
+ddm_refresh_adaptive_domain_core_effect = {
+    ddm_initialize_settings_effect = yes
+    ddm_refresh_adaptive_domain_core_internal_effect = yes
+}
+
+ddm_lock_recommended_domain_core_effect = {
+    # Freeze the current adaptive recommendation. Only the top domain_limit
+    # holdings are locked, so using this while above the limit does not accidentally
+    # protect the whole over-limit domain.
+    set_variable = { name = ddm_domain_core_mode value = 1 }
+    ddm_refresh_adaptive_domain_core_effect = yes
+    every_held_title = {
+        limit = { has_variable = ddm_manual_core }
+        remove_variable = ddm_manual_core
+    }
+    every_held_title = {
+        limit = { has_variable = ddm_auto_core }
+        set_variable = ddm_manual_core
+        remove_variable = ddm_manual_shed
+        remove_variable = ddm_manual_neutral
+        remove_variable = ddm_auto_core
+    }
+    set_variable = { name = ddm_domain_core_mode value = 2 }
+}
+
+ddm_use_adaptive_domain_core_effect = {
+    # Flexible mode preserves explicit player locks. It merely refreshes the
+    # recommended core used for preview and ranking.
+    set_variable = { name = ddm_domain_core_mode value = 1 }
+    ddm_refresh_adaptive_domain_core_effect = yes
+}
+
+ddm_clear_manual_domain_core_effect = {
+    every_held_title = { remove_variable = ddm_manual_core }
+    set_variable = { name = ddm_domain_core_mode value = 1 }
+    ddm_refresh_adaptive_domain_core_effect = yes
+}
+
+# Additive convenience presets. They never replace existing manual locks.
+ddm_protect_capital_duchy_holdings_effect = {
+    save_scope_as = ddm_actor
+    if = {
+        limit = { exists = capital_county.de_jure_liege }
+        every_held_title = {
+            limit = {
+                tier = tier_county
+                de_jure_liege = scope:ddm_actor.capital_county.de_jure_liege
+            }
+            set_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+        }
+    }
+    set_variable = { name = ddm_domain_core_mode value = 2 }
+    ddm_refresh_adaptive_domain_core_effect = yes
+}
+
+ddm_protect_stationed_maa_holdings_effect = {
+    save_scope_as = ddm_actor
+    every_held_title = {
+        limit = {
+            tier = tier_county
+            title_province = { has_stationed_regiment = yes }
+        }
+        set_variable = ddm_manual_core
+        remove_variable = ddm_manual_shed
+        remove_variable = ddm_manual_neutral
+    }
+    set_variable = { name = ddm_domain_core_mode value = 2 }
+    ddm_refresh_adaptive_domain_core_effect = yes
+}
+
+ddm_clear_manual_shed_effect = {
+    every_held_title = { remove_variable = ddm_manual_shed }
+}
+
+# ---------- player-facing protected-domain wizard ----------
+# The previous versions had title-picker interactions, but the distribution
+# workflow never actually asked the player which holdings to keep. This wizard
+# does. Every personally held county/secondary barony is explicitly classified:
+# KEEP, GIVE AWAY, or LET DDM DECIDE. The capital is always KEEP.
+
+ddm_mark_capital_as_explicit_core_effect = {
+    if = {
+        limit = { exists = capital_county }
+        capital_county = {
+            set_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+        }
+    }
+}
+
+ddm_reset_all_domain_choices_effect = {
+    remove_variable = ddm_domain_plan_limit
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony title_province = { is_county_capital = no } }
+            }
+        }
+        remove_variable = ddm_manual_core
+        remove_variable = ddm_manual_shed
+        remove_variable = ddm_manual_neutral
+    }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    ddm_refresh_adaptive_domain_core_effect = yes
+}
+
+ddm_begin_domain_choice_review_effect = {
+    # persistent review queue. Legacy builds tried to save an
+    # ordered_held_title scope and immediately jump into another event. That
+    # proved brittle in live games. This copies the titles themselves into a
+    # variable list owned by the player so review state remains explicit and durable
+    # pattern, then each review event pulls one concrete title from that list.
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    ddm_mark_capital_as_explicit_core_effect = yes
+    clear_variable_list = ddm_domain_review_queue
+
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+            this != scope:ddm_actor.capital_county
+            NOT = {
+                OR = {
+                    has_variable = ddm_manual_core
+                    has_variable = ddm_manual_shed
+                    has_variable = ddm_manual_neutral
+                }
+            }
+        }
+        scope:ddm_actor = {
+            add_to_variable_list = {
+                name = ddm_domain_review_queue
+                target = prev
+            }
+        }
+    }
+}
+
+ddm_begin_full_domain_choice_review_effect = {
+    # Full reset, then build a persistent title queue. The capital is marked
+    # KEEP automatically; every other domain holding must receive an explicit
+    # player instruction before the surplus distributor is allowed to touch it.
+    ddm_reset_all_domain_choices_effect = yes
+    save_scope_as = ddm_actor
+    clear_variable_list = ddm_domain_review_queue
+
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+            this != scope:ddm_actor.capital_county
+        }
+        scope:ddm_actor = {
+            add_to_variable_list = {
+                name = ddm_domain_review_queue
+                target = prev
+            }
+        }
+    }
+}
+
+ddm_finish_domain_choice_review_effect = {
+    set_variable = { name = ddm_domain_plan_limit value = domain_limit }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    ddm_refresh_adaptive_domain_core_effect = yes
+    ddm_prepare_dashboard_effect = yes
+    set_variable = { name = ddm_protected_domain_target value = var:ddm_dash_manual_core_count }
+    if = { limit = { var:ddm_protected_domain_target < 1 } set_variable = { name = ddm_protected_domain_target value = 1 } }
+}
+
+ddm_classify_all_remaining_domain_as_neutral_effect = {
+    every_in_list = {
+        variable = ddm_domain_review_queue
+        set_variable = ddm_manual_neutral
+        remove_variable = ddm_manual_core
+        remove_variable = ddm_manual_shed
+    }
+    clear_variable_list = ddm_domain_review_queue
+    ddm_finish_domain_choice_review_effect = yes
+}
+
+ddm_classify_all_remaining_domain_as_shed_effect = {
+    every_in_list = {
+        variable = ddm_domain_review_queue
+        set_variable = ddm_manual_shed
+        remove_variable = ddm_manual_core
+        remove_variable = ddm_manual_neutral
+    }
+    clear_variable_list = ddm_domain_review_queue
+    ddm_finish_domain_choice_review_effect = yes
+}
+
+ddm_continue_domain_choice_review_effect = {
+    # Called after one KEEP/GIVE/DELEGATE choice. The current title has already
+    # been removed from ddm_domain_review_queue by the event option.
+    ddm_prepare_dashboard_effect = yes
+
+    # If the player has filled every personal-domain slot with explicit KEEP
+    # choices, everything left in the review queue is necessarily surplus.
+    if = {
+        limit = {
+            domain_size > domain_limit
+            var:ddm_dash_manual_core_count >= domain_limit
+        }
+        every_in_list = {
+            variable = ddm_domain_review_queue
+            set_variable = ddm_manual_shed
+            remove_variable = ddm_manual_core
+            remove_variable = ddm_manual_neutral
+        }
+        clear_variable_list = ddm_domain_review_queue
+        ddm_finish_domain_choice_review_effect = yes
+        trigger_event = ddm_manager.1022
+    }
+    else_if = {
+        limit = {
+            any_in_list = {
+                variable = ddm_domain_review_queue
+                count >= 1
+            }
+        }
+        trigger_event = ddm_manager.1021
+    }
+    else = {
+        ddm_finish_domain_choice_review_effect = yes
+        trigger_event = ddm_manager.1022
+    }
+}
+
+ddm_prepare_dashboard_effect = {
+    ddm_initialize_settings_effect = yes
+    set_variable = { name = ddm_dash_living_dynasty value = 0 }
+    set_variable = { name = ddm_dash_landed_dynasty value = 0 }
+    set_variable = { name = ddm_dash_non_dynasty_rulers value = 0 }
+    set_variable = { name = ddm_dash_protected_people value = 0 }
+    set_variable = { name = ddm_dash_distributable_counties value = 0 }
+    set_variable = { name = ddm_dash_distributable_baronies value = 0 }
+    set_variable = { name = ddm_dash_soft_core_counties value = 0 }
+    set_variable = { name = ddm_dash_stationed_counties value = 0 }
+    set_variable = { name = ddm_dash_safe_county_recipients value = 0 }
+    set_variable = { name = ddm_dash_auto_core_count value = 0 }
+    set_variable = { name = ddm_dash_manual_core_count value = 0 }
+    set_variable = { name = ddm_dash_manual_neutral_count value = 0 }
+    set_variable = { name = ddm_dash_manual_shed_count value = 0 }
+    set_variable = { name = ddm_dash_unclassified_domain_count value = 0 }
+    set_variable = { name = ddm_dash_personal_domain value = domain_size }
+    set_variable = { name = ddm_dash_domain_limit value = domain_limit }
+    set_variable = { name = ddm_dash_vassal_count value = vassal_count }
+    set_variable = { name = ddm_dash_vassal_limit value = vassal_limit }
+    set_variable = { name = ddm_dash_vassal_overage value = 0 }
+    if = {
+        limit = { vassal_count > vassal_limit }
+        set_variable = { name = ddm_dash_vassal_overage value = vassal_count }
+        change_variable = { name = ddm_dash_vassal_overage subtract = vassal_limit }
+    }
+    set_variable = { name = ddm_dash_held_duchies value = 0 }
+    set_variable = { name = ddm_dash_held_kingdoms value = 0 }
+    set_variable = { name = ddm_dash_managed_top_rank value = 0 }
+    set_variable = { name = ddm_dash_top_rank_target value = 0 }
+    save_scope_as = ddm_actor
+    ddm_refresh_adaptive_domain_core_effect = yes
+
+    dynasty = {
+        every_dynasty_member = {
+            limit = { is_alive = yes }
+            scope:ddm_actor = { change_variable = { name = ddm_dash_living_dynasty add = 1 } }
+            if = { limit = { is_landed = yes } scope:ddm_actor = { change_variable = { name = ddm_dash_landed_dynasty add = 1 } } }
+            if = { limit = { has_character_flag = ddm_protected_from_automation } scope:ddm_actor = { change_variable = { name = ddm_dash_protected_people add = 1 } } }
+            if = { limit = { ddm_safe_for_additional_county_trigger = yes } scope:ddm_actor = { change_variable = { name = ddm_dash_safe_county_recipients add = 1 } } }
+        }
+    }
+    every_vassal_or_below = {
+        limit = {
+            is_landed = yes
+            OR = { NOT = { exists = dynasty } dynasty != scope:ddm_actor.dynasty }
+        }
+        scope:ddm_actor = { change_variable = { name = ddm_dash_non_dynasty_rulers add = 1 } }
+    }
+    every_held_title = {
+        if = { limit = { tier = tier_duchy } scope:ddm_actor = { change_variable = { name = ddm_dash_held_duchies add = 1 } } }
+        if = { limit = { tier = tier_kingdom } scope:ddm_actor = { change_variable = { name = ddm_dash_held_kingdoms add = 1 } } }
+        if = { limit = { has_variable = ddm_auto_core } scope:ddm_actor = { change_variable = { name = ddm_dash_auto_core_count add = 1 } } }
+        if = { limit = { has_variable = ddm_manual_core } scope:ddm_actor = { change_variable = { name = ddm_dash_manual_core_count add = 1 } } }
+        if = { limit = { has_variable = ddm_manual_shed } scope:ddm_actor = { change_variable = { name = ddm_dash_manual_shed_count add = 1 } } }
+        if = { limit = { has_variable = ddm_manual_neutral } scope:ddm_actor = { change_variable = { name = ddm_dash_manual_neutral_count add = 1 } } }
+        if = {
+            limit = {
+                OR = {
+                    tier = tier_county
+                    AND = { tier = tier_barony title_province = { is_county_capital = no } }
+                }
+                this != scope:ddm_actor.capital_county
+                NOT = {
+                    OR = {
+                        has_variable = ddm_manual_core
+                        has_variable = ddm_manual_shed
+                        has_variable = ddm_manual_neutral
+                    }
+                }
+            }
+            scope:ddm_actor = { change_variable = { name = ddm_dash_unclassified_domain_count add = 1 } }
+        }
+        if = {
+            limit = { tier = tier_county }
+            if = { limit = { ddm_county_can_be_distributed_trigger = yes } scope:ddm_actor = { change_variable = { name = ddm_dash_distributable_counties add = 1 } } }
+            if = { limit = { ddm_title_is_protected_core_trigger = yes } scope:ddm_actor = { change_variable = { name = ddm_dash_soft_core_counties add = 1 } } }
+            if = { limit = { title_province = { has_stationed_regiment = yes } } scope:ddm_actor = { change_variable = { name = ddm_dash_stationed_counties add = 1 } } }
+        }
+        if = {
+            limit = { ddm_barony_can_be_distributed_trigger = yes }
+            scope:ddm_actor = { change_variable = { name = ddm_dash_distributable_baronies add = 1 } }
+        }
+    }
+
+    dynasty = { save_scope_as = ddm_dash_dynasty }
+    if = {
+        limit = { highest_held_title_tier = tier_empire scope:ddm_dash_dynasty = { has_variable = ddm_managed_kingdom_total } }
+        set_variable = { name = ddm_dash_managed_top_rank value = scope:ddm_dash_dynasty.var:ddm_managed_kingdom_total }
+    }
+    else_if = {
+        limit = { highest_held_title_tier = tier_kingdom scope:ddm_dash_dynasty = { has_variable = ddm_managed_duchy_total } }
+        set_variable = { name = ddm_dash_managed_top_rank value = scope:ddm_dash_dynasty.var:ddm_managed_duchy_total }
+    }
+    if = {
+        limit = { var:ddm_dash_managed_top_rank > 0 }
+        set_variable = { name = ddm_dash_top_rank_target value = var:ddm_dash_managed_top_rank }
+        change_variable = { name = ddm_dash_top_rank_target multiply = 0.4 }
+    }
+    clear_saved_scope = ddm_dash_dynasty
+}
+
+ddm_alliance_policy_allows_recipient_effect = {
+    # Run from actor with scope:ddm_recipient saved. Sets ddm_alliance_allowed when policy permits.
+    remove_variable = ddm_alliance_allowed
+    if = {
+        limit = {
+            exists = scope:ddm_recipient
+            scope:ddm_recipient = { is_alive = yes is_landed = yes this != scope:ddm_actor }
+            var:ddm_alliance_policy > 0
+        }
+        if = {
+            limit = { var:ddm_alliance_policy = 1 }
+            set_variable = { name = ddm_alliance_allowed value = 1 }
+        }
+        else_if = {
+            limit = {
+                var:ddm_alliance_policy = 2
+                scope:ddm_recipient = { exists = liege liege = scope:ddm_actor }
+            }
+            set_variable = { name = ddm_alliance_allowed value = 1 }
+        }
+        else_if = {
+            limit = {
+                var:ddm_alliance_policy = 3
+                scope:ddm_recipient = { highest_held_title_tier >= tier_duchy }
+            }
+            set_variable = { name = ddm_alliance_allowed value = 1 }
+        }
+    }
+}
+
+ddm_make_dynastic_alliance_effect = {
+    # never create alliances inside the grant loop. CK3 surfaces each
+    # create_alliance call as its own relation notification, which made large
+    # settlements unreadable. Mark one post-settlement refresh instead; a single
+    # DDM event fires the following day and performs the configured alliance pass.
+    ddm_alliance_policy_allows_recipient_effect = yes
+    if = {
+        limit = {
+            has_variable = ddm_alliance_allowed
+            scope:ddm_recipient = { exists = dynasty dynasty = scope:ddm_actor.dynasty }
+            NOT = { is_allied_to = scope:ddm_recipient }
+        }
+        set_variable = { name = ddm_alliance_refresh_pending value = 1 }
+    }
+    remove_variable = ddm_alliance_allowed
+    if = { limit = { has_variable = ddm_alliance_refresh_pending } ddm_schedule_post_settlement_alliance_event_effect = yes }
+}
+
+ddm_schedule_post_settlement_alliance_event_effect = {
+    if = {
+        limit = {
+            has_variable = ddm_alliance_refresh_pending
+            NOT = { has_variable = ddm_alliance_event_scheduled }
+        }
+        set_variable = { name = ddm_alliance_event_scheduled value = 1 }
+        if = {
+            limit = { NOT = { has_variable = ddm_ui_processing_settlement } }
+            trigger_event = { id = ddm_manager.0110 days = 1 }
+        }
+    }
+}
+
+ddm_refresh_dynastic_alliances_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    remove_variable = ddm_alliance_refresh_pending
+    remove_variable = ddm_alliance_event_scheduled
+    set_variable = { name = ddm_last_alliances_created value = 0 }
+    every_vassal_or_below = {
+        limit = {
+            is_landed = yes
+            exists = dynasty
+            dynasty = scope:ddm_actor.dynasty
+            NOT = { is_allied_to = scope:ddm_actor }
+        }
+        save_scope_as = ddm_recipient
+        scope:ddm_actor = {
+            ddm_alliance_policy_allows_recipient_effect = yes
+            if = {
+                limit = { has_variable = ddm_alliance_allowed }
+                hidden_effect = {
+                    allow_alliance = scope:ddm_recipient
+                    create_alliance = scope:ddm_recipient
+                }
+                change_variable = { name = ddm_last_alliances_created add = 1 }
+            }
+            remove_variable = ddm_alliance_allowed
+        }
+    }
+}
+
+ddm_grant_barony_to_best_recipient_effect = {
+    # Run from actor. scope:ddm_title must be a non-county-capital barony held by actor.
+    save_scope_as = ddm_actor
+    remove_variable = ddm_found_recipient
+    remove_variable = ddm_grant_success
+
+    dynasty = {
+        ordered_dynasty_member = {
+            limit = {
+                ddm_is_eligible_land_recipient_trigger = yes
+                is_landed = no
+            }
+            order_by = ddm_land_recipient_score
+            position = 0
+            check_range_bounds = no
+            save_scope_as = ddm_recipient
+            scope:ddm_actor = { set_variable = { name = ddm_found_recipient value = 1 } }
+        }
+    }
+    # Conservative score fallback for landless barony recipients.
+    if = {
+        limit = { NOT = { has_variable = ddm_found_recipient } }
+        dynasty = {
+            ordered_dynasty_member = {
+                limit = {
+                    ddm_is_eligible_land_recipient_trigger = yes
+                    is_landed = no
+                }
+                order_by = ddm_land_recipient_failsafe_score
+                position = 0
+                check_range_bounds = no
+                save_scope_as = ddm_recipient
+                scope:ddm_actor = { set_variable = { name = ddm_found_recipient value = 1 } }
+            }
+        }
+    }
+
+    if = {
+        limit = { has_variable = ddm_found_recipient exists = scope:ddm_recipient }
+        create_title_and_vassal_change = { type = granted save_scope_as = ddm_title_change add_claim_on_loss = yes }
+        scope:ddm_title = {
+            change_title_holder = { holder = scope:ddm_recipient change = scope:ddm_title_change government_base = scope:ddm_actor }
+        }
+        resolve_title_and_vassal_change = scope:ddm_title_change
+        scope:ddm_title = {
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+            remove_variable = ddm_auto_core
+        }
+        change_variable = { name = ddm_last_baronies_granted add = 1 }
+        set_variable = { name = ddm_grant_success value = 1 }
+        ddm_apply_grant_social_effect = yes
+        ddm_make_dynastic_alliance_effect = yes
+    }
+    remove_variable = ddm_found_recipient
+}
+
+ddm_grant_county_to_best_recipient_effect = {
+    # Run from actor. scope:ddm_title must be a county held by actor.
+    save_scope_as = ddm_actor
+    remove_variable = ddm_found_recipient
+    remove_variable = ddm_grant_success
+    set_variable = { name = ddm_last_recipient_search_stage value = 0 }
+
+    # Stage 1: under partition balancing/provisioning, choose from the stable
+    # snapshot of CK3's legal heirs. We deliberately use ordered_dynasty_member
+    # here rather than nesting ordered_heir inside a title-grant effect: the old
+    # scope path could count a valid candidate in preview and then fail to save
+    # one during execution. The flag was stamped from the held titles' current heirs.
+    if = {
+        limit = {
+            ddm_actor_uses_partition_trigger = yes
+            var:ddm_succession_policy >= 1
+            var:ddm_last_partition_heirs_available > 0
+        }
+        dynasty = {
+            ordered_dynasty_member = {
+                limit = {
+                    has_character_flag = ddm_partition_settlement_pool
+                    ddm_is_eligible_partition_recipient_trigger = yes
+                }
+                order_by = ddm_land_recipient_score
+                position = 0
+                check_range_bounds = no
+                save_scope_as = ddm_recipient
+                scope:ddm_actor = {
+                    set_variable = { name = ddm_found_recipient value = 1 }
+                    set_variable = { name = ddm_last_recipient_search_stage value = 1 }
+                }
+            }
+        }
+    }
+
+    # Stage 2: if succession planning is off or no legal heir is usable, fall
+    # back to the configured dynasty-wide pool under ordinary power-safety caps.
+    if = {
+        limit = { NOT = { has_variable = ddm_found_recipient } }
+        dynasty = {
+            ordered_dynasty_member = {
+                limit = { ddm_safe_for_additional_county_trigger = yes }
+                order_by = ddm_land_recipient_score
+                position = 0
+                check_range_bounds = no
+                save_scope_as = ddm_recipient
+                scope:ddm_actor = {
+                    set_variable = { name = ddm_found_recipient value = 1 }
+                    set_variable = { name = ddm_last_recipient_search_stage value = 2 }
+                }
+            }
+        }
+    }
+
+    # Stage 3 failsafe: if a full-score ordered iterator ever fails despite the
+    # preview having counted an eligible candidate, select an eligible legal heir
+    # using a deliberately simple, robust merit score. This protects the actual
+    # gameplay action from a malformed exotic scoring input while still preferring
+    # traits/education/skills/family regard and repeated-grant fairness.
+    if = {
+        limit = {
+            NOT = { has_variable = ddm_found_recipient }
+            var:ddm_last_partition_heirs_available > 0
+        }
+        dynasty = {
+            ordered_dynasty_member = {
+                limit = {
+                    has_character_flag = ddm_partition_settlement_pool
+                    ddm_is_eligible_partition_recipient_trigger = yes
+                }
+                order_by = ddm_land_recipient_failsafe_score
+                position = 0
+                check_range_bounds = no
+                save_scope_as = ddm_recipient
+                scope:ddm_actor = {
+                    set_variable = { name = ddm_found_recipient value = 1 }
+                    set_variable = { name = ddm_last_recipient_search_stage value = 3 }
+                }
+            }
+        }
+    }
+
+    # Stage 4: generic conservative fallback. This catches the non-partition or
+    # exotic-succession case where the full score itself cannot be evaluated for
+    # a candidate. It still obeys ordinary vassal-power safety; only the score is
+    # simplified.
+    if = {
+        limit = { NOT = { has_variable = ddm_found_recipient } }
+        dynasty = {
+            ordered_dynasty_member = {
+                limit = { ddm_safe_for_additional_county_trigger = yes }
+                order_by = ddm_land_recipient_failsafe_score
+                position = 0
+                check_range_bounds = no
+                save_scope_as = ddm_recipient
+                scope:ddm_actor = {
+                    set_variable = { name = ddm_found_recipient value = 1 }
+                    set_variable = { name = ddm_last_recipient_search_stage value = 4 }
+                }
+            }
+        }
+    }
+
+    if = {
+        limit = { has_variable = ddm_found_recipient exists = scope:ddm_recipient }
+        create_title_and_vassal_change = { type = granted save_scope_as = ddm_title_change add_claim_on_loss = yes }
+        scope:ddm_title = {
+            change_title_holder = { holder = scope:ddm_recipient change = scope:ddm_title_change government_base = scope:ddm_actor }
+        }
+        resolve_title_and_vassal_change = scope:ddm_title_change
+        scope:ddm_title = {
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+            remove_variable = ddm_auto_core
+        }
+        change_variable = { name = ddm_last_counties_granted add = 1 }
+        set_variable = { name = ddm_grant_success value = 1 }
+        ddm_apply_grant_social_effect = yes
+        ddm_make_dynastic_alliance_effect = yes
+
+        # A new count goes under the existing de jure dynasty duke when possible.
+        if = {
+            limit = {
+                scope:ddm_recipient = { highest_held_title_tier = tier_county }
+                exists = scope:ddm_title.de_jure_liege.holder
+                scope:ddm_title.de_jure_liege.holder = {
+                    this != scope:ddm_actor
+                    exists = dynasty
+                    dynasty = scope:ddm_actor.dynasty
+                    highest_held_title_tier >= tier_duchy
+                    is_vassal_or_below_of = scope:ddm_actor
+                }
+            }
+            create_title_and_vassal_change = { type = granted save_scope_as = ddm_vassal_change add_claim_on_loss = yes }
+            scope:ddm_recipient = { change_liege = { liege = scope:ddm_title.de_jure_liege.holder change = scope:ddm_vassal_change } }
+            resolve_title_and_vassal_change = scope:ddm_vassal_change
+        }
+    }
+    remove_variable = ddm_found_recipient
+}
+
+
+# ============================================================
+# v1.8 list-driven grant engine
+# ------------------------------------------------------------
+# Grant engine invariant: build concrete lists first, process one item per while-loop
+# iteration, and remove the processed title from the list. Recipient selection
+# is also list-based; if ordered scoring ever fails, random_in_list still gives
+# the operation a safe functional fallback instead of silently granting zero.
+# ============================================================
+
+ddm_v18_build_recipient_lists_effect = {
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_last_partition_heirs_available value = 0 }
+    set_variable = { name = ddm_last_general_recipients_available value = 0 }
+
+    # Ordinary dynasty pool. This retains vanilla's broad Grant Titles gate.
+    # Succession does not replace this pool; separately tracked heirs exist only
+    # for score modifiers and the narrow vanilla grant-gate bypass.
+    dynasty = {
+        every_dynasty_member = {
+            limit = { ddm_is_eligible_land_recipient_trigger = yes }
+            add_to_temporary_list = ddm_v18_recipient_pool
+            scope:ddm_actor = { change_variable = { name = ddm_last_general_recipients_available add = 1 } }
+        }
+    }
+
+    # Optional non-dynastic pool. Courtiers and existing vassals are merged into
+    # one concrete list. The transient marker prevents a landed courtier/vassal
+    # from being inserted twice by overlapping iterators.
+    every_courtier = { remove_character_flag = ddm_recipient_listed_this_pass }
+    every_vassal_or_below = { remove_character_flag = ddm_recipient_listed_this_pass }
+
+    if = {
+        limit = { var:ddm_outsider_recipient_mode = 1 }
+        every_courtier = {
+            limit = {
+                ddm_is_eligible_outsider_recipient_trigger = yes
+                has_variable = ddm_outsider_favored_for_land
+                NOT = { has_character_flag = ddm_recipient_listed_this_pass }
+            }
+            add_character_flag = ddm_recipient_listed_this_pass
+            add_to_temporary_list = ddm_v18_recipient_pool
+            scope:ddm_actor = { change_variable = { name = ddm_last_general_recipients_available add = 1 } }
+        }
+        every_vassal_or_below = {
+            limit = {
+                ddm_is_eligible_outsider_recipient_trigger = yes
+                has_variable = ddm_outsider_favored_for_land
+                NOT = { has_character_flag = ddm_recipient_listed_this_pass }
+            }
+            add_character_flag = ddm_recipient_listed_this_pass
+            add_to_temporary_list = ddm_v18_recipient_pool
+            scope:ddm_actor = { change_variable = { name = ddm_last_general_recipients_available add = 1 } }
+        }
+    }
+    else_if = {
+        limit = { var:ddm_outsider_recipient_mode = 2 }
+        every_courtier = {
+            limit = { ddm_is_eligible_outsider_recipient_trigger = yes NOT = { has_character_flag = ddm_recipient_listed_this_pass } }
+            add_character_flag = ddm_recipient_listed_this_pass
+            add_to_temporary_list = ddm_v18_recipient_pool
+            scope:ddm_actor = { change_variable = { name = ddm_last_general_recipients_available add = 1 } }
+        }
+        every_vassal_or_below = {
+            limit = { ddm_is_eligible_outsider_recipient_trigger = yes NOT = { has_character_flag = ddm_recipient_listed_this_pass } }
+            add_character_flag = ddm_recipient_listed_this_pass
+            add_to_temporary_list = ddm_v18_recipient_pool
+            scope:ddm_actor = { change_variable = { name = ddm_last_general_recipients_available add = 1 } }
+        }
+    }
+
+    if = {
+        limit = { ddm_actor_uses_partition_trigger = yes }
+
+        # Track direct legal children for inheritance context and the narrow
+        # vanilla grant-gate bypass. This is never the main allocation universe.
+        if = {
+            limit = { OR = { var:ddm_succession_policy = 1 var:ddm_succession_policy = 3 } }
+            every_child = {
+                limit = {
+                    ddm_is_eligible_partition_recipient_trigger = yes
+
+                    # Under preference laws, the non-preferred sex enters only if
+                    # no otherwise-eligible child of the preferred sex exists.
+                    trigger_if = {
+                        limit = {
+                            NOR = {
+                                scope:ddm_actor = { has_realm_law = male_only_law }
+                                scope:ddm_actor.primary_title = { has_title_law = male_only_law }
+                                scope:ddm_actor = { has_realm_law = female_only_law }
+                                scope:ddm_actor.primary_title = { has_title_law = female_only_law }
+                            }
+                            OR = {
+                                scope:ddm_actor = { has_realm_law = male_preference_law }
+                                scope:ddm_actor.primary_title = { has_title_law = male_preference_law }
+                            }
+                            is_female = yes
+                        }
+                        scope:ddm_actor = {
+                            NOT = { any_child = { is_male = yes ddm_is_eligible_partition_recipient_trigger = yes } }
+                        }
+                    }
+                    trigger_if = {
+                        limit = {
+                            NOR = {
+                                scope:ddm_actor = { has_realm_law = male_only_law }
+                                scope:ddm_actor.primary_title = { has_title_law = male_only_law }
+                                scope:ddm_actor = { has_realm_law = female_only_law }
+                                scope:ddm_actor.primary_title = { has_title_law = female_only_law }
+                            }
+                            OR = {
+                                scope:ddm_actor = { has_realm_law = female_preference_law }
+                                scope:ddm_actor.primary_title = { has_title_law = female_preference_law }
+                            }
+                            is_male = yes
+                        }
+                        scope:ddm_actor = {
+                            NOT = { any_child = { is_female = yes ddm_is_eligible_partition_recipient_trigger = yes } }
+                        }
+                    }
+                }
+                add_character_flag = ddm_partition_settlement_pool
+                add_to_temporary_list = ddm_v18_partition_pool
+                scope:ddm_actor = { change_variable = { name = ddm_last_partition_heirs_available add = 1 } }
+            }
+        }
+
+        # Policy 2: Respect Current Heir. Track each held title's current_heir so
+        # that character can receive the modest title-specific legitimacy bonus.
+        else_if = {
+            limit = { var:ddm_succession_policy = 2 }
+            every_held_title = {
+                limit = { tier >= tier_county exists = current_heir }
+                current_heir = {
+                    if = {
+                        limit = {
+                            ddm_is_eligible_partition_recipient_trigger = yes
+                            NOT = { has_character_flag = ddm_partition_settlement_pool }
+                        }
+                        add_character_flag = ddm_partition_settlement_pool
+                        add_to_temporary_list = ddm_v18_partition_pool
+                        scope:ddm_actor = { change_variable = { name = ddm_last_partition_heirs_available add = 1 } }
+                    }
+                }
+            }
+        }
+
+        # Representation/unusual succession fallback.
+        if = {
+            limit = { var:ddm_last_partition_heirs_available = 0 }
+            every_heir = {
+                limit = { ddm_is_eligible_partition_recipient_trigger = yes }
+                add_character_flag = ddm_partition_settlement_pool
+                add_to_temporary_list = ddm_v18_partition_pool
+                scope:ddm_actor = { change_variable = { name = ddm_last_partition_heirs_available add = 1 } }
+            }
+        }
+    }
+
+    # Family regard is refreshed for both pools because a legal partition child
+    # may intentionally bypass the ordinary vanilla-recipient gate.
+    every_in_list = { list = ddm_v18_recipient_pool ddm_refresh_one_subject_regard_effect = yes }
+    every_in_list = { list = ddm_v18_partition_pool ddm_refresh_one_subject_regard_effect = yes }
+    every_courtier = { remove_character_flag = ddm_recipient_listed_this_pass }
+    every_vassal_or_below = { remove_character_flag = ddm_recipient_listed_this_pass }
+}
+
+ddm_v18_build_surplus_title_list_effect = {
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_last_titles_queued value = 0 }
+
+    every_held_title = {
+        limit = {
+            tier <= tier_empire
+            ddm_title_not_faith_protected_trigger = yes
+            OR = {
+                AND = {
+                    tier = tier_barony
+                    is_capital_barony = no
+                    ddm_barony_can_be_distributed_trigger = yes
+                }
+                AND = {
+                    tier = tier_county
+                    is_titular = no
+                    ddm_county_can_be_distributed_trigger = yes
+                }
+            }
+        }
+        save_scope_as = ddm_v18_pool_title
+        add_to_temporary_list = ddm_v18_surplus_titles
+        scope:ddm_actor = {
+            change_variable = { name = ddm_last_titles_queued add = 1 }
+        }
+    }
+}
+
+# ---------------------------------------------------------------------------
+# Dynasty-wide rightful-ruler ranking pass (v1.10)
+# ---------------------------------------------------------------------------
+# Ranks the entire eligible dynasty by perceived legitimacy. No bottom-quarter
+# cut and no per-person quota: each title is rescored against live territorial
+# and power state when it is actually placed.
+ddm_rank_dynasty_effect = {
+    save_scope_as = ddm_actor
+    ddm_refresh_all_dynasty_regard_effect = yes
+
+    dynasty = {
+        every_dynasty_member = {
+            limit = { is_alive = yes }
+            remove_variable = ddm_rank
+            remove_variable = ddm_rank_quota
+            remove_character_flag = ddm_rightful_pool
+        }
+    }
+    every_courtier = { remove_character_flag = ddm_rightful_pool }
+    every_vassal_or_below = { remove_character_flag = ddm_rightful_pool }
+
+    # every eligible dynast is ranked. No bottom-quarter purge.
+    set_variable = { name = ddm_ranked_total value = 0 }
+    dynasty = {
+        every_dynasty_member = {
+            limit = {
+                is_alive = yes
+                this != scope:ddm_actor
+                ddm_is_rankable_dynast_trigger = yes
+            }
+            scope:ddm_actor = { change_variable = { name = ddm_ranked_total add = 1 } }
+        }
+    }
+    set_variable = { name = ddm_ranked_kept value = var:ddm_ranked_total }
+
+    set_variable = { name = ddm_rank_cursor value = 0 }
+    while = {
+        limit = { var:ddm_rank_cursor < var:ddm_ranked_total }
+        change_variable = { name = ddm_rank_cursor add = 1 }
+        remove_variable = ddm_rank_assigned
+        dynasty = {
+            ordered_dynasty_member = {
+                limit = {
+                    is_alive = yes
+                    this != scope:ddm_actor
+                    ddm_is_rankable_dynast_trigger = yes
+                    NOT = { has_variable = ddm_rank }
+                }
+                order_by = ddm_rightful_ruler_value
+                position = 0
+                check_range_bounds = no
+                set_variable = { name = ddm_rank value = scope:ddm_actor.var:ddm_rank_cursor }
+                add_character_flag = ddm_rightful_pool
+                scope:ddm_actor = { set_variable = { name = ddm_rank_assigned value = 1 } }
+            }
+        }
+        break_if = { NOT = { has_variable = ddm_rank_assigned } }
+    }
+
+    set_variable = { name = ddm_ranked_kept value = var:ddm_rank_cursor }
+
+    # Non-dynasty candidates do not receive a dynastic rank number, but they do
+    # enter the same rightful pool so title-specific scoring and hierarchy can
+    # compare them directly with dynasts.
+    every_in_list = {
+        list = ddm_v18_recipient_pool
+        limit = { OR = { NOT = { exists = dynasty } dynasty != scope:ddm_actor.dynasty } }
+        add_character_flag = ddm_rightful_pool
+    }
+
+    remove_variable = ddm_rank_cursor
+    remove_variable = ddm_rank_assigned
+}
+
+ddm_clear_dynasty_ranking_effect = {
+    dynasty = {
+        every_dynasty_member = {
+            limit = { is_alive = yes }
+            remove_variable = ddm_rank
+            remove_variable = ddm_rank_quota
+            remove_character_flag = ddm_rightful_pool
+        }
+    }
+    every_courtier = {
+        remove_variable = ddm_rank
+        remove_variable = ddm_rank_quota
+        remove_character_flag = ddm_rightful_pool
+    }
+    every_vassal_or_below = {
+        remove_variable = ddm_rank
+        remove_variable = ddm_rank_quota
+        remove_character_flag = ddm_rightful_pool
+    }
+    remove_variable = ddm_ranked_total
+    remove_variable = ddm_ranked_kept
+    remove_variable = ddm_rank_weight_total
+    remove_variable = ddm_rank_fair_cap
+}
+
+ddm_v18_choose_recipient_effect = {
+    remove_variable = ddm_found_recipient
+    set_variable = { name = ddm_last_recipient_search_stage value = 0 }
+
+    # A direct title reservation is processed before every scored path. It is an
+    # explicit one-title instruction, so it may name a legal dynast, courtier or
+    # existing vassal even when the broad recipient policy is Dynasty Only.
+    if = {
+        limit = {
+            exists = scope:ddm_title
+            scope:ddm_title = {
+                exists = var:ddm_reserved_recipient
+                var:ddm_reserved_recipient = { ddm_is_eligible_manual_reservation_recipient_trigger = yes }
+            }
+        }
+        scope:ddm_title = { var:ddm_reserved_recipient = { save_scope_as = ddm_recipient } }
+        set_variable = { name = ddm_found_recipient value = 1 }
+        set_variable = { name = ddm_last_recipient_search_stage value = 1 }
+    }
+    else_if = {
+        limit = { exists = scope:ddm_title scope:ddm_title = { exists = var:ddm_reserved_recipient } }
+        # Stale reservations should never strand settlement. If the named person
+        # is dead, has left court/realm, or is no longer a legal grantee, clear
+        # the stale instruction and continue through ordinary scoring.
+        scope:ddm_title = { remove_variable = ddm_reserved_recipient }
+    }
+
+    # Primary path: rank the complete active recipient pool for THIS title. The
+    # score is recalculated after every grant, so territorial state and the
+    # player's selected-outsider first-pass priorities update immediately.
+    if = {
+        limit = { NOT = { has_variable = ddm_found_recipient } any_in_list = { list = ddm_v18_recipient_pool count >= 1 } }
+        ordered_in_list = {
+            list = ddm_v18_recipient_pool
+            limit = { ddm_rank_quota_remaining_trigger = yes }
+            order_by = ddm_rightful_title_recipient_value
+            position = 0
+            check_range_bounds = no
+            save_scope_as = ddm_recipient
+            scope:ddm_actor = {
+                set_variable = { name = ddm_found_recipient value = 1 }
+                set_variable = { name = ddm_last_recipient_search_stage value = 5 }
+            }
+        }
+    }
+
+    # Conservative whole-dynasty legal fallback.
+    if = {
+        limit = { NOT = { has_variable = ddm_found_recipient } }
+        ordered_in_list = {
+            list = ddm_v18_recipient_pool
+            limit = {
+                trigger_if = {
+                    limit = { scope:ddm_title = { tier = tier_county } }
+                    ddm_safe_for_additional_county_trigger = yes
+                }
+                trigger_if = {
+                    limit = { scope:ddm_title = { tier = tier_barony } }
+                    ddm_is_eligible_active_recipient_trigger = yes
+                }
+            }
+            order_by = ddm_rightful_title_recipient_value
+            position = 0
+            check_range_bounds = no
+            save_scope_as = ddm_recipient
+            scope:ddm_actor = {
+                set_variable = { name = ddm_found_recipient value = 1 }
+                set_variable = { name = ddm_last_recipient_search_stage value = 2 }
+            }
+        }
+    }
+
+    # Partition bypass comes LAST. It exists only for heirs hidden by vanilla's
+    # grant-interaction restriction; it never turns succession into the pool.
+    if = {
+        limit = {
+            NOT = { has_variable = ddm_found_recipient }
+            any_in_list = { list = ddm_v18_partition_pool count >= 1 }
+        }
+        ordered_in_list = {
+            list = ddm_v18_partition_pool
+            limit = { ddm_safe_partition_candidate_trigger = yes }
+            order_by = ddm_rightful_title_recipient_value
+            position = 0
+            check_range_bounds = no
+            save_scope_as = ddm_recipient
+            scope:ddm_actor = {
+                set_variable = { name = ddm_found_recipient value = 1 }
+                set_variable = { name = ddm_last_recipient_search_stage value = 3 }
+            }
+        }
+    }
+
+    # Mechanical last resort from the already validated dynasty pool.
+    if = {
+        limit = { NOT = { has_variable = ddm_found_recipient } }
+        random_in_list = {
+            list = ddm_v18_recipient_pool
+            limit = {
+                trigger_if = {
+                    limit = { scope:ddm_title = { tier = tier_county } }
+                    ddm_safe_for_additional_county_trigger = yes
+                }
+                trigger_if = {
+                    limit = { scope:ddm_title = { tier = tier_barony } }
+                    ddm_is_eligible_active_recipient_trigger = yes
+                }
+            }
+            save_scope_as = ddm_recipient
+            scope:ddm_actor = {
+                set_variable = { name = ddm_found_recipient value = 1 }
+                set_variable = { name = ddm_last_recipient_search_stage value = 4 }
+            }
+        }
+    }
+}
+
+ddm_v18_transfer_selected_title_effect = {
+    # Run from actor with scope:ddm_title and scope:ddm_recipient saved.
+    remove_variable = ddm_grant_success
+
+    if = {
+        limit = {
+            exists = scope:ddm_title
+            exists = scope:ddm_recipient
+            scope:ddm_title = { holder = scope:ddm_actor }
+        }
+
+        # Three-step transfer, aligned with the two single-grant helper paths
+        # in this same file (ddm_grant_barony_to_best_recipient_effect and
+        # ddm_grant_county_to_best_recipient_effect):
+        #   * create and resolve run in ACTOR scope, not landed_title scope;
+        #   * only change_title_holder runs inside scope:ddm_title;
+        #   * government_base is supplied, which tribal realms require;
+        #   * the saved change scope is cleared before every reuse, since this
+        #     runs in a loop and the previous iteration's change is resolved.
+        clear_saved_scope = ddm_v18_title_change
+        create_title_and_vassal_change = {
+            type = granted
+            save_scope_as = ddm_v18_title_change
+            add_claim_on_loss = yes
+        }
+        scope:ddm_title = {
+            change_title_holder = {
+                holder = scope:ddm_recipient
+                change = scope:ddm_v18_title_change
+                government_base = scope:ddm_actor
+            }
+        }
+        resolve_title_and_vassal_change = scope:ddm_v18_title_change
+
+        # Do not claim success merely because the effect was attempted. Verify
+        # the holder actually changed. If CK3 rejects the transfer for an exotic
+        # title/government edge case, the outer loop will stop and report a
+        # mechanical stall instead of pretending it distributed land.
+        if = {
+            limit = {
+                scope:ddm_title = { holder = scope:ddm_recipient }
+            }
+
+            # If the new holder did not automatically become a vassal below the
+            # actor, perform a separate liege-change transaction.
+            if = {
+                limit = {
+                    scope:ddm_recipient = {
+                        is_landed = yes
+                        NOT = { is_vassal_or_below_of = scope:ddm_actor }
+                        highest_held_title_tier < scope:ddm_actor.highest_held_title_tier
+                    }
+                }
+                clear_saved_scope = ddm_v18_liege_change
+                create_title_and_vassal_change = {
+                    type = granted
+                    save_scope_as = ddm_v18_liege_change
+                    add_claim_on_loss = yes
+                }
+                scope:ddm_recipient = {
+                    change_liege = {
+                        liege = scope:ddm_actor
+                        change = scope:ddm_v18_liege_change
+                    }
+                }
+                resolve_title_and_vassal_change = scope:ddm_v18_liege_change
+            }
+
+            scope:ddm_title = {
+                remove_variable = ddm_manual_shed
+                remove_variable = ddm_manual_neutral
+                remove_variable = ddm_auto_core
+                remove_variable = ddm_reserved_recipient
+            }
+
+            if = {
+                limit = { scope:ddm_title = { tier = tier_barony } }
+                change_variable = { name = ddm_last_baronies_granted add = 1 }
+            }
+            else_if = {
+                limit = { scope:ddm_title = { tier = tier_county } }
+                change_variable = { name = ddm_last_counties_granted add = 1 }
+            }
+
+            set_variable = { name = ddm_grant_success value = 1 }
+            ddm_apply_grant_social_effect = yes
+            ddm_make_dynastic_alliance_effect = yes
+        }
+    }
+}
+
+ddm_distribute_surplus_counties_effect = {
+    # Operational grant path:
+    #
+    # The critical invariants are:
+    #   * all target titles are copied into a concrete TEMPORARY list first;
+    #   * one title is selected per while iteration;
+    #   * one recipient is selected while that title scope is saved;
+    #   * a successful transfer removes that exact title from the list;
+    #   * a failed transfer breaks immediately instead of silently looping.
+    #
+    # Partition, merit, family regard, personality and fairness are layered on
+    # top of this deliberately conservative transfer loop.
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    clear_saved_scope = ddm_title
+    clear_saved_scope = ddm_recipient
+
+    ddm_refresh_adaptive_domain_core_effect = yes
+
+    dynasty = {
+        every_dynasty_member = {
+            limit = { is_alive = yes }
+            remove_variable = ddm_batch_land_grants
+            remove_character_flag = ddm_partition_settlement_pool
+        }
+    }
+    every_courtier = { remove_variable = ddm_batch_land_grants }
+    every_vassal_or_below = { remove_variable = ddm_batch_land_grants }
+
+    set_variable = { name = ddm_last_baronies_granted value = 0 }
+    set_variable = { name = ddm_last_counties_granted value = 0 }
+    set_variable = { name = ddm_last_titles_left value = 0 }
+    set_variable = { name = ddm_last_baronies_left value = 0 }
+    set_variable = { name = ddm_last_distribution_stalled value = 0 }
+    set_variable = { name = ddm_last_recipient_search_stage value = 0 }
+    set_variable = { name = ddm_last_distribution_start_surplus value = domain_size }
+    change_variable = { name = ddm_last_distribution_start_surplus subtract = var:ddm_protected_domain_target }
+    if = {
+        limit = { var:ddm_last_distribution_start_surplus < 0 }
+        set_variable = { name = ddm_last_distribution_start_surplus value = 0 }
+    }
+
+    # These effects populate temporary lists in the SAME unbroken effect chain.
+    ddm_v18_build_recipient_lists_effect = yes
+    ddm_v18_build_surplus_title_list_effect = yes
+
+    # Rank the entire eligible dynasty before any title moves. the current model has no
+    # artificial 15% cap or equal-share quota; concentration is controlled by
+    # live domain/power state and title-specific rightfulness.
+    ddm_rank_dynasty_effect = yes
+
+    remove_variable = ddm_v18_loop_exhausted
+
+    while = {
+        limit = {
+            ddm_above_protected_domain_target_trigger = yes
+            any_in_list = {
+                list = ddm_v18_surplus_titles
+                count >= 1
+            }
+        }
+
+        remove_variable = ddm_grant_success
+        remove_variable = ddm_found_title
+        remove_variable = ddm_found_recipient
+        clear_saved_scope = ddm_title
+        clear_saved_scope = ddm_recipient
+
+        # Prefer the player's explicit GIVE AWAY orders, then secondary baronies,
+        # then the least valuable delegated county.
+        ordered_in_list = {
+            list = ddm_v18_surplus_titles
+            limit = {
+                holder = scope:ddm_actor
+                OR = {
+                    AND = {
+                        tier = tier_barony
+                        is_capital_barony = no
+                        ddm_barony_can_be_distributed_trigger = yes
+                    }
+                    AND = {
+                        tier = tier_county
+                        is_titular = no
+                        ddm_county_can_be_distributed_trigger = yes
+                    }
+                }
+            }
+            order_by = ddm_v18_title_shed_priority
+            position = 0
+            check_range_bounds = no
+            save_scope_as = ddm_title
+            scope:ddm_actor = { set_variable = { name = ddm_found_title value = 1 } }
+        }
+
+        # Mechanical fallback: if weighted ordering returns nothing, take a
+        # literal member of the already validated list.
+        if = {
+            limit = { NOT = { has_variable = ddm_found_title } }
+            random_in_list = {
+                list = ddm_v18_surplus_titles
+                limit = {
+                    holder = scope:ddm_actor
+                    OR = {
+                        AND = {
+                            tier = tier_barony
+                            is_capital_barony = no
+                            ddm_barony_can_be_distributed_trigger = yes
+                        }
+                        AND = {
+                            tier = tier_county
+                            is_titular = no
+                            ddm_county_can_be_distributed_trigger = yes
+                        }
+                    }
+                }
+                save_scope_as = ddm_title
+                scope:ddm_actor = { set_variable = { name = ddm_found_title value = 1 } }
+            }
+        }
+
+        if = {
+            limit = {
+                has_variable = ddm_found_title
+                exists = scope:ddm_title
+            }
+            ddm_v18_choose_recipient_effect = yes
+        }
+
+        if = {
+            limit = {
+                has_variable = ddm_found_recipient
+                exists = scope:ddm_recipient
+                exists = scope:ddm_title
+            }
+            ddm_v18_transfer_selected_title_effect = yes
+        }
+
+        if = {
+            limit = { has_variable = ddm_grant_success }
+            # remove_from_list removes CURRENT scope, so deliberately switch
+            # back to the exact title that was just transferred.
+            scope:ddm_title = {
+                remove_from_list = ddm_v18_surplus_titles
+            }
+        }
+        else = {
+            set_variable = { name = ddm_last_distribution_stalled value = 1 }
+            # A title that could not be placed this iteration is retired from the
+            # queue so the run continues with the next title instead of aborting
+            # the whole distribution.
+            if = {
+                limit = {
+                    has_variable = ddm_found_title
+                    exists = scope:ddm_title
+                }
+                scope:ddm_title = {
+                    remove_from_list = ddm_v18_surplus_titles
+                }
+            }
+        }
+
+        # The loop ends only when no title in the queue is selectable at all.
+        # Every path through the body either shrinks ddm_v18_surplus_titles or
+        # raises this flag, so the while has a strictly decreasing measure and
+        # cannot spin. This relaxes the 1.8 chassis invariant "break immediately
+        # if a transfer does not succeed" - see DDM_README.txt.
+        if = {
+            limit = { NOT = { has_variable = ddm_found_title } }
+            set_variable = { name = ddm_v18_loop_exhausted value = 1 }
+        }
+
+        break_if = { has_variable = ddm_v18_loop_exhausted }
+    }
+
+    # A transient rejected title is not a stalled settlement if the player still
+    # reached the chosen protected-domain target through other grants.
+    if = { limit = { NOT = { ddm_above_protected_domain_target_trigger = yes } } set_variable = { name = ddm_last_distribution_stalled value = 0 } }
+
+    if = {
+        limit = { ddm_above_protected_domain_target_trigger = yes }
+        every_in_list = {
+            list = ddm_v18_surplus_titles
+            limit = { holder = scope:ddm_actor }
+            if = {
+                limit = { tier = tier_barony }
+                scope:ddm_actor = { change_variable = { name = ddm_last_baronies_left add = 1 } }
+            }
+            else_if = {
+                limit = { tier = tier_county }
+                scope:ddm_actor = { change_variable = { name = ddm_last_titles_left add = 1 } }
+            }
+        }
+    }
+
+    dynasty = {
+        every_dynasty_member = {
+            remove_character_flag = ddm_partition_settlement_pool
+            remove_variable = ddm_batch_land_grants
+        }
+    }
+    every_vassal_or_below = { remove_variable = ddm_batch_land_grants }
+
+    remove_variable = ddm_grant_success
+    remove_variable = ddm_found_title
+    remove_variable = ddm_found_recipient
+    remove_variable = ddm_v18_loop_exhausted
+    remove_variable = ddm_batch_grant_cap
+    ddm_clear_dynasty_ranking_effect = yes
+
+    # "Distribute" is a complete settlement command, not county-only.
+    # Once the personal domain reaches its selected target, place duchies and
+    # kingdoms into the dynastic hierarchy and then queue one alliance event.
+    ddm_organize_dynastic_hierarchy_effect = yes
+    ddm_schedule_post_settlement_alliance_event_effect = yes
+
+    clear_saved_scope = ddm_title
+    clear_saved_scope = ddm_recipient
+    clear_saved_scope = ddm_v18_title_change
+    clear_saved_scope = ddm_v18_liege_change
+}
+
+# ---------------------------------------------------------------------------
+# Direct-vassal hierarchy maintenance (1.1)
+# ---------------------------------------------------------------------------
+# Domain size and direct-vassal count are separate CK3 limits. Settlement deals
+# with personally held land; this pass deals only with REPORTING LINES. It never
+# grants, revokes, or destroys a title. For each direct count/duke/king it walks
+# upward through that ruler's primary title de-jure chain and transfers the
+# vassal beneath the nearest LEGAL de-jure title holder who is already one of
+# the actor's direct vassals. If the actor personally holds the nearest de-jure
+# liege title, the ruler properly remains direct and the search stops.
+
+ddm_transfer_one_direct_vassal_to_proper_liege_effect = {
+    save_scope_as = ddm_transfer_vassal
+    clear_saved_scope = ddm_proper_liege
+    clear_saved_scope = ddm_proper_liege_candidate
+    clear_saved_scope = ddm_dejure_level_1
+    clear_saved_scope = ddm_dejure_level_2
+    clear_saved_scope = ddm_dejure_level_3
+    scope:ddm_actor = { remove_variable = ddm_proper_liege_resolved }
+
+    # De-jure level 1 (county -> duchy, duchy -> kingdom, kingdom -> empire).
+    if = {
+        limit = { primary_title = { exists = de_jure_liege } }
+        primary_title.de_jure_liege = { save_scope_as = ddm_dejure_level_1 }
+        if = {
+            limit = { scope:ddm_dejure_level_1 = { exists = holder holder = scope:ddm_actor } }
+            scope:ddm_actor = { set_variable = { name = ddm_proper_liege_resolved value = 1 } }
+        }
+        else_if = {
+            limit = { scope:ddm_dejure_level_1 = { exists = holder } }
+            scope:ddm_dejure_level_1.holder = { save_scope_as = ddm_proper_liege_candidate }
+            if = {
+                limit = { scope:ddm_proper_liege_candidate = { ddm_is_valid_proper_liege_target_trigger = yes } }
+                scope:ddm_proper_liege_candidate = { save_scope_as = ddm_proper_liege }
+                scope:ddm_actor = { set_variable = { name = ddm_proper_liege_resolved value = 1 } }
+            }
+            clear_saved_scope = ddm_proper_liege_candidate
+        }
+    }
+
+    # De-jure level 2. Only search higher when the nearer held title did not
+    # already establish the proper reporting line.
+    if = {
+        limit = {
+            scope:ddm_actor = { NOT = { has_variable = ddm_proper_liege_resolved } }
+            exists = scope:ddm_dejure_level_1
+            scope:ddm_dejure_level_1 = { exists = de_jure_liege }
+        }
+        scope:ddm_dejure_level_1.de_jure_liege = { save_scope_as = ddm_dejure_level_2 }
+        if = {
+            limit = { scope:ddm_dejure_level_2 = { exists = holder holder = scope:ddm_actor } }
+            scope:ddm_actor = { set_variable = { name = ddm_proper_liege_resolved value = 1 } }
+        }
+        else_if = {
+            limit = { scope:ddm_dejure_level_2 = { exists = holder } }
+            scope:ddm_dejure_level_2.holder = { save_scope_as = ddm_proper_liege_candidate }
+            if = {
+                limit = { scope:ddm_proper_liege_candidate = { ddm_is_valid_proper_liege_target_trigger = yes } }
+                scope:ddm_proper_liege_candidate = { save_scope_as = ddm_proper_liege }
+                scope:ddm_actor = { set_variable = { name = ddm_proper_liege_resolved value = 1 } }
+            }
+            clear_saved_scope = ddm_proper_liege_candidate
+        }
+    }
+
+    # De-jure level 3 (the farthest possible step for a county).
+    if = {
+        limit = {
+            scope:ddm_actor = { NOT = { has_variable = ddm_proper_liege_resolved } }
+            exists = scope:ddm_dejure_level_2
+            scope:ddm_dejure_level_2 = { exists = de_jure_liege }
+        }
+        scope:ddm_dejure_level_2.de_jure_liege = { save_scope_as = ddm_dejure_level_3 }
+        if = {
+            limit = { scope:ddm_dejure_level_3 = { exists = holder holder = scope:ddm_actor } }
+            scope:ddm_actor = { set_variable = { name = ddm_proper_liege_resolved value = 1 } }
+        }
+        else_if = {
+            limit = { scope:ddm_dejure_level_3 = { exists = holder } }
+            scope:ddm_dejure_level_3.holder = { save_scope_as = ddm_proper_liege_candidate }
+            if = {
+                limit = { scope:ddm_proper_liege_candidate = { ddm_is_valid_proper_liege_target_trigger = yes } }
+                scope:ddm_proper_liege_candidate = { save_scope_as = ddm_proper_liege }
+                scope:ddm_actor = { set_variable = { name = ddm_proper_liege_resolved value = 1 } }
+            }
+            clear_saved_scope = ddm_proper_liege_candidate
+        }
+    }
+
+    if = {
+        limit = { exists = scope:ddm_proper_liege }
+        create_title_and_vassal_change = {
+            type = granted
+            save_scope_as = ddm_proper_liege_change
+            add_claim_on_loss = no
+        }
+        scope:ddm_transfer_vassal = {
+            change_liege = {
+                liege = scope:ddm_proper_liege
+                change = scope:ddm_proper_liege_change
+            }
+        }
+        resolve_title_and_vassal_change = scope:ddm_proper_liege_change
+        scope:ddm_actor = { change_variable = { name = ddm_last_proper_liege_transfers add = 1 } }
+        clear_saved_scope = ddm_proper_liege_change
+    }
+
+    scope:ddm_actor = { remove_variable = ddm_proper_liege_resolved }
+    clear_saved_scope = ddm_proper_liege
+    clear_saved_scope = ddm_proper_liege_candidate
+    clear_saved_scope = ddm_dejure_level_1
+    clear_saved_scope = ddm_dejure_level_2
+    clear_saved_scope = ddm_dejure_level_3
+    clear_saved_scope = ddm_transfer_vassal
+}
+
+ddm_distribute_to_proper_lieges_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_last_proper_liege_transfers value = 0 }
+
+    # Build the direct-vassal list before changing any lieges. This avoids
+    # mutating every_vassal while it is being iterated. Barons do not consume
+    # the ordinary vassal limit and are deliberately excluded.
+    every_vassal = {
+        limit = {
+            is_alive = yes
+            is_landed = yes
+            highest_held_title_tier > tier_barony
+            highest_held_title_tier < scope:ddm_actor.highest_held_title_tier
+            NOT = { is_at_war_with = scope:ddm_actor }
+            trigger_if = {
+                limit = { exists = scope:ddm_actor.diarch }
+                this != scope:ddm_actor.diarch
+            }
+        }
+        add_to_temporary_list = ddm_proper_liege_transfer_pool
+    }
+
+    # Lower-ranked rulers first. Counts settle under dukes/kings before dukes
+    # themselves potentially settle under kings/emperors; their sub-vassals
+    # follow automatically when the higher ruler moves. Explicit tier passes are
+    # used instead of sorting an enum, keeping the effect engine-safe.
+    every_in_list = {
+        list = ddm_proper_liege_transfer_pool
+        limit = { highest_held_title_tier = tier_county }
+        ddm_transfer_one_direct_vassal_to_proper_liege_effect = yes
+    }
+    every_in_list = {
+        list = ddm_proper_liege_transfer_pool
+        limit = { highest_held_title_tier = tier_duchy liege = scope:ddm_actor }
+        ddm_transfer_one_direct_vassal_to_proper_liege_effect = yes
+    }
+    every_in_list = {
+        list = ddm_proper_liege_transfer_pool
+        limit = { highest_held_title_tier = tier_kingdom liege = scope:ddm_actor }
+        ddm_transfer_one_direct_vassal_to_proper_liege_effect = yes
+    }
+
+    ddm_prepare_dashboard_effect = yes
+    clear_saved_scope = ddm_actor
+}
+
+# ---------------------------------------------------------------------------
+# Dynastic hierarchy pass (v1.9.8)
+# ---------------------------------------------------------------------------
+# Land must precede title, so this runs AFTER counties have been distributed.
+# For each duchy the player still holds, it counts how much of that territory
+# each dynast actually controls and grants the office to the strongest local
+# rightful ruler. A strict majority is no longer required: territorial plurality
+# plus dynastic legitimacy can create a duke over several dynastic counts.
+# Kingdoms repeat the same logic one tier up after duchies are organized.
+#
+# Vassalage uses change_title_holder_include_vassals
+# means a duke transferred to a king stays that king's vassal. Anyone not moved
+# that way remains a direct vassal of the player.
+#
+# All counting happens here in effect scope, on variables. No de jure iteration
+# is placed inside a script value.
+ddm_hier_reset_counts_effect = {
+    every_in_list = {
+        list = ddm_v18_recipient_pool
+        set_variable = { name = ddm_hier_held value = 0 }
+    }
+    scope:ddm_actor = {
+        set_variable = { name = ddm_hier_total value = 0 }
+        set_variable = { name = ddm_hier_half value = 0 }
+        remove_variable = ddm_hier_found
+    }
+}
+
+# retain 40% of titles exactly one rank below the ruler. The retained
+# titles are chosen by military density: for each de-jure county currently inside
+# the player's realm, sample that county holder's current military strength, then
+# average those samples across counties held in that title. This gives a stable
+# "military strength per county held" comparison: each county contributes its
+# holder's current military strength divided by that holder's personal domain size.
+ddm_prepare_top_rank_retention_effect = {
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_top_rank_total value = 0 }
+    set_variable = { name = ddm_top_rank_keep_target value = 0 }
+    set_variable = { name = ddm_top_rank_retained_count value = 0 }
+    set_variable = { name = ddm_last_top_rank_retained value = 0 }
+
+    every_held_title = {
+        remove_variable = ddm_top_rank_retained
+        remove_variable = ddm_top_rank_military_density
+        remove_variable = ddm_top_rank_counties
+    }
+
+    # Retention has to be stable across repeated settlement runs. If we simply
+    # took 40% of the titles the player STILL personally holds, then 10 kingdoms
+    # would become 4, the next run would see 4 and reduce them to 2, and later
+    # runs would collapse toward 1. Persist the estate denominator instead.
+    # Newly acquired one-rank-lower titles are registered once on the title and
+    # increase the relevant lifetime managed-estate total. A title that returns
+    # to the ruler later keeps its marker, so it is not counted twice.
+    scope:ddm_actor.dynasty = { save_scope_as = ddm_retention_dynasty }
+
+    if = {
+        limit = { highest_held_title_tier >= tier_empire }
+        scope:ddm_retention_dynasty = {
+            if = { limit = { NOT = { has_variable = ddm_managed_kingdom_total } } set_variable = { name = ddm_managed_kingdom_total value = 0 } }
+        }
+        every_held_title = {
+            limit = {
+                tier = tier_kingdom
+                ddm_title_not_faith_protected_trigger = yes
+            }
+            if = {
+                limit = { NOT = { has_variable = ddm_top_rank_managed_title } }
+                set_variable = ddm_top_rank_managed_title
+                scope:ddm_retention_dynasty = { change_variable = { name = ddm_managed_kingdom_total add = 1 } }
+            }
+            save_scope_as = ddm_retention_title
+            set_variable = { name = ddm_top_rank_military_density value = 0 }
+            set_variable = { name = ddm_top_rank_counties value = 0 }
+            every_de_jure_county = {
+                if = {
+                    limit = {
+                        exists = holder
+                        holder = { ddm_is_in_actor_realm_trigger = yes }
+                    }
+                    holder = {
+                        save_scope_as = ddm_retention_holder
+                        set_variable = { name = ddm_retention_strength_sample value = current_military_strength }
+                        if = { limit = { domain_size > 0 } change_variable = { name = ddm_retention_strength_sample divide = domain_size } }
+                    }
+                    scope:ddm_retention_title = {
+                        change_variable = { name = ddm_top_rank_military_density add = scope:ddm_retention_holder.var:ddm_retention_strength_sample }
+                        change_variable = { name = ddm_top_rank_counties add = 1 }
+                    }
+                    scope:ddm_retention_holder = { remove_variable = ddm_retention_strength_sample }
+                }
+            }
+            if = {
+                limit = { var:ddm_top_rank_counties > 0 }
+                change_variable = { name = ddm_top_rank_military_density divide = var:ddm_top_rank_counties }
+            }
+            add_to_temporary_list = ddm_top_rank_titles
+        }
+        set_variable = { name = ddm_top_rank_total value = scope:ddm_retention_dynasty.var:ddm_managed_kingdom_total }
+    }
+    else_if = {
+        limit = { highest_held_title_tier = tier_kingdom }
+        scope:ddm_retention_dynasty = {
+            if = { limit = { NOT = { has_variable = ddm_managed_duchy_total } } set_variable = { name = ddm_managed_duchy_total value = 0 } }
+        }
+        every_held_title = {
+            limit = {
+                tier = tier_duchy
+                ddm_title_not_faith_protected_trigger = yes
+            }
+            if = {
+                limit = { NOT = { has_variable = ddm_top_rank_managed_title } }
+                set_variable = ddm_top_rank_managed_title
+                scope:ddm_retention_dynasty = { change_variable = { name = ddm_managed_duchy_total add = 1 } }
+            }
+            save_scope_as = ddm_retention_title
+            set_variable = { name = ddm_top_rank_military_density value = 0 }
+            set_variable = { name = ddm_top_rank_counties value = 0 }
+            every_de_jure_county = {
+                if = {
+                    limit = {
+                        exists = holder
+                        holder = { ddm_is_in_actor_realm_trigger = yes }
+                    }
+                    holder = {
+                        save_scope_as = ddm_retention_holder
+                        set_variable = { name = ddm_retention_strength_sample value = current_military_strength }
+                        if = { limit = { domain_size > 0 } change_variable = { name = ddm_retention_strength_sample divide = domain_size } }
+                    }
+                    scope:ddm_retention_title = {
+                        change_variable = { name = ddm_top_rank_military_density add = scope:ddm_retention_holder.var:ddm_retention_strength_sample }
+                        change_variable = { name = ddm_top_rank_counties add = 1 }
+                    }
+                    scope:ddm_retention_holder = { remove_variable = ddm_retention_strength_sample }
+                }
+            }
+            if = {
+                limit = { var:ddm_top_rank_counties > 0 }
+                change_variable = { name = ddm_top_rank_military_density divide = var:ddm_top_rank_counties }
+            }
+            add_to_temporary_list = ddm_top_rank_titles
+        }
+        set_variable = { name = ddm_top_rank_total value = scope:ddm_retention_dynasty.var:ddm_managed_duchy_total }
+    }
+
+    if = {
+        limit = { var:ddm_top_rank_total > 0 }
+        set_variable = { name = ddm_top_rank_keep_target value = var:ddm_top_rank_total }
+        change_variable = { name = ddm_top_rank_keep_target multiply = 0.40 }
+        if = { limit = { var:ddm_top_rank_keep_target < 1 } set_variable = { name = ddm_top_rank_keep_target value = 1 } }
+
+        # Keep the capital duchy as part of (not in addition to) a king's 40%
+        # retained tier. This preserves the personal core without silently making
+        # a king retain 40% + one extra duchy.
+        if = {
+            limit = {
+                highest_held_title_tier = tier_kingdom
+                exists = capital_county.de_jure_liege
+                capital_county.de_jure_liege = {
+                    holder = scope:ddm_actor
+                    tier = tier_duchy
+                    ddm_title_not_faith_protected_trigger = yes
+                }
+            }
+            capital_county.de_jure_liege = {
+                set_variable = ddm_top_rank_retained
+            }
+            change_variable = { name = ddm_top_rank_retained_count add = 1 }
+            change_variable = { name = ddm_last_top_rank_retained add = 1 }
+        }
+
+        while = {
+            limit = { var:ddm_top_rank_retained_count < var:ddm_top_rank_keep_target }
+            remove_variable = ddm_top_rank_found
+            ordered_in_list = {
+                list = ddm_top_rank_titles
+                limit = {
+                    holder = scope:ddm_actor
+                    NOT = { has_variable = ddm_top_rank_retained }
+                    NOT = { has_variable = ddm_reserved_recipient }
+                }
+                order_by = ddm_top_rank_retention_value
+                position = 0
+                check_range_bounds = no
+                set_variable = ddm_top_rank_retained
+                scope:ddm_actor = {
+                    change_variable = { name = ddm_top_rank_retained_count add = 1 }
+                    change_variable = { name = ddm_last_top_rank_retained add = 1 }
+                    set_variable = { name = ddm_top_rank_found value = 1 }
+                }
+            }
+            break_if = { NOT = { has_variable = ddm_top_rank_found } }
+        }
+    }
+
+    every_in_list = {
+        list = ddm_top_rank_titles
+        remove_variable = ddm_top_rank_military_density
+        remove_variable = ddm_top_rank_counties
+    }
+    remove_variable = ddm_top_rank_found
+    clear_saved_scope = ddm_retention_dynasty
+}
+
+ddm_organize_dynastic_hierarchy_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+
+    # County distribution deliberately cleans temporary ranking and partition
+    # markers. Rebuild the active recipient pool first, then rank it, so the
+    # hierarchy uses the same people as the county allocator. 1.9.8 tried to use
+    # ranks after both sets of markers had already been cleared.
+    ddm_v18_build_recipient_lists_effect = yes
+    ddm_rank_dynasty_effect = yes
+
+    # Kings decide which 40% of duchies to retain before the duchy pass. Empires
+    # wait until duchies are organized, then evaluate kingdom military density
+    # from the finished lower-level structure.
+    if = { limit = { highest_held_title_tier = tier_kingdom } ddm_prepare_top_rank_retention_effect = yes }
+
+    set_variable = { name = ddm_last_duchies_granted value = 0 }
+    set_variable = { name = ddm_last_kingdoms_granted value = 0 }
+    set_variable = { name = ddm_last_top_rank_retained value = 0 }
+
+    # ---- Duchies ----
+    # Build the concrete list BEFORE granting anything. The old effect iterated
+    # every_held_title while changing title holders inside the loop.
+    if = {
+        limit = { highest_held_title_tier >= tier_kingdom }
+        every_held_title = {
+            limit = {
+                tier = tier_duchy
+                this != scope:ddm_actor.primary_title
+                ddm_title_not_faith_protected_trigger = yes
+                trigger_if = {
+                    limit = { exists = scope:ddm_actor.capital_county.de_jure_liege }
+                    this != scope:ddm_actor.capital_county.de_jure_liege
+                }
+                trigger_if = {
+                    limit = { scope:ddm_actor.highest_held_title_tier = tier_kingdom }
+                    NOT = { has_variable = ddm_top_rank_retained }
+                }
+            }
+            add_to_temporary_list = ddm_hier_duchy_list
+        }
+
+        every_in_list = {
+            list = ddm_hier_duchy_list
+            limit = { holder ?= scope:ddm_actor }
+            save_scope_as = ddm_hier_title
+            save_scope_as = ddm_title
+            ddm_hier_reset_counts_effect = yes
+
+            # Count de jure counties, and how many each dynast holds.
+            every_de_jure_county = {
+                scope:ddm_actor = { change_variable = { name = ddm_hier_total add = 1 } }
+                if = {
+                    limit = {
+                        exists = holder
+                        holder = { is_alive = yes has_character_flag = ddm_rightful_pool }
+                    }
+                    holder = { change_variable = { name = ddm_hier_held add = 1 } }
+                }
+            }
+            scope:ddm_actor = {
+                set_variable = { name = ddm_hier_half value = var:ddm_hier_total }
+                change_variable = { name = ddm_hier_half multiply = 0.5 }
+            }
+
+            # A legal direct reservation overrides the ordinary territorial
+            # ranking for this specific duchy. If its intended recipient is still
+            # a legal candidate but has not yet become landed, the Crown keeps the
+            # duchy reserved instead of silently handing it to somebody else.
+            if = {
+                limit = { exists = var:ddm_reserved_recipient }
+                if = {
+                    limit = {
+                        var:ddm_reserved_recipient = {
+                            ddm_is_eligible_manual_reservation_recipient_trigger = yes
+                            is_landed = yes
+                            ddm_is_in_actor_realm_trigger = yes
+                        }
+                    }
+                    var:ddm_reserved_recipient = { save_scope_as = ddm_hier_recipient }
+                    scope:ddm_actor = { set_variable = { name = ddm_hier_found value = 1 } }
+                }
+                else_if = {
+                    # Still a legal candidate: hold the reservation for a later
+                    # settlement after that person receives qualifying land.
+                    limit = { var:ddm_reserved_recipient = { ddm_is_eligible_manual_reservation_recipient_trigger = yes } }
+                }
+                else = {
+                    # Truly stale reservation: clear it and return to scored allocation.
+                    remove_variable = ddm_reserved_recipient
+                ordered_in_list = {
+                    list = ddm_v18_recipient_pool
+                    limit = {
+                        ddm_is_ranked_title_candidate_trigger = yes
+                        has_variable = ddm_hier_held
+                        var:ddm_hier_held > 0
+                    }
+                    order_by = ddm_hier_duchy_rightful_value
+                    position = 0
+                    check_range_bounds = no
+                    save_scope_as = ddm_hier_recipient
+                    scope:ddm_actor = { set_variable = { name = ddm_hier_found value = 1 } }
+                }
+                }
+            }
+            else = {
+                # Local territorial control is the dominant ordinary input; the
+                # rightfulness judgment resolves which plausible ruler becomes duke.
+                ordered_in_list = {
+                    list = ddm_v18_recipient_pool
+                    limit = {
+                        ddm_is_ranked_title_candidate_trigger = yes
+                        has_variable = ddm_hier_held
+                        var:ddm_hier_held > 0
+                    }
+                    order_by = ddm_hier_duchy_rightful_value
+                    position = 0
+                    check_range_bounds = no
+                    save_scope_as = ddm_hier_recipient
+                    scope:ddm_actor = { set_variable = { name = ddm_hier_found value = 1 } }
+                }
+            }
+
+            if = {
+                limit = {
+                    scope:ddm_actor = { has_variable = ddm_hier_found }
+                    exists = scope:ddm_hier_recipient
+                }
+                scope:ddm_actor = {
+                    clear_saved_scope = ddm_hier_change
+                    create_title_and_vassal_change = {
+                        type = granted
+                        save_scope_as = ddm_hier_change
+                        add_claim_on_loss = yes
+                    }
+                }
+                change_title_holder_include_vassals = {
+                    holder = scope:ddm_hier_recipient
+                    change = scope:ddm_hier_change
+                    government_base = scope:ddm_actor
+                }
+                scope:ddm_actor = {
+                    resolve_title_and_vassal_change = scope:ddm_hier_change
+                    change_variable = { name = ddm_last_duchies_granted add = 1 }
+                }
+                scope:ddm_hier_title = { remove_variable = ddm_reserved_recipient }
+                scope:ddm_hier_recipient = { save_scope_as = ddm_recipient }
+                scope:ddm_hier_title = { save_scope_as = ddm_title }
+                scope:ddm_actor = {
+                    ddm_apply_grant_social_effect = yes
+                    ddm_make_dynastic_alliance_effect = yes
+                }
+            }
+            clear_saved_scope = ddm_hier_recipient
+        }
+    }
+
+    # ---- Kingdoms ----
+    if = { limit = { highest_held_title_tier >= tier_empire } ddm_prepare_top_rank_retention_effect = yes }
+
+    # "those who rank maybe second or third can get a title above that." The
+    # majority test is over de jure duchy titles now held by the candidate or by
+    # a vassal of the candidate, so a king is built on top of his own dukes.
+    if = {
+        limit = { highest_held_title_tier >= tier_empire }
+        every_held_title = {
+            limit = {
+                tier = tier_kingdom
+                this != scope:ddm_actor.primary_title
+                ddm_title_not_faith_protected_trigger = yes
+                NOT = { has_variable = ddm_top_rank_retained }
+            }
+            add_to_temporary_list = ddm_hier_kingdom_list
+        }
+
+        every_in_list = {
+            list = ddm_hier_kingdom_list
+            limit = { holder ?= scope:ddm_actor }
+            save_scope_as = ddm_hier_title
+            save_scope_as = ddm_title
+            ddm_hier_reset_counts_effect = yes
+
+            every_de_jure_county = {
+                scope:ddm_actor = { change_variable = { name = ddm_hier_total add = 1 } }
+                if = {
+                    limit = {
+                        exists = holder
+                        holder = {
+                            is_alive = yes
+                            has_character_flag = ddm_rightful_pool
+                        }
+                    }
+                    holder = { change_variable = { name = ddm_hier_held add = 1 } }
+                }
+                # A county under one of the candidate's own vassals counts toward
+                # that candidate, which is what makes the pyramid work.
+                if = {
+                    limit = {
+                        exists = holder
+                        exists = holder.liege
+                        holder.liege = {
+                            is_alive = yes
+                            has_character_flag = ddm_rightful_pool
+                            this != scope:ddm_actor
+                        }
+                    }
+                    holder.liege = { change_variable = { name = ddm_hier_held add = 1 } }
+                }
+            }
+            scope:ddm_actor = {
+                set_variable = { name = ddm_hier_half value = var:ddm_hier_total }
+                change_variable = { name = ddm_hier_half multiply = 0.5 }
+            }
+
+            if = {
+                limit = { exists = var:ddm_reserved_recipient }
+                if = {
+                    limit = {
+                        var:ddm_reserved_recipient = {
+                            ddm_is_eligible_manual_reservation_recipient_trigger = yes
+                            is_landed = yes
+                            ddm_is_in_actor_realm_trigger = yes
+                            highest_held_title_tier >= tier_duchy
+                        }
+                    }
+                    var:ddm_reserved_recipient = { save_scope_as = ddm_hier_recipient }
+                    scope:ddm_actor = { set_variable = { name = ddm_hier_found value = 1 } }
+                }
+                else_if = {
+                    # A living legal candidate who has not yet reached ducal rank
+                    # keeps this kingdom reserved for a future hierarchy pass.
+                    limit = { var:ddm_reserved_recipient = { ddm_is_eligible_manual_reservation_recipient_trigger = yes } }
+                }
+                else = {
+                    remove_variable = ddm_reserved_recipient
+                ordered_in_list = {
+                    list = ddm_v18_recipient_pool
+                    limit = {
+                        ddm_is_ranked_title_candidate_trigger = yes
+                        has_variable = ddm_hier_held
+                        var:ddm_hier_held > 0
+                        highest_held_title_tier >= tier_duchy
+                    }
+                    order_by = ddm_hier_kingdom_rightful_value
+                    position = 0
+                    check_range_bounds = no
+                    save_scope_as = ddm_hier_recipient
+                    scope:ddm_actor = { set_variable = { name = ddm_hier_found value = 1 } }
+                }
+                }
+            }
+            else = {
+                ordered_in_list = {
+                    list = ddm_v18_recipient_pool
+                    limit = {
+                        ddm_is_ranked_title_candidate_trigger = yes
+                        has_variable = ddm_hier_held
+                        var:ddm_hier_held > 0
+                        highest_held_title_tier >= tier_duchy
+                    }
+                    order_by = ddm_hier_kingdom_rightful_value
+                    position = 0
+                    check_range_bounds = no
+                    save_scope_as = ddm_hier_recipient
+                    scope:ddm_actor = { set_variable = { name = ddm_hier_found value = 1 } }
+                }
+            }
+
+            if = {
+                limit = {
+                    scope:ddm_actor = { has_variable = ddm_hier_found }
+                    exists = scope:ddm_hier_recipient
+                }
+                scope:ddm_actor = {
+                    clear_saved_scope = ddm_hier_change
+                    create_title_and_vassal_change = {
+                        type = granted
+                        save_scope_as = ddm_hier_change
+                        add_claim_on_loss = yes
+                    }
+                }
+                change_title_holder_include_vassals = {
+                    holder = scope:ddm_hier_recipient
+                    change = scope:ddm_hier_change
+                    government_base = scope:ddm_actor
+                }
+                scope:ddm_actor = {
+                    resolve_title_and_vassal_change = scope:ddm_hier_change
+                    change_variable = { name = ddm_last_kingdoms_granted add = 1 }
+                }
+                scope:ddm_hier_title = { remove_variable = ddm_reserved_recipient }
+                scope:ddm_hier_recipient = { save_scope_as = ddm_recipient }
+                scope:ddm_hier_title = { save_scope_as = ddm_title }
+                scope:ddm_actor = {
+                    ddm_apply_grant_social_effect = yes
+                    ddm_make_dynastic_alliance_effect = yes
+                }
+            }
+            clear_saved_scope = ddm_hier_recipient
+        }
+    }
+
+    every_in_list = { list = ddm_v18_recipient_pool remove_variable = ddm_hier_held }
+    every_held_title = { remove_variable = ddm_top_rank_retained }
+    remove_variable = ddm_top_rank_total
+    remove_variable = ddm_top_rank_keep_target
+    remove_variable = ddm_top_rank_retained_count
+    remove_variable = ddm_hier_total
+    remove_variable = ddm_hier_half
+    remove_variable = ddm_hier_found
+    clear_saved_scope = ddm_hier_title
+    clear_saved_scope = ddm_title
+    clear_saved_scope = ddm_hier_recipient
+    clear_saved_scope = ddm_hier_change
+    ddm_clear_dynasty_ranking_effect = yes
+    dynasty = {
+        every_dynasty_member = {
+            remove_character_flag = ddm_partition_settlement_pool
+            remove_variable = ddm_batch_land_grants
+        }
+    }
+    every_courtier = { remove_variable = ddm_batch_land_grants remove_variable = ddm_hier_held }
+    every_vassal_or_below = { remove_variable = ddm_batch_land_grants remove_variable = ddm_hier_held }
+    ddm_schedule_post_settlement_alliance_event_effect = yes
+}
+
+# Pre-flight warnings. Nothing is blocked; the player is told.
+ddm_hier_scan_warnings_effect = {
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_warn_top_tier_titles value = 0 }
+    set_variable = { name = ddm_warn_faith_protected value = 0 }
+
+    if = {
+        limit = {
+            exists = faith
+            exists = faith.religious_head_title
+            faith.religious_head_title ?= { holder ?= scope:ddm_actor }
+        }
+        set_variable = { name = ddm_warn_faith_protected value = 1 }
+    }
+
+    # Titles one tier directly below the player. Granting these is what risks
+    # independence or a disproportionate share of levies.
+    every_held_title = {
+        limit = {
+            this != scope:ddm_actor.primary_title
+            tier = scope:ddm_actor.highest_held_title_tier
+        }
+        scope:ddm_actor = { change_variable = { name = ddm_warn_top_tier_titles add = 1 } }
+    }
+}
+
+ddm_organize_higher_titles_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    ddm_prepare_land_distribution_batch_effect = yes
+    set_variable = { name = ddm_last_duchies_granted value = 0 }
+    set_variable = { name = ddm_last_kingdoms_granted value = 0 }
+
+    if = {
+        limit = { highest_held_title_tier >= tier_kingdom }
+        every_held_title = {
+            limit = {
+                tier = tier_duchy
+                this != scope:ddm_actor.primary_title
+                trigger_if = {
+                    limit = { exists = scope:ddm_actor.capital_county.de_jure_liege }
+                    this != scope:ddm_actor.capital_county.de_jure_liege
+                }
+            }
+            save_scope_as = ddm_title
+            scope:ddm_actor = { remove_variable = ddm_found_recipient }
+            scope:ddm_actor.dynasty = {
+                ordered_dynasty_member = {
+                    limit = { ddm_safe_for_duchy_trigger = yes }
+                    order_by = ddm_duchy_recipient_score
+                    position = 0
+                    check_range_bounds = no
+                    save_scope_as = ddm_recipient
+                    scope:ddm_actor = { set_variable = { name = ddm_found_recipient value = 1 } }
+                }
+            }
+            if = {
+                limit = { scope:ddm_actor = { has_variable = ddm_found_recipient } exists = scope:ddm_recipient }
+                create_title_and_vassal_change = { type = granted save_scope_as = ddm_title_change add_claim_on_loss = yes }
+                change_title_holder_include_vassals = { holder = scope:ddm_recipient change = scope:ddm_title_change government_base = scope:ddm_actor }
+                resolve_title_and_vassal_change = scope:ddm_title_change
+                scope:ddm_actor = {
+                    change_variable = { name = ddm_last_duchies_granted add = 1 }
+                    ddm_apply_grant_social_effect = yes
+                    ddm_make_dynastic_alliance_effect = yes
+                }
+            }
+        }
+    }
+
+    if = {
+        limit = { highest_held_title_tier >= tier_empire }
+        every_held_title = {
+            limit = { tier = tier_kingdom this != scope:ddm_actor.primary_title }
+            save_scope_as = ddm_title
+            scope:ddm_actor = { remove_variable = ddm_found_recipient }
+            scope:ddm_actor.dynasty = {
+                ordered_dynasty_member = {
+                    limit = { ddm_safe_for_kingdom_trigger = yes }
+                    order_by = ddm_kingdom_recipient_score
+                    position = 0
+                    check_range_bounds = no
+                    save_scope_as = ddm_recipient
+                    scope:ddm_actor = { set_variable = { name = ddm_found_recipient value = 1 } }
+                }
+            }
+            if = {
+                limit = { scope:ddm_actor = { has_variable = ddm_found_recipient } exists = scope:ddm_recipient }
+                create_title_and_vassal_change = { type = granted save_scope_as = ddm_title_change add_claim_on_loss = yes }
+                change_title_holder_include_vassals = { holder = scope:ddm_recipient change = scope:ddm_title_change government_base = scope:ddm_actor }
+                resolve_title_and_vassal_change = scope:ddm_title_change
+                scope:ddm_actor = {
+                    change_variable = { name = ddm_last_kingdoms_granted add = 1 }
+                    ddm_apply_grant_social_effect = yes
+                    ddm_make_dynastic_alliance_effect = yes
+                }
+            }
+        }
+    }
+    remove_variable = ddm_found_recipient
+    ddm_clear_land_distribution_batch_effect = yes
+}
+
+# ---------------------------------------------------------------------------
+# 1.1 organized holding registers
+# ---------------------------------------------------------------------------
+
+# Build transient de-jure hierarchy sort metadata. County names use a stable A-Z
+# vanilla index. Parent groups inherit the earliest alphabetical county among the
+# holdings currently displayed, which keeps each Empire -> Kingdom -> Duchy block
+# together while remaining deterministic across saves and UI refreshes.
+ddm_prepare_hierarchy_sort_metadata_effect = {
+    save_scope_as = ddm_actor
+
+    every_in_list = {
+        variable = ddm_sort_source_titles
+        title_province.county = {
+            set_variable = ddm_sort_candidate_county
+            remove_variable = ddm_sort_alpha_score
+        }
+    }
+    ddm_assign_county_alphabet_scores_effect = yes
+
+    every_in_list = {
+        variable = ddm_sort_source_titles
+        title_province.county = {
+            save_scope_as = ddm_sort_county
+            # Unknown/custom map titles sort after indexed vanilla counties but
+            # still remain grouped by their live de-jure parents.
+            if = { limit = { NOT = { has_variable = ddm_sort_alpha_score } } set_variable = { name = ddm_sort_alpha_score value = 1 } }
+
+            if = {
+                limit = { exists = de_jure_liege }
+                de_jure_liege = {
+                    if = {
+                        limit = { OR = { NOT = { has_variable = ddm_sort_group_alpha_score } var:ddm_sort_group_alpha_score < scope:ddm_sort_county.var:ddm_sort_alpha_score } }
+                        set_variable = { name = ddm_sort_group_alpha_score value = scope:ddm_sort_county.var:ddm_sort_alpha_score }
+                    }
+                    if = {
+                        limit = { exists = de_jure_liege }
+                        de_jure_liege = {
+                            if = {
+                                limit = { OR = { NOT = { has_variable = ddm_sort_group_alpha_score } var:ddm_sort_group_alpha_score < scope:ddm_sort_county.var:ddm_sort_alpha_score } }
+                                set_variable = { name = ddm_sort_group_alpha_score value = scope:ddm_sort_county.var:ddm_sort_alpha_score }
+                            }
+                            if = {
+                                limit = { exists = de_jure_liege }
+                                de_jure_liege = {
+                                    if = {
+                                        limit = { OR = { NOT = { has_variable = ddm_sort_group_alpha_score } var:ddm_sort_group_alpha_score < scope:ddm_sort_county.var:ddm_sort_alpha_score } }
+                                        set_variable = { name = ddm_sort_group_alpha_score value = scope:ddm_sort_county.var:ddm_sort_alpha_score }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+ddm_cleanup_hierarchy_sort_metadata_effect = {
+    every_in_list = {
+        variable = ddm_sort_source_titles
+        title_province.county = {
+            remove_variable = ddm_sort_candidate_county
+            remove_variable = ddm_sort_alpha_score
+            if = {
+                limit = { exists = de_jure_liege }
+                de_jure_liege = {
+                    remove_variable = ddm_sort_group_alpha_score
+                    if = {
+                        limit = { exists = de_jure_liege }
+                        de_jure_liege = {
+                            remove_variable = ddm_sort_group_alpha_score
+                            if = { limit = { exists = de_jure_liege } de_jure_liege = { remove_variable = ddm_sort_group_alpha_score } }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    clear_variable_list = ddm_sort_source_titles
+}
+
+ddm_rebuild_domain_planner_sort_effect = {
+    save_scope_as = ddm_actor
+    clear_variable_list = ddm_domain_planner_titles
+
+    if = {
+        limit = { var:ddm_title_sort_mode = 0 }
+        clear_variable_list = ddm_sort_source_titles
+        every_in_list = { variable = ddm_domain_planner_titles_raw save_temporary_scope_as = ddm_sort_title scope:ddm_actor = { add_to_variable_list = { name = ddm_sort_source_titles target = scope:ddm_sort_title } } }
+        ddm_prepare_hierarchy_sort_metadata_effect = yes
+        if = {
+            limit = { var:ddm_title_sort_direction < 0 }
+            ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = { value = ddm_title_sort_hierarchy_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } }
+        }
+        else = { ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = ddm_title_sort_hierarchy_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } } }
+        ddm_cleanup_hierarchy_sort_metadata_effect = yes
+    }
+    else_if = {
+        limit = { var:ddm_title_sort_mode = 2 }
+        if = { limit = { var:ddm_title_sort_direction < 0 } ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = { value = ddm_title_sort_faith_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } } }
+        else = { ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = ddm_title_sort_faith_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } } }
+    }
+    else_if = {
+        limit = { var:ddm_title_sort_mode = 3 }
+        if = { limit = { var:ddm_title_sort_direction < 0 } ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = { value = ddm_title_sort_culture_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } } }
+        else = { ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = ddm_title_sort_culture_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } } }
+    }
+    else = {
+        if = { limit = { var:ddm_title_sort_direction < 0 } ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = { value = ddm_title_sort_development_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } } }
+        else = { ordered_in_list = { variable = ddm_domain_planner_titles_raw order_by = ddm_title_sort_development_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_domain_planner_titles target = scope:ddm_sorted_title } } } }
+    }
+}
+
+ddm_rebuild_outsider_holdings_sort_effect = {
+    save_scope_as = ddm_actor
+    clear_variable_list = ddm_outsider_counties
+
+    if = {
+        limit = { var:ddm_title_sort_mode = 0 }
+        clear_variable_list = ddm_sort_source_titles
+        every_in_list = { variable = ddm_outsider_counties_raw save_temporary_scope_as = ddm_sort_title scope:ddm_actor = { add_to_variable_list = { name = ddm_sort_source_titles target = scope:ddm_sort_title } } }
+        ddm_prepare_hierarchy_sort_metadata_effect = yes
+        if = { limit = { var:ddm_title_sort_direction < 0 } ordered_in_list = { variable = ddm_outsider_counties_raw order_by = { value = ddm_title_sort_hierarchy_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+        else = { ordered_in_list = { variable = ddm_outsider_counties_raw order_by = ddm_title_sort_hierarchy_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+        ddm_cleanup_hierarchy_sort_metadata_effect = yes
+    }
+    else_if = {
+        limit = { var:ddm_title_sort_mode = 2 }
+        if = { limit = { var:ddm_title_sort_direction < 0 } ordered_in_list = { variable = ddm_outsider_counties_raw order_by = { value = ddm_title_sort_faith_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+        else = { ordered_in_list = { variable = ddm_outsider_counties_raw order_by = ddm_title_sort_faith_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+    }
+    else_if = {
+        limit = { var:ddm_title_sort_mode = 3 }
+        if = { limit = { var:ddm_title_sort_direction < 0 } ordered_in_list = { variable = ddm_outsider_counties_raw order_by = { value = ddm_title_sort_culture_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+        else = { ordered_in_list = { variable = ddm_outsider_counties_raw order_by = ddm_title_sort_culture_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+    }
+    else = {
+        if = { limit = { var:ddm_title_sort_direction < 0 } ordered_in_list = { variable = ddm_outsider_counties_raw order_by = { value = ddm_title_sort_development_value multiply = -1 } max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+        else = { ordered_in_list = { variable = ddm_outsider_counties_raw order_by = ddm_title_sort_development_value max = 500 check_range_bounds = no save_temporary_scope_as = ddm_sorted_title scope:ddm_actor = { add_to_variable_list = { name = ddm_outsider_counties target = scope:ddm_sorted_title } } } }
+    }
+}
+
+# Persistent selector list for non-dynastic courtiers and existing vassals who
+# may participate in the allocator. Selection changes WHO is eligible; the
+# title-specific scoring model still decides WHAT they receive unless the player
+# has placed a direct title reservation.
+ddm_prepare_outsider_recipients_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    clear_variable_list = ddm_outsider_recipient_candidates
+    set_variable = { name = ddm_outsider_recipient_total value = 0 }
+    set_variable = { name = ddm_outsider_recipient_favored value = 0 }
+
+    every_courtier = { remove_character_flag = ddm_recipient_listed_this_pass }
+    every_vassal_or_below = { remove_character_flag = ddm_recipient_listed_this_pass }
+
+    every_courtier = {
+        limit = { ddm_is_eligible_outsider_recipient_trigger = yes NOT = { has_character_flag = ddm_recipient_listed_this_pass } }
+        add_character_flag = ddm_recipient_listed_this_pass
+        save_temporary_scope_as = ddm_outsider_candidate
+        scope:ddm_actor = {
+            add_to_variable_list = { name = ddm_outsider_recipient_candidates target = scope:ddm_outsider_candidate }
+            change_variable = { name = ddm_outsider_recipient_total add = 1 }
+        }
+        if = { limit = { has_variable = ddm_outsider_favored_for_land } scope:ddm_actor = { change_variable = { name = ddm_outsider_recipient_favored add = 1 } } }
+    }
+    every_vassal_or_below = {
+        limit = { ddm_is_eligible_outsider_recipient_trigger = yes NOT = { has_character_flag = ddm_recipient_listed_this_pass } }
+        add_character_flag = ddm_recipient_listed_this_pass
+        save_temporary_scope_as = ddm_outsider_candidate
+        scope:ddm_actor = {
+            add_to_variable_list = { name = ddm_outsider_recipient_candidates target = scope:ddm_outsider_candidate }
+            change_variable = { name = ddm_outsider_recipient_total add = 1 }
+        }
+        if = { limit = { has_variable = ddm_outsider_favored_for_land } scope:ddm_actor = { change_variable = { name = ddm_outsider_recipient_favored add = 1 } } }
+    }
+
+    every_courtier = { remove_character_flag = ddm_recipient_listed_this_pass }
+    every_vassal_or_below = { remove_character_flag = ddm_recipient_listed_this_pass }
+}
+
+# rebuild the selectable outsider-county register. Protection lives on
+# the county title itself, so it survives succession to a new outsider holder.
+ddm_prepare_outsider_holdings_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    clear_variable_list = ddm_outsider_counties
+    clear_variable_list = ddm_outsider_counties_raw
+    set_variable = { name = ddm_outsider_county_total value = 0 }
+    set_variable = { name = ddm_outsider_county_protected value = 0 }
+    set_variable = { name = ddm_outsider_county_reclaimable value = 0 }
+
+    # Clear transient GUI markers from titles presently in the subrealm.
+    every_vassal_or_below = {
+        every_held_title = { remove_variable = ddm_outsider_listed }
+    }
+
+    every_vassal_or_below = {
+        limit = {
+            is_landed = yes
+            OR = { NOT = { exists = dynasty } dynasty != scope:ddm_actor.dynasty }
+        }
+        every_held_title = {
+            limit = { tier = tier_county NOT = { is_head_of_faith = yes } }
+            set_variable = ddm_outsider_listed
+            root = {
+                add_to_variable_list = { name = ddm_outsider_counties_raw target = prev }
+                change_variable = { name = ddm_outsider_county_total add = 1 }
+            }
+            if = {
+                limit = { has_variable = ddm_outsider_protected }
+                root = { change_variable = { name = ddm_outsider_county_protected add = 1 } }
+            }
+            else = {
+                root = { change_variable = { name = ddm_outsider_county_reclaimable add = 1 } }
+            }
+        }
+    }
+    ddm_rebuild_outsider_holdings_sort_effect = yes
+}
+
+ddm_protect_all_outsider_counties_effect = {
+    every_in_list = { variable = ddm_outsider_counties set_variable = ddm_outsider_protected }
+    ddm_prepare_outsider_holdings_effect = yes
+}
+
+ddm_clear_all_outsider_protections_effect = {
+    every_in_list = { variable = ddm_outsider_counties remove_variable = ddm_outsider_protected }
+    ddm_prepare_outsider_holdings_effect = yes
+}
+
+# Ownership-only worker. Claims are preserved. Counties marked protected are
+# never touched. A higher title is also left with an outsider who retains at
+# least one protected county, so a protected duke/king is not reduced to a
+# nonsensical shell merely because other counties are reclaimed.
+ddm_reclaim_unprotected_outsider_titles_only_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_last_titles_reclaimed value = 0 }
+
+    # First pass: ask CK3 to return every eligible unprotected estate, including
+    # a head-of-faith title. A same-faith transfer can therefore succeed normally;
+    # an illegal cross-faith transfer is silently rejected by the engine and the
+    # religious title remains on the outsider for the fallback below.
+    create_title_and_vassal_change = { type = returned save_scope_as = ddm_reclaim_change add_claim_on_loss = yes }
+    every_vassal_or_below = {
+        limit = {
+            is_landed = yes
+            OR = { NOT = { exists = dynasty } dynasty != scope:ddm_actor.dynasty }
+        }
+
+        # If this outsider has no specifically protected county, their non-county
+        # rank titles below the player's rank may return with the rest of the estate.
+        if = {
+            limit = {
+                NOT = { any_held_title = { tier = tier_county has_variable = ddm_outsider_protected } }
+            }
+            every_held_title = {
+                limit = {
+                    tier > tier_county
+                    tier < scope:ddm_actor.highest_held_title_tier
+                    NOT = { is_landless_type_title = yes }
+                }
+                change_title_holder = { holder = scope:ddm_actor change = scope:ddm_reclaim_change government_base = scope:ddm_actor }
+                scope:ddm_actor = { change_variable = { name = ddm_last_titles_reclaimed add = 1 } }
+            }
+        }
+
+        every_held_title = {
+            limit = {
+                tier = tier_county
+                NOT = { has_variable = ddm_outsider_protected }
+                NOT = { is_head_of_faith = yes }
+            }
+            change_title_holder = { holder = scope:ddm_actor change = scope:ddm_reclaim_change government_base = scope:ddm_actor }
+            scope:ddm_actor = { change_variable = { name = ddm_last_titles_reclaimed add = 1 } }
+        }
+    }
+    resolve_title_and_vassal_change = scope:ddm_reclaim_change
+
+    # Faith-title fallback. CK3 may refuse a head-of-faith transfer when the
+    # recipient does not belong to that faith. If the title is still on an
+    # otherwise fully reclaimable outsider after the resolved first pass, the
+    # explicit Reclaim order destroys that untransferable religious title rather
+    # than allowing it to pin the estate to its old holder. Protected outsiders
+    # are never eligible for this cleanup.
+    #
+    # Build the list first and destroy second: mutating titles while iterating a
+    # holder's title collection can invalidate the current scope.
+    every_vassal_or_below = {
+        limit = {
+            is_landed = yes
+            OR = { NOT = { exists = dynasty } dynasty != scope:ddm_actor.dynasty }
+            NOT = { any_held_title = { tier = tier_county has_variable = ddm_outsider_protected } }
+        }
+        every_held_title = {
+            limit = {
+                tier >= tier_duchy
+                tier < scope:ddm_actor.highest_held_title_tier
+                is_head_of_faith = yes
+                NOT = { is_landless_type_title = yes }
+            }
+            add_to_temporary_list = ddm_stuck_religious_titles
+        }
+    }
+    every_in_list = {
+        list = ddm_stuck_religious_titles
+        save_temporary_scope_as = ddm_stuck_religious_title
+        destroy_title = scope:ddm_stuck_religious_title
+    }
+
+    # Second pass: destroying the refused religious title may free counties or
+    # subordinate rank titles that CK3 previously would not detach. Retry the
+    # remaining unprotected estate, but still do not redistribute anything here.
+    create_title_and_vassal_change = { type = returned save_scope_as = ddm_reclaim_change_freed add_claim_on_loss = yes }
+    every_vassal_or_below = {
+        limit = {
+            is_landed = yes
+            OR = { NOT = { exists = dynasty } dynasty != scope:ddm_actor.dynasty }
+        }
+        if = {
+            limit = {
+                NOT = { any_held_title = { tier = tier_county has_variable = ddm_outsider_protected } }
+            }
+            every_held_title = {
+                limit = {
+                    tier > tier_county
+                    tier < scope:ddm_actor.highest_held_title_tier
+                    NOT = { is_landless_type_title = yes }
+                }
+                change_title_holder = { holder = scope:ddm_actor change = scope:ddm_reclaim_change_freed government_base = scope:ddm_actor }
+            }
+        }
+        every_held_title = {
+            limit = {
+                tier = tier_county
+                NOT = { has_variable = ddm_outsider_protected }
+                NOT = { is_head_of_faith = yes }
+            }
+            change_title_holder = { holder = scope:ddm_actor change = scope:ddm_reclaim_change_freed government_base = scope:ddm_actor }
+        }
+    }
+    resolve_title_and_vassal_change = scope:ddm_reclaim_change_freed
+}
+
+# Compatibility name used by the old event/button. It now means "reclaim every
+# unprotected outsider estate," never "ignore the player's protections."
+ddm_reclaim_non_dynastic_titles_effect = {
+    # Explicit reclamation is ownership-only. Returned estates remain in the
+    # Crown's hands until the player separately orders Settle the Realm.
+    ddm_reclaim_unprotected_outsider_titles_only_effect = yes
+    ddm_prepare_outsider_holdings_effect = yes
+    ddm_prepare_dashboard_effect = yes
+}
+
+ddm_strip_subject_titles_in_realm_effect = {
+    # Run from purge subject. Only titles in actor's subrealm and below actor rank are reclaimed.
+    save_scope_as = ddm_purge_subject
+    if = {
+        limit = { is_landed = yes is_vassal_or_below_of = scope:ddm_actor }
+        create_title_and_vassal_change = { type = returned save_scope_as = ddm_strip_change add_claim_on_loss = yes }
+        every_held_title = {
+            limit = { tier >= tier_county tier < scope:ddm_actor.highest_held_title_tier }
+            change_title_holder = { holder = scope:ddm_actor change = scope:ddm_strip_change government_base = scope:ddm_actor }
+        }
+        resolve_title_and_vassal_change = scope:ddm_strip_change
+    }
+}
+
+ddm_apply_purge_to_subject_effect = {
+    # Run from purge subject. Every living age can be targeted; age is already handled in scoring.
+    # Count the order before a lethal effect invalidates the subject scope.
+    scope:ddm_actor = { change_variable = { name = ddm_last_purged add = 1 } }
+    if = {
+        limit = { scope:ddm_actor.var:ddm_purge_method = 1 }
+        if = { limit = { NOT = { has_trait = disinherited } } add_trait = disinherited }
+    }
+    else_if = {
+        limit = { scope:ddm_actor.var:ddm_purge_method = 2 }
+        ddm_strip_subject_titles_in_realm_effect = yes
+        if = { limit = { NOT = { has_trait = disinherited } } add_trait = disinherited }
+    }
+    else = {
+        ddm_strip_subject_titles_in_realm_effect = yes
+        death = { death_reason = death_execution killer = scope:ddm_actor }
+    }
+}
+
+ddm_build_purge_register_effect = {
+    # Build one exact, stable list. The preview and the execution use the same
+    # character flags, so family-regard recalculation cannot make the displayed
+    # count silently vanish when the player confirms the order.
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+
+    # Family regard is intentionally refreshed here, once, before the register is
+    # built. The execution does not recalculate it again mid-purge.
+    ddm_refresh_all_dynasty_regard_effect = yes
+
+    set_variable = { name = ddm_purge_living_total value = 0 }
+    set_variable = { name = ddm_purge_candidate_count value = 0 }
+    set_variable = { name = ddm_purge_standard_survivor_count value = 0 }
+    set_variable = { name = ddm_purge_protected_count value = 0 }
+    set_variable = { name = ddm_purge_already_satisfied_count value = 0 }
+
+    dynasty = {
+        every_dynasty_member = {
+            limit = { is_alive = yes }
+            remove_character_flag = ddm_selected_for_review
+            remove_character_flag = ddm_processed_this_review
+            scope:ddm_actor = { change_variable = { name = ddm_purge_living_total add = 1 } }
+
+            # The standard is a score band, not a named-trait gate. Count everyone
+            # who clears it so the audit can be reconciled with the candidate list.
+            if = {
+                limit = { NOT = { ddm_fails_current_dynastic_standard_trigger = yes } }
+                scope:ddm_actor = { change_variable = { name = ddm_purge_standard_survivor_count add = 1 } }
+            }
+
+            # Track exclusions separately from people who actually meet the
+            # standard, so the UI can explain a surprising total.
+            if = {
+                limit = {
+                    OR = {
+                        this = scope:ddm_actor
+                        has_character_flag = ddm_protected_from_automation
+                        AND = {
+                            scope:ddm_actor.var:ddm_protect_player_heir = 1
+                            exists = scope:ddm_actor.player_heir
+                            this = scope:ddm_actor.player_heir
+                        }
+                    }
+                }
+                scope:ddm_actor = { change_variable = { name = ddm_purge_protected_count add = 1 } }
+            }
+            else_if = {
+                limit = {
+                    ddm_fails_current_dynastic_standard_trigger = yes
+                    NOT = { ddm_purge_needs_action_trigger = yes }
+                }
+                scope:ddm_actor = { change_variable = { name = ddm_purge_already_satisfied_count add = 1 } }
+            }
+
+            if = {
+                limit = { ddm_purge_needs_action_trigger = yes }
+                add_character_flag = ddm_selected_for_review
+                scope:ddm_actor = { change_variable = { name = ddm_purge_candidate_count add = 1 } }
+            }
+        }
+    }
+    set_variable = { name = ddm_purge_register_ready value = 1 }
+}
+
+ddm_count_purge_targets_effect = {
+    # Compatibility wrapper used by older event calls.
+    ddm_build_purge_register_effect = yes
+}
+
+ddm_execute_dynasty_purge_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_last_purged value = 0 }
+    set_variable = { name = ddm_purge_stalled value = 0 }
+
+    # v1.4.1 deliberately avoids ordered_dynasty_member for execution. In some
+    # live games the ordered selector successfully counted/flagged a register but
+    # failed to return a subject during the destructive pass, producing exactly
+    # the "82 registered / 0 acted" symptom. The register itself is already
+    # stable, so walk those flagged characters directly in one engine iterator.
+    # The living-dynasty floor is checked again before EACH action.
+    dynasty = {
+        every_dynasty_member = {
+            limit = {
+                is_alive = yes
+                has_character_flag = ddm_selected_for_review
+                NOT = { has_character_flag = ddm_processed_this_review }
+            }
+            if = {
+                limit = { scope:ddm_actor = { ddm_dynasty_above_floor_trigger = yes } }
+                add_character_flag = ddm_processed_this_review
+                ddm_apply_purge_to_subject_effect = yes
+                # Nonlethal subjects survive, so remove their register flag after
+                # their consequence has actually been applied.
+                if = { limit = { is_alive = yes } remove_character_flag = ddm_selected_for_review }
+            }
+        }
+    }
+
+    # Anything still selected can only be a floor-stopped target or an engine
+    # failure. Distinguish those cases without a fragile nested-scope counter.
+    if = {
+        limit = {
+            dynasty = {
+                any_dynasty_member = {
+                    is_alive = yes
+                    has_character_flag = ddm_selected_for_review
+                    NOT = { has_character_flag = ddm_processed_this_review }
+                }
+            }
+            ddm_dynasty_above_floor_trigger = yes
+        }
+        set_variable = { name = ddm_purge_stalled value = 1 }
+    }
+
+    ddm_distribute_surplus_counties_effect = yes
+}
+
+ddm_run_full_settlement_effect = {
+    # outsider reclamation remains opt-in. Policy 0 preserves the legacy
+    # invariant completely; policy 1 first returns only unprotected outsider
+    # estates, after which the normal dynastic allocator settles the surplus.
+    ddm_initialize_settings_effect = yes
+    if = {
+        limit = { var:ddm_outsider_policy = 1 }
+        ddm_reclaim_unprotected_outsider_titles_only_effect = yes
+    }
+    ddm_distribute_surplus_counties_effect = yes
+}
+
+
+# ---------- audits, succession, military advice, and construction ----------
+
+ddm_prepare_domain_preview_effect = {
+    ddm_prepare_dashboard_effect = yes
+    save_scope_as = ddm_actor
+    clear_saved_scope = ddm_title
+    clear_saved_scope = ddm_recipient
+    clear_saved_scope = ddm_preview_best_heir
+    clear_saved_scope = ddm_preview_second_heir
+    clear_saved_scope = ddm_preview_next_barony
+    clear_saved_scope = ddm_preview_next_county
+
+    set_variable = { name = ddm_preview_surplus value = domain_size }
+    change_variable = { name = ddm_preview_surplus subtract = var:ddm_protected_domain_target }
+    if = {
+        limit = { var:ddm_preview_surplus < 0 }
+        set_variable = { name = ddm_preview_surplus value = 0 }
+    }
+    set_variable = { name = ddm_preview_hard_blocked_holdings value = 0 }
+    set_variable = { name = ddm_preview_foreign_heir_risk value = 0 }
+    set_variable = { name = ddm_preview_partition_heirs value = 0 }
+
+    # Preview uses the same concrete recipient-list builder as execution so
+    # both paths evaluate the same target universe and scoring assumptions.
+    dynasty = {
+        every_dynasty_member = {
+            remove_variable = ddm_batch_land_grants
+            remove_character_flag = ddm_partition_settlement_pool
+        }
+    }
+    ddm_v18_build_recipient_lists_effect = yes
+    set_variable = { name = ddm_preview_partition_heirs value = var:ddm_last_partition_heirs_available }
+    set_variable = { name = ddm_dash_safe_county_recipients value = var:ddm_last_general_recipients_available }
+
+    if = {
+        limit = { var:ddm_preview_partition_heirs > 0 }
+        ordered_in_list = {
+            list = ddm_v18_partition_pool
+            limit = { ddm_is_eligible_land_recipient_trigger = yes }
+            order_by = ddm_v18_land_recipient_score
+            position = 0
+            check_range_bounds = no
+            save_scope_as = ddm_preview_best_heir
+        }
+        ordered_in_list = {
+            list = ddm_v18_partition_pool
+            limit = { ddm_is_eligible_land_recipient_trigger = yes }
+            order_by = ddm_v18_land_recipient_score
+            position = 1
+            check_range_bounds = no
+            save_scope_as = ddm_preview_second_heir
+        }
+    }
+
+    every_held_title = {
+        if = {
+            limit = {
+                OR = {
+                    tier = tier_county
+                    AND = { tier = tier_barony is_capital_barony = no }
+                }
+                ddm_title_is_hard_protected_core_trigger = yes
+            }
+            scope:ddm_actor = { change_variable = { name = ddm_preview_hard_blocked_holdings add = 1 } }
+        }
+    }
+
+    dynasty = {
+        every_dynasty_member = {
+            limit = {
+                is_alive = yes
+                is_landed = yes
+                ddm_is_in_actor_realm_trigger = yes
+                exists = primary_heir
+                primary_heir = {
+                    is_landed = yes
+                    NOT = { ddm_is_in_actor_realm_trigger = yes }
+                }
+            }
+            scope:ddm_actor = { change_variable = { name = ddm_preview_foreign_heir_risk add = 1 } }
+        }
+    }
+
+    # Title preview remains an advisory ordering only. The manual KEEP/GIVE/
+    # DELEGATE classifications determine whether a title is in this pool at all.
+    ordered_held_title = {
+        limit = { ddm_barony_can_be_distributed_trigger = yes }
+        order_by = ddm_v18_title_shed_priority
+        position = 0
+        check_range_bounds = no
+        save_scope_as = ddm_preview_next_barony
+    }
+    ordered_held_title = {
+        limit = { ddm_county_can_be_distributed_trigger = yes }
+        order_by = ddm_v18_title_shed_priority
+        position = 0
+        check_range_bounds = no
+        save_scope_as = ddm_preview_next_county
+    }
+
+            dynasty = {
+        every_dynasty_member = {
+            remove_character_flag = ddm_partition_settlement_pool
+            remove_variable = ddm_batch_land_grants
+        }
+    }
+}
+
+ddm_prepare_succession_briefing_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    clear_saved_scope = ddm_succession_heir_1
+    clear_saved_scope = ddm_succession_heir_2
+    clear_saved_scope = ddm_succession_heir_3
+    set_variable = { name = ddm_succession_heir_count value = 0 }
+    set_variable = { name = ddm_partition_secondary_heirs value = 0 }
+    set_variable = { name = ddm_primary_heir_expected_titles value = 0 }
+    set_variable = { name = ddm_second_heir_expected_titles value = 0 }
+    set_variable = { name = ddm_third_heir_expected_titles value = 0 }
+
+    every_heir = {
+        scope:ddm_actor = { change_variable = { name = ddm_succession_heir_count add = 1 } }
+        if = { limit = { NOT = { is_primary_heir_of = scope:ddm_actor } } scope:ddm_actor = { change_variable = { name = ddm_partition_secondary_heirs add = 1 } } }
+    }
+
+    if = { limit = { var:ddm_succession_heir_count >= 1 } ordered_heir = { position = 0 check_range_bounds = yes save_scope_as = ddm_succession_heir_1 } }
+    if = { limit = { var:ddm_succession_heir_count >= 2 } ordered_heir = { position = 1 check_range_bounds = yes save_scope_as = ddm_succession_heir_2 } }
+    if = { limit = { var:ddm_succession_heir_count >= 3 } ordered_heir = { position = 2 check_range_bounds = yes save_scope_as = ddm_succession_heir_3 } }
+
+    # Count from the ruler's held titles outward. 1.8 used every_heir_to_title
+    # from each heir and produced both zero counts and a duplicated third line.
+    every_held_title = {
+        limit = { tier >= tier_county exists = current_heir }
+        if = { limit = { exists = scope:ddm_succession_heir_1 current_heir = scope:ddm_succession_heir_1 } scope:ddm_actor = { change_variable = { name = ddm_primary_heir_expected_titles add = 1 } } }
+        if = { limit = { exists = scope:ddm_succession_heir_2 current_heir = scope:ddm_succession_heir_2 } scope:ddm_actor = { change_variable = { name = ddm_second_heir_expected_titles add = 1 } } }
+        if = { limit = { exists = scope:ddm_succession_heir_3 current_heir = scope:ddm_succession_heir_3 } scope:ddm_actor = { change_variable = { name = ddm_third_heir_expected_titles add = 1 } } }
+    }
+}
+
+ddm_post_succession_cleanup_effect = {
+    ddm_initialize_settings_effect = yes
+    ddm_run_full_settlement_effect = yes
+    ddm_prepare_succession_briefing_effect = yes
+}
+
+# ============================================================
+# v1.9 Personal Domain Planner GUI
+# ============================================================
+
+ddm_refresh_domain_planner_counts_effect = {
+    save_scope_as = ddm_actor
+    set_variable = { name = ddm_planner_selected_count value = 0 }
+    set_variable = { name = ddm_planner_total_count value = 0 }
+    set_variable = { name = ddm_planner_target_count value = domain_limit }
+    if = { limit = { domain_size < var:ddm_planner_target_count } set_variable = { name = ddm_planner_target_count value = domain_size } }
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+        }
+        scope:ddm_actor = { change_variable = { name = ddm_planner_total_count add = 1 } }
+        if = { limit = { has_variable = ddm_manual_core } scope:ddm_actor = { change_variable = { name = ddm_planner_selected_count add = 1 } } }
+    }
+}
+
+ddm_cleanup_domain_planner_metadata_effect = {
+    clear_variable_list = ddm_domain_planner_titles
+    clear_variable_list = ddm_domain_planner_titles_raw
+    every_held_title = {
+        remove_variable = ddm_planner_original_core
+        remove_variable = ddm_planner_recommended
+        remove_variable = ddm_planner_maa
+        remove_variable = ddm_planner_special
+        remove_variable = ddm_planner_capital_duchy
+    }
+}
+
+ddm_prepare_domain_planner_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    ddm_refresh_adaptive_domain_core_effect = yes
+    clear_variable_list = ddm_domain_planner_titles
+    clear_variable_list = ddm_domain_planner_titles_raw
+
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+        }
+        remove_variable = ddm_planner_original_core
+        remove_variable = ddm_planner_recommended
+        remove_variable = ddm_planner_maa
+        remove_variable = ddm_planner_special
+        remove_variable = ddm_planner_capital_duchy
+        if = { limit = { has_variable = ddm_manual_core } set_variable = ddm_planner_original_core }
+        if = { limit = { has_variable = ddm_auto_core } set_variable = ddm_planner_recommended }
+        if = { limit = { title_province = { has_stationed_regiment = yes } } set_variable = ddm_planner_maa }
+        if = { limit = { title_province = { has_special_building = yes } } set_variable = ddm_planner_special }
+        if = {
+            limit = {
+                tier = tier_county
+                exists = scope:ddm_actor.capital_county.de_jure_liege
+                de_jure_liege = scope:ddm_actor.capital_county.de_jure_liege
+            }
+            set_variable = ddm_planner_capital_duchy
+        }
+    }
+
+    # persistent GUI list, using CK3's canonical variable-list pattern.
+    # The player is the root of this effect; each held title is PREV while the
+    # add_to_variable_list effect executes on ROOT. This avoids relying on a
+    # saved-scope hop while constructing a GUI datamodel.
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+        }
+        root = {
+            add_to_variable_list = {
+                name = ddm_domain_planner_titles_raw
+                target = prev
+            }
+        }
+    }
+
+    ddm_rebuild_domain_planner_sort_effect = yes
+    ddm_mark_capital_as_explicit_core_effect = yes
+    ddm_refresh_domain_planner_counts_effect = yes
+    set_variable = { name = ddm_show_domain_planner value = 1 }
+    set_variable = { name = ddm_ui_page value = flag:estate }
+}
+
+ddm_cancel_domain_planner_effect = {
+    save_scope_as = ddm_actor
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+        }
+        remove_variable = ddm_manual_core
+        if = { limit = { has_variable = ddm_planner_original_core } set_variable = ddm_manual_core }
+    }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    remove_variable = ddm_show_domain_planner
+    remove_variable = ddm_pending_domain_action
+    ddm_cleanup_domain_planner_metadata_effect = yes
+    ddm_prepare_dashboard_effect = yes
+}
+
+ddm_apply_office_core_recommendation_v19_effect = {
+    save_scope_as = ddm_actor
+    ddm_refresh_adaptive_domain_core_effect = yes
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+        }
+        remove_variable = ddm_manual_core
+        if = { limit = { has_variable = ddm_auto_core } set_variable = ddm_manual_core }
+    }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    ddm_refresh_domain_planner_counts_effect = yes
+}
+
+ddm_apply_maa_core_preset_v19_effect = {
+    every_held_title = {
+        limit = {
+            OR = {
+                AND = { tier = tier_county title_province = { has_stationed_regiment = yes } }
+                AND = { tier = tier_barony is_capital_barony = no title_province = { has_stationed_regiment = yes } }
+            }
+        }
+        set_variable = ddm_manual_core
+    }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    ddm_refresh_domain_planner_counts_effect = yes
+}
+
+ddm_apply_capital_duchy_core_preset_v19_effect = {
+    save_scope_as = ddm_actor
+    if = {
+        limit = { exists = capital_county.de_jure_liege }
+        every_held_title = {
+            limit = { tier = tier_county de_jure_liege = scope:ddm_actor.capital_county.de_jure_liege }
+            set_variable = ddm_manual_core
+        }
+    }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    ddm_refresh_domain_planner_counts_effect = yes
+}
+
+ddm_clear_core_selection_v19_effect = {
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+        }
+        remove_variable = ddm_manual_core
+    }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    ddm_refresh_domain_planner_counts_effect = yes
+}
+
+ddm_confirm_domain_planner_effect = {
+    save_scope_as = ddm_actor
+    every_held_title = {
+        limit = {
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony is_capital_barony = no }
+            }
+        }
+        remove_variable = ddm_manual_neutral
+        if = { limit = { has_variable = ddm_manual_core } remove_variable = ddm_manual_shed }
+        else = { set_variable = ddm_manual_shed }
+    }
+    ddm_mark_capital_as_explicit_core_effect = yes
+    set_variable = { name = ddm_domain_plan_limit value = domain_limit }
+    set_variable = { name = ddm_protected_domain_target value = var:ddm_planner_selected_count }
+    if = { limit = { var:ddm_protected_domain_target < 1 } set_variable = { name = ddm_protected_domain_target value = 1 } }
+    remove_variable = ddm_show_domain_planner
+    ddm_cleanup_domain_planner_metadata_effect = yes
+
+    if = {
+        limit = { has_variable = ddm_pending_domain_action var:ddm_pending_domain_action > 0 }
+        remove_variable = ddm_pending_domain_action
+        if = { limit = { var:ddm_outsider_policy = 1 } ddm_reclaim_unprotected_outsider_titles_only_effect = yes }
+        ddm_distribute_surplus_counties_effect = yes
+        set_variable = { name = ddm_ui_records_mode value = 2 }
+        set_variable = { name = ddm_ui_page value = flag:records }
+    }
+    else = {
+        remove_variable = ddm_pending_domain_action
+        set_variable = { name = ddm_ui_page value = flag:overview }
+    }
+    ddm_prepare_dashboard_effect = yes
+}
+
+
+# Allocation preview uses the exact live candidate and title lists, then simulates
+# only the fairness counters. No title actually changes holder.
+ddm_prepare_allocation_preview_effect = {
+    ddm_hier_scan_warnings_effect = yes
+
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+    clear_saved_scope = ddm_title
+    clear_saved_scope = ddm_recipient
+    clear_saved_scope = ddm_preview_recipient_1
+    clear_saved_scope = ddm_preview_recipient_2
+    clear_saved_scope = ddm_preview_recipient_3
+
+    dynasty = {
+        every_dynasty_member = {
+            remove_variable = ddm_batch_land_grants
+            remove_variable = ddm_preview_projected_grants
+            remove_variable = ddm_preview_quality
+            remove_variable = ddm_preview_merit
+            remove_variable = ddm_preview_loyalty
+            remove_variable = ddm_preview_family
+            remove_character_flag = ddm_partition_settlement_pool
+        }
+    }
+    every_vassal_or_below = {
+        remove_variable = ddm_batch_land_grants
+        remove_variable = ddm_preview_projected_grants
+        remove_variable = ddm_preview_quality
+        remove_variable = ddm_preview_merit
+        remove_variable = ddm_preview_loyalty
+        remove_variable = ddm_preview_family
+    }
+
+    set_variable = { name = ddm_preview_surplus value = domain_size }
+    change_variable = { name = ddm_preview_surplus subtract = var:ddm_protected_domain_target }
+    if = { limit = { var:ddm_preview_surplus < 0 } set_variable = { name = ddm_preview_surplus value = 0 } }
+    set_variable = { name = ddm_preview_allocated value = 0 }
+
+    ddm_v18_build_recipient_lists_effect = yes
+    ddm_v18_build_surplus_title_list_effect = yes
+
+    # Mirror execution: rank the whole eligible dynasty and use the same
+    # title-specific rightfulness chooser. No quota or batch concentration cap.
+    ddm_rank_dynasty_effect = yes
+
+    while = {
+        limit = {
+            var:ddm_preview_allocated < var:ddm_preview_surplus
+            any_in_list = { list = ddm_v18_surplus_titles count >= 1 }
+        }
+        clear_saved_scope = ddm_title
+        clear_saved_scope = ddm_recipient
+        remove_variable = ddm_found_title
+        remove_variable = ddm_found_recipient
+
+        ordered_in_list = {
+            list = ddm_v18_surplus_titles
+            limit = { holder = scope:ddm_actor }
+            order_by = ddm_v18_title_shed_priority
+            position = 0
+            check_range_bounds = no
+            save_scope_as = ddm_title
+            scope:ddm_actor = { set_variable = { name = ddm_found_title value = 1 } }
+        }
+        if = { limit = { has_variable = ddm_found_title } ddm_v18_choose_recipient_effect = yes }
+        if = {
+            limit = { has_variable = ddm_found_recipient exists = scope:ddm_recipient exists = scope:ddm_title }
+            scope:ddm_recipient = {
+                if = { limit = { NOT = { has_variable = ddm_batch_land_grants } } set_variable = { name = ddm_batch_land_grants value = 0 } }
+                change_variable = { name = ddm_batch_land_grants add = 1 }
+                if = { limit = { NOT = { has_variable = ddm_preview_projected_grants } } set_variable = { name = ddm_preview_projected_grants value = 0 } }
+                change_variable = { name = ddm_preview_projected_grants add = 1 }
+            }
+            change_variable = { name = ddm_preview_allocated add = 1 }
+            scope:ddm_title = { remove_from_list = ddm_v18_surplus_titles }
+        }
+        break_if = { NOT = { has_variable = ddm_found_recipient } }
+    }
+
+    # Cache transparent score components across the actual active recipient pool.
+    every_in_list = {
+        list = ddm_v18_recipient_pool
+        limit = { has_character_flag = ddm_rightful_pool }
+        set_variable = { name = ddm_preview_quality value = ddm_quality_trait_value }
+        set_variable = { name = ddm_preview_merit value = ddm_governance_merit_value }
+        set_variable = { name = ddm_preview_loyalty value = ddm_loyalty_value }
+        if = { limit = { has_variable = ddm_family_regard } set_variable = { name = ddm_preview_family value = var:ddm_family_regard } }
+        else = { set_variable = { name = ddm_preview_family value = 0 } }
+    }
+
+    ordered_in_list = { list = ddm_v18_recipient_pool limit = { has_character_flag = ddm_rightful_pool } order_by = ddm_preview_projected_grant_rank position = 0 check_range_bounds = no save_scope_as = ddm_preview_recipient_1 }
+    ordered_in_list = { list = ddm_v18_recipient_pool limit = { has_character_flag = ddm_rightful_pool } order_by = ddm_preview_projected_grant_rank position = 1 check_range_bounds = yes save_scope_as = ddm_preview_recipient_2 }
+    ordered_in_list = { list = ddm_v18_recipient_pool limit = { has_character_flag = ddm_rightful_pool } order_by = ddm_preview_projected_grant_rank position = 2 check_range_bounds = yes save_scope_as = ddm_preview_recipient_3 }
+
+    # Mirror top-three numeric components onto the ruler for stable event loc.
+    set_variable = { name = ddm_preview_r1_grants value = 0 }
+    set_variable = { name = ddm_preview_r1_quality value = 0 }
+    set_variable = { name = ddm_preview_r1_merit value = 0 }
+    set_variable = { name = ddm_preview_r1_loyalty value = 0 }
+    set_variable = { name = ddm_preview_r1_family value = 0 }
+    set_variable = { name = ddm_preview_r2_grants value = 0 }
+    set_variable = { name = ddm_preview_r2_quality value = 0 }
+    set_variable = { name = ddm_preview_r2_merit value = 0 }
+    set_variable = { name = ddm_preview_r2_loyalty value = 0 }
+    set_variable = { name = ddm_preview_r2_family value = 0 }
+    set_variable = { name = ddm_preview_r3_grants value = 0 }
+    set_variable = { name = ddm_preview_r3_quality value = 0 }
+    set_variable = { name = ddm_preview_r3_merit value = 0 }
+    set_variable = { name = ddm_preview_r3_loyalty value = 0 }
+    set_variable = { name = ddm_preview_r3_family value = 0 }
+
+    if = {
+        limit = { exists = scope:ddm_preview_recipient_1 }
+        if = { limit = { scope:ddm_preview_recipient_1 = { has_variable = ddm_preview_projected_grants } } set_variable = { name = ddm_preview_r1_grants value = scope:ddm_preview_recipient_1.var:ddm_preview_projected_grants } }
+        set_variable = { name = ddm_preview_r1_quality value = scope:ddm_preview_recipient_1.var:ddm_preview_quality }
+        set_variable = { name = ddm_preview_r1_merit value = scope:ddm_preview_recipient_1.var:ddm_preview_merit }
+        set_variable = { name = ddm_preview_r1_loyalty value = scope:ddm_preview_recipient_1.var:ddm_preview_loyalty }
+        set_variable = { name = ddm_preview_r1_family value = scope:ddm_preview_recipient_1.var:ddm_preview_family }
+    }
+    if = {
+        limit = { exists = scope:ddm_preview_recipient_2 }
+        if = { limit = { scope:ddm_preview_recipient_2 = { has_variable = ddm_preview_projected_grants } } set_variable = { name = ddm_preview_r2_grants value = scope:ddm_preview_recipient_2.var:ddm_preview_projected_grants } }
+        set_variable = { name = ddm_preview_r2_quality value = scope:ddm_preview_recipient_2.var:ddm_preview_quality }
+        set_variable = { name = ddm_preview_r2_merit value = scope:ddm_preview_recipient_2.var:ddm_preview_merit }
+        set_variable = { name = ddm_preview_r2_loyalty value = scope:ddm_preview_recipient_2.var:ddm_preview_loyalty }
+        set_variable = { name = ddm_preview_r2_family value = scope:ddm_preview_recipient_2.var:ddm_preview_family }
+    }
+    if = {
+        limit = { exists = scope:ddm_preview_recipient_3 }
+        if = { limit = { scope:ddm_preview_recipient_3 = { has_variable = ddm_preview_projected_grants } } set_variable = { name = ddm_preview_r3_grants value = scope:ddm_preview_recipient_3.var:ddm_preview_projected_grants } }
+        set_variable = { name = ddm_preview_r3_quality value = scope:ddm_preview_recipient_3.var:ddm_preview_quality }
+        set_variable = { name = ddm_preview_r3_merit value = scope:ddm_preview_recipient_3.var:ddm_preview_merit }
+        set_variable = { name = ddm_preview_r3_loyalty value = scope:ddm_preview_recipient_3.var:ddm_preview_loyalty }
+        set_variable = { name = ddm_preview_r3_family value = scope:ddm_preview_recipient_3.var:ddm_preview_family }
+    }
+
+    dynasty = {
+        every_dynasty_member = {
+            remove_variable = ddm_batch_land_grants
+            remove_character_flag = ddm_partition_settlement_pool
+        }
+    }
+    every_vassal_or_below = { remove_variable = ddm_batch_land_grants }
+    remove_variable = ddm_batch_grant_cap
+    ddm_clear_dynasty_ranking_effect = yes
+}
+
+ddm_prepare_military_advice_effect = {
+    ddm_initialize_settings_effect = yes
+    save_scope_as = ddm_actor
+
+    # culture-agnostic roster analysis.
+    #
+    # IMPORTANT: CK3 script exposes the player's regiment roster and base-type
+    # counts, but it does not expose an iterator over every recruitable MaA
+    # definition together with that definition's raw damage/toughness/stack/
+    # counters fields. Therefore DDM no longer pretends it can dynamically
+    # assign a universal numeric combat score to arbitrary cultural MaA types.
+    #
+    # Instead, the adviser uses:
+    #   (1) the ACTUAL personal roster grouped by the engine's MaA base types;
+    #   (2) Paradox's own counter-synergy script values where they exist; and
+    #   (3) a small-roster adaptation for rulers whose regiment cap is still 3.
+    #
+    # Cultural/special regiments automatically count as their true base type,
+    # so Bush Hunters, Longbowmen, Vigmen, etc. are all treated as Archers for
+    # roster structure without hard-coding a culture-specific branch.
+
+    set_variable = { name = ddm_maa_personal_regiment_count value = 0 }
+    every_maa_regiment = {
+        limit = { is_personal_maa_regiment = yes }
+        scope:ddm_actor = { change_variable = { name = ddm_maa_personal_regiment_count add = 1 } }
+    }
+
+    # Presence flags. These deliberately use base types rather than literal MaA
+    # keys so the same code works when the player changes culture.
+    set_variable = { name = ddm_has_skirmishers value = 0 }
+    set_variable = { name = ddm_has_archers value = 0 }
+    set_variable = { name = ddm_has_pikemen value = 0 }
+    set_variable = { name = ddm_has_heavy_infantry value = 0 }
+    set_variable = { name = ddm_has_light_cavalry value = 0 }
+    set_variable = { name = ddm_has_heavy_cavalry value = 0 }
+    set_variable = { name = ddm_has_archer_cavalry value = 0 }
+    set_variable = { name = ddm_has_camel_cavalry value = 0 }
+    set_variable = { name = ddm_has_elephant_cavalry value = 0 }
+    set_variable = { name = ddm_has_gunpowder value = 0 }
+    set_variable = { name = ddm_has_siege value = 0 }
+
+    if = { limit = { number_maa_regiments_of_base_type = { type = skirmishers value >= 1 } } set_variable = { name = ddm_has_skirmishers value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = archers value >= 1 } } set_variable = { name = ddm_has_archers value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = pikemen value >= 1 } } set_variable = { name = ddm_has_pikemen value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = heavy_infantry value >= 1 } } set_variable = { name = ddm_has_heavy_infantry value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = light_cavalry value >= 1 } } set_variable = { name = ddm_has_light_cavalry value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = heavy_cavalry value >= 1 } } set_variable = { name = ddm_has_heavy_cavalry value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = archer_cavalry value >= 1 } } set_variable = { name = ddm_has_archer_cavalry value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = camel_cavalry value >= 1 } } set_variable = { name = ddm_has_camel_cavalry value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = elephant_cavalry value >= 1 } } set_variable = { name = ddm_has_elephant_cavalry value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = gunpowder value >= 1 } } set_variable = { name = ddm_has_gunpowder value = 1 } }
+    if = { limit = { number_maa_regiments_of_base_type = { type = siege_weapon value >= 1 } } set_variable = { name = ddm_has_siege value = 1 } }
+
+    # Vanilla's own counter-synergy values. These are NOT combat-strength
+    # scores; they are Paradox-authored signals for which broad MaA family fills
+    # a hole in the current roster. Keeping them separate prevents the old
+    # -500 cultural-substitution bug from ever becoming 'archers are bad'.
+    set_variable = { name = ddm_synergy_archers value = counter_synergy_ai_weight_archers }
+    set_variable = { name = ddm_synergy_pikemen value = counter_synergy_ai_weight_pikemen }
+    set_variable = { name = ddm_synergy_heavy_infantry value = counter_synergy_ai_weight_heavy_infantry }
+    set_variable = { name = ddm_synergy_light_cavalry value = counter_synergy_ai_weight_light_cavalry }
+    set_variable = { name = ddm_synergy_crossbowmen value = counter_synergy_ai_weight_crossbowmen }
+    set_variable = { name = ddm_synergy_gunpowder value = counter_synergy_ai_weight_gunpowder }
+
+    # Recommendation codes:
+    # 11 = add Pike cover to Archer core
+    # 12 = Archer core already covered; reinforce best Archer/cultural replacement
+    # 20 = add Heavy Infantry cover to cavalry core
+    # 30 = add Light Cavalry cover to skirmisher core
+    # 40 = add Archer-family cover to Heavy Infantry core
+    # 50 = late-game Gunpowder opportunity
+    # 90 = siege slot should be considered
+    # 99 = no forced recommendation
+    set_variable = { name = ddm_maa_roster_plan value = 99 }
+    set_variable = { name = ddm_maa_recommendation value = 0 }
+
+    # Small-cap adaptation: vanilla counter synergy generally waits for 3
+    # regiments of one family. At a 3-regiment cap that is too late to advise the
+    # player. If 2 of the player's current combat regiments are Archers and no
+    # Pike family is present, use the same intended Archer->Pike relationship one
+    # regiment earlier. This is DDM policy, not presented as a vanilla score.
+    if = {
+        limit = {
+            number_maa_regiments_of_base_type = { type = archers value >= 2 }
+            number_maa_regiments_of_base_type = { type = pikemen value = 0 }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 11 }
+        set_variable = { name = ddm_maa_recommendation value = 2 }
+    }
+    else_if = {
+        limit = {
+            var:ddm_synergy_pikemen > 0
+            number_maa_regiments_of_base_type = { type = pikemen value = 0 }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 11 }
+        set_variable = { name = ddm_maa_recommendation value = 2 }
+    }
+    else_if = {
+        limit = {
+            number_maa_regiments_of_base_type = { type = archers value >= 2 }
+            number_maa_regiments_of_base_type = { type = pikemen value >= 1 }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 12 }
+        set_variable = { name = ddm_maa_recommendation value = 1 }
+    }
+    else_if = {
+        limit = {
+            var:ddm_synergy_heavy_infantry > 0
+            number_maa_regiments_of_base_type = { type = heavy_infantry value = 0 }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 20 }
+        set_variable = { name = ddm_maa_recommendation value = 2 }
+    }
+    else_if = {
+        limit = {
+            OR = {
+                AND = {
+                    number_maa_regiments_of_base_type = { type = light_cavalry value >= 2 }
+                    number_maa_regiments_of_base_type = { type = heavy_infantry value = 0 }
+                }
+                AND = {
+                    number_maa_regiments_of_base_type = { type = heavy_cavalry value >= 2 }
+                    number_maa_regiments_of_base_type = { type = heavy_infantry value = 0 }
+                }
+                AND = {
+                    number_maa_regiments_of_base_type = { type = camel_cavalry value >= 2 }
+                    number_maa_regiments_of_base_type = { type = heavy_infantry value = 0 }
+                }
+                AND = {
+                    number_maa_regiments_of_base_type = { type = elephant_cavalry value >= 2 }
+                    number_maa_regiments_of_base_type = { type = heavy_infantry value = 0 }
+                }
+            }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 20 }
+        set_variable = { name = ddm_maa_recommendation value = 2 }
+    }
+    else_if = {
+        limit = {
+            var:ddm_synergy_light_cavalry > 0
+            number_maa_regiments_of_base_type = { type = light_cavalry value = 0 }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 30 }
+        set_variable = { name = ddm_maa_recommendation value = 3 }
+    }
+    else_if = {
+        limit = {
+            number_maa_regiments_of_base_type = { type = skirmishers value >= 2 }
+            number_maa_regiments_of_base_type = { type = light_cavalry value = 0 }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 30 }
+        set_variable = { name = ddm_maa_recommendation value = 3 }
+    }
+    else_if = {
+        limit = {
+            var:ddm_synergy_archers > 0
+            number_maa_regiments_of_base_type = { type = archers value = 0 }
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 40 }
+        set_variable = { name = ddm_maa_recommendation value = 1 }
+    }
+    else_if = {
+        limit = {
+            var:ddm_synergy_gunpowder >= 200
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 50 }
+        set_variable = { name = ddm_maa_recommendation value = 0 }
+    }
+    else_if = {
+        limit = {
+            var:ddm_maa_personal_regiment_count >= 4
+            var:ddm_has_siege = 0
+        }
+        set_variable = { name = ddm_maa_roster_plan value = 90 }
+        set_variable = { name = ddm_maa_recommendation value = 0 }
+    }
+    else = {
+        # Construction fallback follows what the ruler ACTUALLY fields rather
+        # than a fabricated doctrine score.
+        if = { limit = { var:ddm_has_archers = 1 } set_variable = { name = ddm_maa_recommendation value = 1 } }
+        else_if = { limit = { OR = { var:ddm_has_heavy_infantry = 1 var:ddm_has_pikemen = 1 } } set_variable = { name = ddm_maa_recommendation value = 2 } }
+        else_if = { limit = { OR = { var:ddm_has_light_cavalry = 1 var:ddm_has_heavy_cavalry = 1 var:ddm_has_archer_cavalry = 1 var:ddm_has_camel_cavalry = 1 var:ddm_has_elephant_cavalry = 1 } } set_variable = { name = ddm_maa_recommendation value = 3 } }
+    }
+}
+
+ddm_reset_construction_report_effect = {
+    set_variable = { name = ddm_last_buildings_constructed value = 0 }
+    set_variable = { name = ddm_last_gold_spent value = 0 }
+    set_variable = { name = ddm_last_build_skipped_no_slots value = 0 }
+    set_variable = { name = ddm_last_build_skipped_budget value = 0 }
+}
+
+ddm_bulk_build_military_camps_effect = {
+    ddm_initialize_settings_effect = yes
+    ddm_reset_construction_report_effect = yes
+    save_scope_as = ddm_actor
+    every_directly_owned_province = {
+        if = {
+            limit = {
+                free_building_slots > 0
+                NOT = { has_building_or_higher = military_camps_01 }
+                building_military_camps_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+            }
+            if = {
+                limit = { scope:ddm_actor = { ddm_available_construction_gold >= 100 } }
+                add_building = military_camps_01
+                scope:ddm_actor = { add_gold = -100 change_variable = { name = ddm_last_gold_spent add = 100 } change_variable = { name = ddm_last_buildings_constructed add = 1 } }
+            }
+            else = { scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_budget add = 1 } } }
+        }
+        else_if = { limit = { free_building_slots <= 0 } scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_no_slots add = 1 } } }
+    }
+}
+
+ddm_bulk_build_barracks_effect = {
+    ddm_initialize_settings_effect = yes
+    ddm_reset_construction_report_effect = yes
+    save_scope_as = ddm_actor
+    every_directly_owned_province = {
+        if = {
+            limit = {
+                free_building_slots > 0
+                NOT = { has_building_or_higher = barracks_01 }
+                building_barracks_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+            }
+            if = {
+                limit = { scope:ddm_actor = { ddm_available_construction_gold >= 150 } }
+                add_building = barracks_01
+                scope:ddm_actor = { add_gold = -150 change_variable = { name = ddm_last_gold_spent add = 150 } change_variable = { name = ddm_last_buildings_constructed add = 1 } }
+            }
+            else = { scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_budget add = 1 } } }
+        }
+        else_if = { limit = { free_building_slots <= 0 } scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_no_slots add = 1 } } }
+    }
+}
+
+ddm_bulk_build_stables_effect = {
+    ddm_initialize_settings_effect = yes
+    ddm_reset_construction_report_effect = yes
+    save_scope_as = ddm_actor
+    every_directly_owned_province = {
+        if = {
+            limit = {
+                free_building_slots > 0
+                NOT = { has_building_or_higher = stables_01 }
+                building_stables_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+            }
+            if = {
+                limit = { scope:ddm_actor = { ddm_available_construction_gold >= 150 } }
+                add_building = stables_01
+                scope:ddm_actor = { add_gold = -150 change_variable = { name = ddm_last_gold_spent add = 150 } change_variable = { name = ddm_last_buildings_constructed add = 1 } }
+            }
+            else = { scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_budget add = 1 } } }
+        }
+        else_if = { limit = { free_building_slots <= 0 } scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_no_slots add = 1 } } }
+    }
+}
+
+ddm_bulk_build_regimental_grounds_effect = {
+    ddm_initialize_settings_effect = yes
+    ddm_reset_construction_report_effect = yes
+    save_scope_as = ddm_actor
+    every_directly_owned_province = {
+        if = {
+            limit = {
+                free_building_slots > 0
+                NOT = { has_building_or_higher = regimental_grounds_01 }
+                building_regimental_grounds_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+            }
+            if = {
+                limit = { scope:ddm_actor = { ddm_available_construction_gold >= 200 } }
+                add_building = regimental_grounds_01
+                scope:ddm_actor = { add_gold = -200 change_variable = { name = ddm_last_gold_spent add = 200 } change_variable = { name = ddm_last_buildings_constructed add = 1 } }
+            }
+            else = { scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_budget add = 1 } } }
+        }
+        else_if = { limit = { free_building_slots <= 0 } scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_no_slots add = 1 } } }
+    }
+}
+
+ddm_smart_maa_construction_effect = {
+    ddm_initialize_settings_effect = yes
+    ddm_prepare_military_advice_effect = yes
+    ddm_reset_construction_report_effect = yes
+    save_scope_as = ddm_actor
+
+    every_directly_owned_province = {
+        scope:ddm_actor = { remove_variable = ddm_smart_built_here }
+        if = {
+            limit = {
+                free_building_slots > 0
+                OR = { has_stationed_regiment_of_base_type = archers has_stationed_regiment_of_base_type = skirmishers }
+                NOT = { has_building_or_higher = military_camps_01 }
+                building_military_camps_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+                scope:ddm_actor = { ddm_available_construction_gold >= 100 }
+            }
+            add_building = military_camps_01
+            scope:ddm_actor = { add_gold = -100 change_variable = { name = ddm_last_gold_spent add = 100 } change_variable = { name = ddm_last_buildings_constructed add = 1 } set_variable = { name = ddm_smart_built_here value = 1 } }
+        }
+        if = {
+            limit = {
+                scope:ddm_actor = { NOT = { has_variable = ddm_smart_built_here } }
+                free_building_slots > 0
+                OR = { has_stationed_regiment_of_base_type = heavy_infantry has_stationed_regiment_of_base_type = pikemen }
+                NOT = { has_building_or_higher = barracks_01 }
+                building_barracks_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+                scope:ddm_actor = { ddm_available_construction_gold >= 150 }
+            }
+            add_building = barracks_01
+            scope:ddm_actor = { add_gold = -150 change_variable = { name = ddm_last_gold_spent add = 150 } change_variable = { name = ddm_last_buildings_constructed add = 1 } set_variable = { name = ddm_smart_built_here value = 1 } }
+        }
+        if = {
+            limit = {
+                scope:ddm_actor = { NOT = { has_variable = ddm_smart_built_here } }
+                free_building_slots > 0
+                OR = { has_stationed_regiment_of_base_type = light_cavalry has_stationed_regiment_of_base_type = heavy_cavalry has_stationed_regiment_of_base_type = archer_cavalry }
+                NOT = { has_building_or_higher = stables_01 }
+                building_stables_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+                scope:ddm_actor = { ddm_available_construction_gold >= 150 }
+            }
+            add_building = stables_01
+            scope:ddm_actor = { add_gold = -150 change_variable = { name = ddm_last_gold_spent add = 150 } change_variable = { name = ddm_last_buildings_constructed add = 1 } set_variable = { name = ddm_smart_built_here value = 1 } }
+        }
+
+        if = {
+            limit = {
+                scope:ddm_actor = { NOT = { has_variable = ddm_smart_built_here } var:ddm_maa_recommendation = 1 }
+                free_building_slots > 0
+                NOT = { has_building_or_higher = military_camps_01 }
+                building_military_camps_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+                scope:ddm_actor = { ddm_available_construction_gold >= 100 }
+            }
+            add_building = military_camps_01
+            scope:ddm_actor = { add_gold = -100 change_variable = { name = ddm_last_gold_spent add = 100 } change_variable = { name = ddm_last_buildings_constructed add = 1 } set_variable = { name = ddm_smart_built_here value = 1 } }
+        }
+        if = {
+            limit = {
+                scope:ddm_actor = { NOT = { has_variable = ddm_smart_built_here } var:ddm_maa_recommendation = 2 }
+                free_building_slots > 0
+                NOT = { has_building_or_higher = barracks_01 }
+                building_barracks_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+                scope:ddm_actor = { ddm_available_construction_gold >= 150 }
+            }
+            add_building = barracks_01
+            scope:ddm_actor = { add_gold = -150 change_variable = { name = ddm_last_gold_spent add = 150 } change_variable = { name = ddm_last_buildings_constructed add = 1 } set_variable = { name = ddm_smart_built_here value = 1 } }
+        }
+        if = {
+            limit = {
+                scope:ddm_actor = { NOT = { has_variable = ddm_smart_built_here } var:ddm_maa_recommendation = 3 }
+                free_building_slots > 0
+                NOT = { has_building_or_higher = stables_01 }
+                building_stables_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+                scope:ddm_actor = { ddm_available_construction_gold >= 150 }
+            }
+            add_building = stables_01
+            scope:ddm_actor = { add_gold = -150 change_variable = { name = ddm_last_gold_spent add = 150 } change_variable = { name = ddm_last_buildings_constructed add = 1 } set_variable = { name = ddm_smart_built_here value = 1 } }
+        }
+        if = {
+            limit = {
+                scope:ddm_actor = { NOT = { has_variable = ddm_smart_built_here } var:ddm_maa_recommendation = 4 }
+                free_building_slots > 0
+                NOT = { has_building_or_higher = regimental_grounds_01 }
+                building_regimental_grounds_requirement_terrain = yes
+                building_requirement_castle_city_church = { LEVEL = 01 }
+                building_requirement_tribal = no
+                scope:ddm_actor = { ddm_available_construction_gold >= 200 }
+            }
+            add_building = regimental_grounds_01
+            scope:ddm_actor = { add_gold = -200 change_variable = { name = ddm_last_gold_spent add = 200 } change_variable = { name = ddm_last_buildings_constructed add = 1 } set_variable = { name = ddm_smart_built_here value = 1 } }
+        }
+
+        if = { limit = { free_building_slots <= 0 } scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_no_slots add = 1 } } }
+        else_if = {
+            limit = { scope:ddm_actor = { NOT = { has_variable = ddm_smart_built_here } } scope:ddm_actor = { ddm_available_construction_gold < 150 } }
+            scope:ddm_actor = { change_variable = { name = ddm_last_build_skipped_budget add = 1 } }
+        }
+        scope:ddm_actor = { remove_variable = ddm_smart_built_here }
+    }
+}

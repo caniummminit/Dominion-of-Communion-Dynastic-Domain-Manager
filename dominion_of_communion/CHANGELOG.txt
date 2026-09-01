@@ -1,0 +1,38 @@
+DOMINION OF COMMUNION 1.0 — ENDOWMENT STABILITY TEST
+=====================================================
+
+ENDOWMENT ROOT-CAUSE FIX
+------------------------
+- Endowment tier is now locked separately from length and girth. Normal profile refreshes restore the permanent tier instead of recalculating it, so Alpha Check and Tantalize cannot reclassify a character.
+- Ruler Designer initialization is protected from pre-lobby title/court hooks. A custom ruler can no longer receive a random profile during game setup before Dominion has honored the selected tier.
+- Exact dimensions use the previously working dynamic trait description again.
+- Rebuild Endowment Display deliberately clears only the derived tier lock and recomputes from the existing permanent measurements. Reroll All Endowments remains the only operation that intentionally replaces the measurements themselves.
+
+DOMINION OF COMMUNION 1.0.1
+===========================
+
+HOTFIX
+------
+- Endowment tiers are now mutually exclusive in Ruler Designer. Selecting one penis-size tier prevents selecting any of the other five, avoiding invalid multi-tier custom rulers and the resulting startup crash.
+- No gameplay systems, Carnalitas hooks, measurements, preferences, interactions, or Ledger behavior were otherwise changed.
+
+DOMINION OF COMMUNION 1.0.0
+===========================
+
+FIRST PUBLIC RELEASE
+--------------------
+- Unified paused Communion Ledger.
+- Alpha dominance and Cuck Experience progression.
+- Tantalize, Obedience and Pet progression.
+- Owned subjects, Household Dominion, tribute and intelligence.
+- Household Intrigue actions.
+- Endowment traits with exact persistent measurements and individualized preferences.
+- Endowment tooltips display stored dimensions when available.
+- World Cuck tracking, blood acknowledgement and succession pressure.
+- Blood Succession resistance, duel and war paths.
+- Crowned Union mechanics.
+- AI participation and save-state repair/rebuild tools.
+- Mature sexual/romantic participation restricted to characters age 18 or older.
+- Optional Carnalitas integration and separate compatibility package support.
+
+Compatibility target: Crusader Kings III 1.19.*

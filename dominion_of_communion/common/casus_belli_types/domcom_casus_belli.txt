@@ -1,0 +1,68 @@
+﻿# Dominion of Communion 1.0.0-rc4.2 — scripted Blood Succession War.
+# It is started only after an AI Patron wins the abdication pressure roll and
+# the human subject refuses the personal duel.
+
+domcom_blood_succession_war = {
+    group = event
+    target_titles = none
+    ai = no
+    white_peace_possible = no
+    should_check_for_interface_availability = no
+    target_top_liege_if_outside_realm = no
+    war_name = DOMCOM_BLOOD_SUCCESSION_WAR_NAME
+    truce_days = 1825
+
+    allowed_for_character = { always = yes }
+    allowed_against_character = { always = yes }
+    valid_to_start = {
+        scope:defender = {
+            is_alive = yes
+            is_landed = yes
+            has_character_flag = domcom_owned_cuck
+            has_variable = domcom_patron
+            var:domcom_patron = scope:attacker
+            domcom_can_demand_abdication_for_blood_trigger = { PATRON = scope:attacker }
+        }
+    }
+
+    on_primary_attacker_death = invalidate
+    on_primary_defender_death = invalidate
+
+    should_invalidate = {
+        NOT = {
+            scope:defender = {
+                domcom_can_demand_abdication_for_blood_trigger = { PATRON = scope:attacker }
+            }
+        }
+    }
+
+    on_declaration = {
+        scope:attacker = {
+            add_character_modifier = domcom_blood_succession_war_buff
+        }
+    }
+
+    on_victory = {
+        scope:attacker = {
+            remove_character_modifier = domcom_blood_succession_war_buff
+            save_scope_as = domcom_abdication_patron
+        }
+        scope:defender = {
+            remove_character_flag = domcom_blood_abdication_pending
+            domcom_abdicate_to_blood_effect = yes
+        }
+    }
+
+    on_defeat = {
+        scope:attacker = { remove_character_modifier = domcom_blood_succession_war_buff }
+        scope:defender = { domcom_player_wins_blood_war_effect = yes }
+    }
+
+    on_invalidated = {
+        scope:attacker = { remove_character_modifier = domcom_blood_succession_war_buff }
+        scope:defender = { remove_character_flag = domcom_blood_abdication_pending }
+    }
+
+    on_victory_desc = { desc = domcom_blood_succession_war_victory_desc }
+    on_defeat_desc = { desc = domcom_blood_succession_war_defeat_desc }
+}

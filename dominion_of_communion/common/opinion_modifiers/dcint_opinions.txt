@@ -1,0 +1,6 @@
+﻿dcint_whispered_against_opinion = { opinion = -20 years = 5 }
+dcint_whispered_against_strong_opinion = { opinion = -30 years = 5 }
+dcint_whispered_against_pet_opinion = { opinion = -40 years = 5 }
+dcint_courtier_poached_opinion = { opinion = -20 years = 5 }
+dcint_claim_pressed_opinion = { opinion = -40 years = 10 }
+dcint_partner_grateful_opinion = { opinion = 15 years = 5 }

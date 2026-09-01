@@ -1,0 +1,530 @@
+﻿# Dominion of Communion 0.3.0
+# Monthly patron upkeep is approximated from the quarterly playable pulse with
+# delayed repeats. It is character-local and does not scan the world.
+
+# 0.5.5 — make the visible Endowment trait exist without requiring an Alpha interaction.
+on_game_start_after_lobby = {
+    on_actions = { domcom_after_lobby_profile_init }
+}
+
+on_birthday = {
+    on_actions = { domcom_profile_on_birthday }
+}
+
+# 0.7.0 — the hooks Carnalitas uses to catch characters the game generates
+# mid-run. Without these, a new courtier or a newly landed ruler waited up to a
+# quarter for the orbit pass; now they initialize on arrival.
+on_join_court = {
+    on_actions = { domcom_profile_on_life_event }
+}
+
+on_title_gain = {
+    on_actions = { domcom_profile_on_life_event }
+}
+
+domcom_profile_on_life_event = {
+    # Title-gain and court-join hooks can fire while a new game is still being
+    # assembled, before a Ruler Designer character has become the player. Do
+    # not profile anyone through those hooks until the post-lobby initialization
+    # has finished. Otherwise the custom ruler can receive a random Endowment
+    # before Dominion has a chance to honor the tier chosen in the designer.
+    trigger = {
+        age >= 18
+        has_global_variable = domcom_profile_runtime_ready
+    }
+    effect = { domcom_initialize_profile_effect = yes }
+}
+
+domcom_after_lobby_profile_init = {
+    effect = {
+        # Ruler Designer is authoritative. At this point CK3 has selected the
+        # human ruler, so convert any chosen Dominion Endowment trait into its
+        # permanent measurements before the broad world seed can ever touch it.
+        every_player = {
+            domcom_initialize_profile_effect = yes
+        }
+
+        # Seed everyone else and cover the player's visible orbit.
+        domcom_seed_world_endowments_once_effect = yes
+        every_player = {
+            domcom_initialize_existing_ruler_endowments_once_effect = yes
+            domcom_initialize_local_population_effect = yes
+        }
+
+        # Only now may generic on_title_gain/on_join_court hooks initialize new
+        # adults. This prevents game-setup title grants from racing the designer.
+        set_global_variable = domcom_profile_runtime_ready
+    }
+}
+
+# 0.7.4 — every birthday is a catch-up point, not just the 18th.
+#
+# This used to be trigger = { age = 18 }, an exact match. That only fires if a
+# character crosses the threshold by actually having an 18th birthday in game.
+# Any other route past it silently missed: an age set by console or another
+# mod, a ruler designer character, an event that alters age. Those characters
+# then had no measurements and no trait with nothing scheduled to fix it.
+#
+# domcom_needs_profile_init_trigger tests state rather than an event - adult,
+# and still missing something the profile system owns - so a character who
+# arrived at adulthood by any route is picked up on their next birthday at the
+# latest. It short-circuits on one variable check for everyone already done,
+# so running this on every birthday instead of one costs effectively nothing.
+domcom_profile_on_birthday = {
+    trigger = { domcom_needs_profile_init_trigger = yes }
+    effect = { domcom_initialize_profile_effect = yes }
+}
+
+quarterly_playable_pulse = {
+    on_actions = {
+        domcom_alpha_budget_reset
+        domcom_local_population_init
+        domcom_monthly_patron_pulse
+        delay = { months = 1 }
+        domcom_monthly_patron_pulse
+        delay = { months = 2 }
+        domcom_monthly_patron_pulse
+    }
+}
+
+# 0.5.9 — rolling coverage for characters who join the player's orbit after
+# game start: spawned courtiers, new vassals, event-created adults, and anyone
+# generated above age 18 who therefore never fires the 18th-birthday hook.
+# Restricted to human patrons; AI Dominion already initializes its own targets
+# lazily, so running this for every ruler in the world would be the world scan
+# again by another name.
+# 0.9.9 — refill the player's Alpha Check allowance. Human patrons only; AI
+# Alpha attempts are already rate-limited to the yearly pulse.
+domcom_alpha_budget_reset = {
+    trigger = { is_ai = no }
+    effect = { domcom_reset_alpha_budget_effect = yes }
+}
+
+domcom_local_population_init = {
+    trigger = { is_ai = no }
+    effect = {
+        # The world seed is globally gated, so this is a single variable check
+        # after the first pass. It stays on the pulse as the safety net for a
+        # save loaded straight into a paused game.
+        domcom_seed_world_endowments_once_effect = yes
+        domcom_initialize_existing_ruler_endowments_once_effect = yes
+        domcom_initialize_local_population_effect = yes
+    }
+}
+
+random_yearly_playable_pulse = {
+    on_actions = {
+        domcom_ai_yearly_pulse
+        domcom_marital_preference_yearly_pulse
+        domcom_crowned_heart_yearly_pulse
+    }
+}
+
+on_birth_child = {
+    on_actions = {
+        domcom_on_birth_child
+        domcom_cucked_nickname_check
+    }
+}
+
+on_death = {
+    on_actions = { domcom_on_death }
+}
+
+on_war_started = {
+    on_actions = { domcom_on_war_started }
+}
+
+domcom_monthly_patron_pulse = {
+    effect = {
+        if = { limit = { is_ai = no } domcom_repair_patron_registries_effect = yes }
+        domcom_monthly_owned_subject_effect = yes
+        domcom_enforce_communion_for_patron_effect = yes
+        domcom_reassert_cuck_reputations_for_patron_effect = yes
+        domcom_try_admirer_approach_effect = yes
+        if = {
+            limit = { is_ai = yes domcom_ai_is_enabled_trigger = yes }
+            random = { chance = 8 domcom_ai_try_public_humiliation_effect = yes }
+        }
+    }
+}
+
+domcom_ai_yearly_pulse = {
+    trigger = {
+        is_ai = yes
+        is_alive = yes
+        age >= 18
+        is_imprisoned = no
+        domcom_ai_is_enabled_trigger = yes
+    }
+    effect = {
+        domcom_ai_seek_dominion_effect = yes
+        domcom_ai_try_general_alpha_effect = yes
+        domcom_ai_acknowledge_blood_effect = yes
+        domcom_ai_manage_succession_effect = yes
+        domcom_ai_try_start_tribute_season_effect = yes
+    }
+}
+
+domcom_on_birth_child = {
+    effect = {
+        # 1.0.0-rc4.3 — take the sire's measurements down now, while he is
+        # alive and certain to still carry them. This is what makes the
+        # Endowment traits congenital: the son's roll at eighteen descends from
+        # this record rather than from the flat population table. Runs first so
+        # it is not affected by any parentage bookkeeping further down.
+        domcom_capture_endowment_heredity_effect = yes
+
+        # First apply the Dominion interpretation to detectable marital conceptions.
+        domcom_process_dominion_summons_birth_effect = yes
+
+        # Hidden real-father data remains actionable later through Acknowledge My Blood.
+        if = {
+            limit = { exists = real_father NOT = { father ?= root.real_father } }
+            add_character_flag = domcom_hidden_blood_child
+        }
+
+        # Fresh child evidence increases the relevant cuck's experience for any patron,
+        # player or AI. Male and female patrons are both supported.
+        if = {
+            limit = { exists = real_father exists = mother }
+            real_father = { save_scope_as = domcom_birth_patron }
+            mother = {
+                every_spouse = {
+                    limit = {
+                        has_character_flag = domcom_cucked
+                        OR = {
+                            AND = { has_variable = domcom_cuck_patron var:domcom_cuck_patron = scope:domcom_birth_patron }
+                            AND = { has_variable = domcom_patron var:domcom_patron = scope:domcom_birth_patron }
+                        }
+                    }
+                    change_variable = { name = domcom_cuck_xp add = 125 }
+                    add_opinion = { target = root modifier = domcom_cucked_child_opinion }
+                    domcom_refresh_cuck_stage_effect = yes
+                    domcom_check_final_collapse_effect = yes
+                }
+            }
+        }
+        else_if = {
+            limit = { exists = father exists = mother }
+            father = { save_scope_as = domcom_birth_patron }
+            mother = {
+                every_spouse = {
+                    limit = {
+                        has_character_flag = domcom_cucked
+                        OR = {
+                            AND = { has_variable = domcom_cuck_patron var:domcom_cuck_patron = scope:domcom_birth_patron }
+                            AND = { has_variable = domcom_patron var:domcom_patron = scope:domcom_birth_patron }
+                        }
+                    }
+                    change_variable = { name = domcom_cuck_xp add = 125 }
+                    add_opinion = { target = root modifier = domcom_cucked_child_opinion }
+                    domcom_refresh_cuck_stage_effect = yes
+                    domcom_check_final_collapse_effect = yes
+                }
+            }
+        }
+
+        if = {
+            limit = { exists = mother exists = father }
+            mother = { save_scope_as = domcom_birth_patron }
+            father = {
+                every_spouse = {
+                    limit = {
+                        has_character_flag = domcom_cucked
+                        OR = {
+                            AND = { has_variable = domcom_cuck_patron var:domcom_cuck_patron = scope:domcom_birth_patron }
+                            AND = { has_variable = domcom_patron var:domcom_patron = scope:domcom_birth_patron }
+                        }
+                    }
+                    change_variable = { name = domcom_cuck_xp add = 125 }
+                    add_opinion = { target = root modifier = domcom_cucked_child_opinion }
+                    domcom_refresh_cuck_stage_effect = yes
+                    domcom_check_final_collapse_effect = yes
+                }
+            }
+        }
+
+        # Apply/repair Spawn of a Cuck only after Dominion Summons and hidden
+        # parentage have been processed, so an assumed cuck father is not mistaken
+        # for the biological father.
+        domcom_refresh_spawn_of_cuck_effect = yes
+
+        # New dynasty members inherit strong leverage over living subjects tied
+        # to their dynasty's Dominion registry.
+        if = {
+            limit = { exists = dynasty dynasty = { has_variable_list = domcom_owned_subjects } }
+            dynasty = {
+                every_in_list = {
+                    variable = domcom_owned_subjects
+                    limit = { is_alive = yes has_character_flag = domcom_owned_cuck }
+                    save_temporary_scope_as = domcom_owned_subject
+                    root = {
+                        if = {
+                            limit = { can_add_hook = { target = scope:domcom_owned_subject type = loyalty_hook } }
+                            add_hook_no_toast = { target = scope:domcom_owned_subject type = loyalty_hook }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+domcom_on_death = {
+    effect = {
+        # Remove dead cucks from their patron-local fast Ledger registry.
+        if = {
+            limit = { has_character_flag = domcom_cucked has_variable = domcom_cuck_patron }
+            save_scope_as = domcom_dead_cuck_subject
+            var:domcom_cuck_patron = {
+                if = {
+                    limit = { has_variable_list = domcom_cucked_registry }
+                    remove_list_variable = { name = domcom_cucked_registry target = scope:domcom_dead_cuck_subject }
+                }
+            }
+        }
+        if = {
+            limit = { has_character_flag = domcom_owned_cuck has_variable = domcom_patron }
+            save_scope_as = domcom_dead_owned_subject
+            var:domcom_patron = {
+                if = {
+                    limit = { has_variable_list = domcom_owned_registry }
+                    remove_list_variable = { name = domcom_owned_registry target = scope:domcom_dead_owned_subject }
+                }
+            }
+        }
+        if = {
+            limit = { has_character_flag = domcom_owned_cuck has_variable = domcom_patron_dynasty }
+            save_scope_as = domcom_dead_owned_subject
+            var:domcom_patron_dynasty = {
+                if = {
+                    limit = { has_variable_list = domcom_owned_subjects }
+                    remove_list_variable = { name = domcom_owned_subjects target = scope:domcom_dead_owned_subject }
+                }
+            }
+        }
+
+        # Dominion inheritance is no longer player-only. A player uses the player
+        # heir when available; an AI patron uses the primary heir.
+        if = {
+            limit = { exists = dynasty dynasty = { has_variable_list = domcom_owned_subjects } }
+            save_scope_as = domcom_dead_patron
+            if = {
+                limit = { is_ai = no exists = player_heir }
+                player_heir = { save_scope_as = domcom_new_patron }
+            }
+            else_if = {
+                limit = { exists = primary_heir }
+                primary_heir = { save_scope_as = domcom_new_patron }
+            }
+            if = {
+                limit = { exists = scope:domcom_new_patron }
+                dynasty = {
+                    every_in_list = {
+                        variable = domcom_owned_subjects
+                        limit = {
+                            is_alive = yes
+                            has_variable = domcom_patron
+                            var:domcom_patron = scope:domcom_dead_patron
+                        }
+                        save_temporary_scope_as = domcom_inherited_subject
+                        set_variable = { name = domcom_patron value = scope:domcom_new_patron }
+                        set_variable = { name = domcom_cuck_patron value = scope:domcom_new_patron }
+                        save_temporary_scope_as = domcom_inherited_registry_subject
+                        scope:domcom_new_patron = {
+                            if = {
+                                limit = {
+                                    NOT = {
+                                        any_in_list = {
+                                            variable = domcom_owned_registry
+                                            this = scope:domcom_inherited_registry_subject
+                                        }
+                                    }
+                                }
+                                add_to_variable_list = { name = domcom_owned_registry target = scope:domcom_inherited_registry_subject }
+                            }
+                            save_scope_as = domcom_communion_patron
+                        }
+                        domcom_apply_communion_tolerance_subject_effect = yes
+                        add_opinion = { target = scope:domcom_new_patron modifier = domcom_owned_by_patron_opinion }
+                        scope:domcom_new_patron = {
+                            if = {
+                                limit = { can_add_hook = { target = scope:domcom_inherited_subject type = loyalty_hook } }
+                                add_hook_no_toast = { target = scope:domcom_inherited_subject type = loyalty_hook }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+domcom_on_war_started = {
+    effect = {
+        # Owned attacker against patron defender.
+        if = {
+            limit = {
+                scope:attacker = {
+                    has_character_flag = domcom_owned_cuck
+                    has_variable = domcom_patron
+                    var:domcom_patron = scope:defender
+                }
+            }
+            scope:attacker = {
+                save_scope_as = domcom_war_subject
+                change_variable = { name = domcom_cuck_xp add = 100 }
+                domcom_refresh_cuck_stage_effect = yes
+            }
+            scope:defender = { save_scope_as = domcom_war_patron }
+            scope:war = { save_scope_as = domcom_submission_war }
+            if = {
+                limit = { scope:defender = { is_ai = no } }
+                scope:defender = { trigger_event = { id = domcom.400 days = 1 } }
+            }
+            else = {
+                # AI patrons demand surrender from Broken/Abject subjects and accept
+                # white peace from newly Owned subjects.
+                if = {
+                    limit = { scope:attacker = { has_variable = domcom_cuck_xp var:domcom_cuck_xp >= 500 } }
+                    scope:war = { end_war = defender }
+                }
+                else = { scope:war = { end_war = white_peace } }
+            }
+        }
+        # Patron attacker against Owned defender.
+        else_if = {
+            limit = {
+                scope:defender = {
+                    has_character_flag = domcom_owned_cuck
+                    has_variable = domcom_patron
+                    var:domcom_patron = scope:attacker
+                }
+            }
+            scope:defender = {
+                save_scope_as = domcom_war_subject
+                change_variable = { name = domcom_cuck_xp add = 100 }
+                domcom_refresh_cuck_stage_effect = yes
+            }
+            scope:attacker = { save_scope_as = domcom_war_patron }
+            scope:war = { save_scope_as = domcom_submission_war }
+            if = {
+                limit = { scope:attacker = { is_ai = no } }
+                scope:attacker = { trigger_event = { id = domcom.400 days = 1 } }
+            }
+            else = { scope:war = { end_war = attacker } }
+        }
+    }
+}
+
+# ---------------------------------------------------------------------------
+# 0.6.3 — optional integration and preference maintenance.
+# These named Carnalitas on-actions are safe when Carnalitas is absent: nothing
+# fires them. When it is present, Dominion piggybacks on its public hooks without
+# requiring or copying Carnalitas content.
+# ---------------------------------------------------------------------------
+carn_character_initialization_pulse = {
+    on_actions = { domcom_carn_character_profile_bridge }
+}
+
+carn_on_sex_v2 = {
+    on_actions = { domcom_carn_on_sex_bridge }
+}
+
+domcom_carn_character_profile_bridge = {
+    trigger = { is_alive = yes age >= 18 }
+    effect = {
+        # Keep the Carnalitas world-wide initialization bridge deliberately cheap:
+        # Endowment only. Full attraction preferences remain lazy until relevant.
+        domcom_assign_endowment_effect = yes
+        trigger_event = { on_action = domcom_profile_initialized }
+    }
+}
+
+domcom_carn_on_sex_bridge = {
+    trigger = {
+        is_alive = yes age >= 18
+        scope:carn_sex_partner = { is_alive = yes age >= 18 }
+    }
+    effect = { domcom_record_carnalitas_sex_effect = yes }
+}
+
+# Public extension points used by the optional compatibility submod.
+domcom_profile_initialized = { events = {} }
+domcom_pet_created = { events = {} }
+
+# Individual attraction can affect marriages even when the player never opens
+# Dominion. This remains one bounded spouse check per playable ruler per year.
+domcom_marital_preference_yearly_pulse = {
+    trigger = { is_alive = yes age >= 18 is_married = yes }
+    effect = { domcom_marital_preference_yearly_effect = yes }
+}
+
+
+# 1.0.0-rc4 — only playable AI Queens/Empresses get this one bounded check.
+# The effect itself only loops over human players, then applies the five-county
+# proximity, compatibility, personality and rarity gates.
+domcom_crowned_heart_yearly_pulse = {
+    trigger = {
+        is_ai = yes
+        is_alive = yes
+        age >= 18
+        is_female = yes
+        is_landed = yes
+        is_married = yes
+        is_imprisoned = no
+        highest_held_title_tier >= tier_kingdom
+        domcom_crowned_heart_actor_trigger = yes
+        NOT = { has_character_flag = domcom_crowned_offer_pending }
+        NOT = { has_character_flag = domcom_crowned_heart_rejected }
+    }
+    effect = { domcom_ai_try_crowned_heart_effect = yes }
+}
+
+
+# 0.8.5 — Enforce Dominion still exists as a button, but the same upkeep now
+# runs on its own every month, so the roster cannot drift out of date while the
+# player is doing something else and the player is not obliged to keep the panel
+# open and keep clicking.
+monthly_playable_pulse = {
+    on_actions = {
+        domcom_monthly_dominion_upkeep
+        domcom_monthly_digest
+        domcom_monthly_household_intrigue_hook
+    }
+}
+
+# 1.0.0-rc4.5 — stable extension point for the optional Household Intrigue
+# module. The base effect is a no-op, so standalone Dominion behaves exactly
+# as before. The Household Intrigue subsystem overrides only that effect and never redeclares the
+# vanilla monthly_playable_pulse.
+domcom_monthly_household_intrigue_hook = {
+    trigger = { is_ai = no is_alive = yes age >= 18 }
+    effect = { domcom_household_intrigue_monthly_hook_effect = yes }
+}
+
+domcom_monthly_dominion_upkeep = {
+    trigger = { is_ai = no }
+    effect = { domcom_monthly_dominion_upkeep_effect = yes }
+}
+
+# Immediate birth-time reputation refresh is included in the consolidated on_birth_child hook above.
+
+domcom_cucked_nickname_check = {
+    effect = {
+        if = {
+            limit = { exists = father }
+            father = { domcom_award_cucked_nickname_effect = yes }
+        }
+    }
+}
+
+
+# 0.9.8 — the monthly prospect register is included in the consolidated monthly pulse above.
+
+domcom_monthly_digest = {
+    trigger = { is_ai = no }
+    effect = { domcom_monthly_digest_effect = yes }
+}
+

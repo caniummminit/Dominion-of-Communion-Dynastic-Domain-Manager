@@ -1,0 +1,50 @@
+﻿domcom_ai_behavior = {
+    categories = { ai }
+    default = domcom_ai_notable
+
+    domcom_ai_off = { }
+    domcom_ai_notable = { }
+    domcom_ai_all = { }
+}
+
+# 0.7.0 — the one-shot world seed is what makes Dominion usable on a save that
+# did not start with it. It costs a single every_living_character pass, once
+# per save. Off keeps the old lazy behaviour for anyone who prefers it.
+domcom_world_seed = {
+    categories = { gameplay }
+    default = domcom_world_seed_on
+
+    domcom_world_seed_on = { }
+    domcom_world_seed_off = { }
+}
+
+# 0.8.3 — defaults to ON, and this is deliberate. CK3 game rules are fixed when
+# a save is created and cannot be changed afterwards, so a rule defaulting to
+# Off made the rebuild decisions permanently unreachable on exactly the saves
+# they exist to repair: any save started before the rule existed can never turn
+# it on. Inverted so the tools are present unless a player opts out, and so a
+# save with no record of this rule at all still shows them.
+domcom_debug_tools = {
+    categories = { gameplay }
+    default = domcom_debug_tools_on
+
+    domcom_debug_tools_on = { }
+    domcom_debug_tools_off = { }
+}
+
+# 0.9.9 — the per-quarter Alpha Check budget. Default is 8, matching the
+# original limiter. Off restores the unlimited behaviour the mod drifted into.
+#
+# Defaulted ON for the same reason as domcom_debug_tools: game rules are fixed
+# when a save is created, so a save predating this rule falls back to the
+# default. The default therefore has to be the intended behaviour, not the
+# permissive one.
+domcom_alpha_budget = {
+	categories = { gameplay }
+	default = domcom_alpha_budget_8
+
+	domcom_alpha_budget_4 = { }
+	domcom_alpha_budget_8 = { }
+	domcom_alpha_budget_16 = { }
+	domcom_alpha_budget_off = { }
+}

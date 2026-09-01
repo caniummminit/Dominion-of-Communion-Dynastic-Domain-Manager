@@ -1,0 +1,4 @@
+﻿ddm_domain_management_group = {
+    sort_order = 160
+    gui_tags = { big_button }
+}

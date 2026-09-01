@@ -1,0 +1,16 @@
+﻿# Dominion of Communion — rebuild override point. Keep this path stable.
+#
+# A rebuild has to release every lock that would otherwise stop the new logic
+# applying. Dominion's own locks are variables it can clear directly, but the
+# Carnalitas compatibility module keeps its own per-tier sync flags, and only
+# that module knows about them. It ships a file at this exact path which
+# replaces this one and clears them too.
+
+domcom_rebuild_clear_sync_flags_effect = { }
+
+# Second override point, used only by the destructive reroll. Standalone there
+# are no externally owned endowment traits to drop. The Carnalitas module
+# replaces this file so a reroll also removes the Carnalitas dick trait, leaving
+# the preseed nothing to read back.
+domcom_rebuild_clear_external_traits_effect = { }
+

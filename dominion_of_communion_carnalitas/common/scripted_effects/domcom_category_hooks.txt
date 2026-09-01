@@ -1,0 +1,13 @@
+﻿# Dominion of Communion — Carnalitas compatibility OVERRIDE.
+# Path-identical to the base mod's copy, so this replaces it.
+#
+# Runs the Carnalitas trait sync from inside Dominion's own category
+# computation, so it fires wherever a character is measured — the world seed,
+# the orbit pass, a birthday, an Alpha Check, a Tantalize — instead of only
+# from Carnalitas' initialization hooks. The sync checks the actual current DT
+# trait and is therefore silent whenever the visible Carnalitas tier is already
+# consistent with Dominion's locked measurements.
+
+domcom_post_category_effect = {
+    domcom_carn_sync_endowment_effect = yes
+}

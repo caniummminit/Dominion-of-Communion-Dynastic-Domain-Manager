@@ -1,0 +1,1142 @@
+﻿namespace = ddm_manager
+
+# ============================================================
+# Main office: deliberately compact. Each department keeps the
+# player inside the workflow instead of closing after each click.
+# ============================================================
+
+ddm_manager.0001 = {
+    type = character_event
+    title = ddm_manager.0001.t
+    desc = ddm_manager.0001.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_dashboard_effect = yes }
+
+    option = { name = ddm_manager.0001.a flavor = ddm_manager.0001.a.flavor trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.0001.b flavor = ddm_manager.0001.b.flavor trigger_event = ddm_manager.2000 }
+    option = { name = ddm_manager.0001.c flavor = ddm_manager.0001.c.flavor trigger_event = ddm_manager.3000 }
+    option = { name = ddm_manager.0001.d flavor = ddm_manager.0001.d.flavor trigger_event = ddm_manager.0400 }
+    option = { name = ddm_manager.close }
+}
+
+# ============================================================
+# Realm & Titles
+# ============================================================
+
+ddm_manager.1000 = {
+    type = character_event
+    title = ddm_manager.1000.t
+    desc = {
+        desc = ddm_manager.1000.desc_v19
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_succession_policy = 1 } desc = ddm_manager.1000.policy_balanced }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 2 } desc = ddm_manager.1000.policy_follow }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 3 } desc = ddm_manager.1000.policy_estate }
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_dashboard_effect = yes }
+
+    option = {
+        name = ddm_manager.1000.v19_edit
+        flavor = ddm_manager.1000.v19_edit.flavor
+        set_variable = { name = ddm_pending_domain_action value = 0 }
+        ddm_prepare_domain_planner_effect = yes
+    }
+    option = {
+        name = ddm_manager.1000.v19_distribute
+        flavor = ddm_manager.1000.v19_distribute.flavor
+        # Always available: even at the protected-domain target, Distribute also
+        # settles duchies/kingdoms and can refresh the hierarchy after conquest.
+        if = {
+            limit = {
+                OR = {
+                    ddm_domain_plan_limit_changed_trigger = yes
+                    ddm_domain_plan_target_mismatch_trigger = yes
+                }
+            }
+            set_variable = { name = ddm_pending_domain_action value = 1 }
+            ddm_prepare_domain_planner_effect = yes
+        }
+        else = {
+            ddm_run_full_settlement_effect = yes
+            trigger_event = ddm_manager.0101
+        }
+    }
+    option = {
+        name = ddm_manager.1000.v19_preview
+        flavor = ddm_manager.1000.v19_preview.flavor
+        if = {
+            limit = {
+                ddm_above_protected_domain_target_trigger = yes
+                OR = {
+                    ddm_domain_plan_limit_changed_trigger = yes
+                    ddm_domain_plan_target_mismatch_trigger = yes
+                }
+            }
+            set_variable = { name = ddm_pending_domain_action value = 0 }
+            ddm_prepare_domain_planner_effect = yes
+        }
+        else = { trigger_event = ddm_manager.1010 }
+    }
+    option = {
+        name = ddm_manager.1000.v19_policy
+        flavor = ddm_manager.1000.v19_policy.flavor
+        trigger_event = ddm_manager.1050
+    }
+    option = { name = ddm_manager.1000.v19_more trigger_event = ddm_manager.1030 }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.0100 = {
+    type = character_event
+    title = ddm_manager.0100.t
+    desc = ddm_manager.0100.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.continue_realm trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.0101 = {
+    type = character_event
+    title = ddm_manager.0101.t
+    desc = {
+        desc = ddm_manager.0101.desc
+        triggered_desc = {
+            trigger = { var:ddm_last_distribution_stalled = 1 }
+            desc = ddm_manager.0101.stalled
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.continue_realm trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.0102 = {
+    type = character_event
+    title = ddm_manager.0102.t
+    desc = ddm_manager.0102.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.continue_realm trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.0103 = {
+    type = character_event
+    title = ddm_manager.0103.t
+    desc = ddm_manager.0103.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.continue_realm trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+# v1.11: one post-settlement alliance phase instead of relation creation inside
+# hundreds of individual title grants. The event is intentionally delayed by one
+# day so the land/hierarchy result settles first and the player receives one DDM
+# summary rather than grant-loop alliance interruptions.
+ddm_manager.0110 = {
+    type = character_event
+    title = ddm_manager.0110.t
+    desc = ddm_manager.0110.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { hidden_effect = { ddm_refresh_dynastic_alliances_effect = yes } }
+    option = {
+        name = ddm_manager.0110.a
+        set_variable = { name = ddm_ui_page value = flag:alliances }
+        set_variable = { name = ddm_ui_open value = yes }
+    }
+}
+
+# UI processing completion. The Domain Office closes for exactly one simulation
+# day during a settlement/cleanup that needs the world to advance, then this
+# hidden event performs any pending compact refresh and reopens the office. The
+# office auto-pause helper immediately pauses the game again.
+ddm_manager.0111 = {
+    type = character_event
+    hidden = yes
+    immediate = {
+        if = {
+            limit = { has_variable = ddm_alliance_refresh_pending }
+            ddm_refresh_dynastic_alliances_effect = yes
+        }
+        remove_variable = ddm_alliance_event_scheduled
+        remove_variable = ddm_ui_processing_settlement
+        ddm_prepare_dashboard_effect = yes
+        set_variable = { name = ddm_ui_records_mode value = 2 }
+        set_variable = { name = ddm_ui_page value = flag:records }
+        set_variable = { name = ddm_ui_open value = yes }
+    }
+}
+
+# 1.1 queued wartime settlement. The office may be opened and configured during
+# war; a settlement order issued during war waits until peace instead of failing
+# silently. If the Crown Estate plan became stale during the war, the office
+# reopens on that page for confirmation before any titles move.
+ddm_manager.0112 = {
+    type = character_event
+    hidden = yes
+    immediate = {
+        if = {
+            limit = { has_variable = ddm_settlement_queued is_at_war = yes }
+            trigger_event = { id = ddm_manager.0112 days = 7 }
+        }
+        else_if = {
+            limit = { has_variable = ddm_settlement_queued is_at_war = no }
+            remove_variable = ddm_settlement_queued
+            ddm_initialize_settings_effect = yes
+            ddm_prepare_dashboard_effect = yes
+            if = {
+                limit = { OR = { ddm_domain_plan_limit_changed_trigger = yes ddm_domain_plan_target_mismatch_trigger = yes } }
+                set_variable = { name = ddm_pending_domain_action value = 1 }
+                ddm_prepare_domain_planner_effect = yes
+                set_variable = { name = ddm_ui_page value = flag:estate }
+                set_variable = { name = ddm_ui_open value = yes }
+            }
+            else = {
+                set_variable = { name = ddm_ui_processing_settlement value = 1 }
+                ddm_run_full_settlement_effect = yes
+                set_variable = { name = ddm_ui_records_mode value = 2 }
+                set_variable = { name = ddm_ui_page value = flag:records }
+                trigger_event = { id = ddm_manager.0111 days = 1 }
+            }
+        }
+        else = { remove_variable = ddm_settlement_queued }
+    }
+}
+
+ddm_manager.1010 = {
+    type = character_event
+    title = ddm_manager.1010.v19.t
+    desc = {
+        desc = ddm_manager.1010.v19.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_succession_policy = 1 } desc = ddm_manager.1010.v19.policy_balanced }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 2 } desc = ddm_manager.1010.v19.policy_follow }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 3 } desc = ddm_manager.1010.v19.policy_estate }
+        }
+        triggered_desc = { trigger = { exists = scope:ddm_preview_recipient_1 } desc = ddm_manager.1010.v19.recipient1 }
+        triggered_desc = { trigger = { exists = scope:ddm_preview_recipient_2 } desc = ddm_manager.1010.v19.recipient2 }
+        triggered_desc = { trigger = { exists = scope:ddm_preview_recipient_3 } desc = ddm_manager.1010.v19.recipient3 }
+        triggered_desc = { trigger = { var:ddm_preview_allocated < var:ddm_preview_surplus } desc = ddm_manager.1010.v19.shortfall }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_dashboard_effect = yes ddm_prepare_allocation_preview_effect = yes }
+
+    option = {
+        name = ddm_manager.1010.v19.execute
+        trigger = { ddm_above_protected_domain_target_trigger = yes }
+        ddm_distribute_surplus_counties_effect = yes
+        trigger_event = ddm_manager.0101
+    }
+    option = { name = ddm_manager.1010.v19.edit set_variable = { name = ddm_pending_domain_action value = 0 } ddm_prepare_domain_planner_effect = yes }
+    option = { name = ddm_manager.1010.v19.policy trigger_event = ddm_manager.1050 }
+    option = { name = ddm_manager.continue_realm trigger_event = ddm_manager.1000 }
+}
+
+ddm_manager.1020 = {
+    type = character_event
+    title = ddm_manager.1020.t
+    desc = ddm_manager.1020.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_dashboard_effect = yes }
+
+    option = {
+        name = ddm_manager.1020.a
+        flavor = ddm_manager.1020.a.flavor
+        set_variable = { name = ddm_pending_domain_action value = 0 }
+        ddm_begin_full_domain_choice_review_effect = yes
+        if = {
+            limit = { any_in_list = { variable = ddm_domain_review_queue count >= 1 } }
+            trigger_event = ddm_manager.1021
+        }
+        else = {
+            ddm_finish_domain_choice_review_effect = yes
+            trigger_event = ddm_manager.1022
+        }
+    }
+    option = {
+        name = ddm_manager.1020.b
+        flavor = ddm_manager.1020.b.flavor
+        ddm_reset_all_domain_choices_effect = yes
+        ddm_lock_recommended_domain_core_effect = yes
+        # Accepting the recommendation is an explicit player command. Classify
+        # every remaining holding as "office decides" so distribution will not
+        # force another manual review immediately.
+        every_held_title = {
+            limit = {
+                OR = {
+                    tier = tier_county
+                    AND = { tier = tier_barony title_province = { is_county_capital = no } }
+                }
+                NOT = {
+                    OR = {
+                        has_variable = ddm_manual_core
+                        has_variable = ddm_manual_shed
+                        has_variable = ddm_manual_neutral
+                    }
+                }
+            }
+            set_variable = ddm_manual_neutral
+        }
+        set_variable = { name = ddm_domain_plan_limit value = domain_limit }
+        trigger_event = ddm_manager.1020
+    }
+    option = {
+        name = ddm_manager.1020.c
+        flavor = ddm_manager.1020.c.flavor
+        ddm_protect_capital_duchy_holdings_effect = yes
+        trigger_event = ddm_manager.1020
+    }
+    option = {
+        name = ddm_manager.1020.d
+        flavor = ddm_manager.1020.d.flavor
+        ddm_protect_stationed_maa_holdings_effect = yes
+        trigger_event = ddm_manager.1020
+    }
+    option = {
+        name = ddm_manager.1020.e
+        flavor = ddm_manager.1020.e.flavor
+        ddm_reset_all_domain_choices_effect = yes
+        trigger_event = ddm_manager.1020
+    }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.1010 }
+}
+
+# The actual missing piece in every previous version: this event asks the
+# player, holding by holding, what is to be kept and what may be surrendered.
+ddm_manager.1021 = {
+    type = character_event
+    title = ddm_manager.1021.t
+    desc = {
+        desc = ddm_manager.1021.desc
+        first_valid = {
+            triggered_desc = {
+                trigger = { scope:ddm_core_candidate = { has_variable = ddm_auto_core } }
+                desc = ddm_manager.1021.recommend_keep
+            }
+            desc = ddm_manager.1021.recommend_shed
+        }
+        triggered_desc = {
+            trigger = {
+                scope:ddm_core_candidate = {
+                    tier = tier_county
+                    title_province = { has_stationed_regiment = yes }
+                }
+            }
+            desc = ddm_manager.1021.maa
+        }
+        triggered_desc = {
+            trigger = {
+                exists = capital_county.de_jure_liege
+                scope:ddm_core_candidate = {
+                    tier = tier_county
+                    de_jure_liege = root.capital_county.de_jure_liege
+                }
+            }
+            desc = ddm_manager.1021.capital_duchy
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    # v1.8: pull a concrete title out of the player's persistent review queue.
+    # No ordered-title scope is expected to survive a scripted-effect boundary.
+    immediate = {
+        ddm_prepare_dashboard_effect = yes
+        random_in_list = {
+            variable = ddm_domain_review_queue
+            save_scope_as = ddm_core_candidate
+        }
+    }
+
+    option = {
+        name = ddm_manager.1021.a
+        flavor = ddm_manager.1021.a.flavor
+        scope:ddm_core_candidate = {
+            set_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+        }
+        remove_list_variable = {
+            name = ddm_domain_review_queue
+            target = scope:ddm_core_candidate
+        }
+        ddm_continue_domain_choice_review_effect = yes
+    }
+    option = {
+        name = ddm_manager.1021.b
+        flavor = ddm_manager.1021.b.flavor
+        scope:ddm_core_candidate = {
+            set_variable = ddm_manual_shed
+            remove_variable = ddm_manual_core
+            remove_variable = ddm_manual_neutral
+        }
+        remove_list_variable = {
+            name = ddm_domain_review_queue
+            target = scope:ddm_core_candidate
+        }
+        ddm_continue_domain_choice_review_effect = yes
+    }
+    option = {
+        name = ddm_manager.1021.c
+        flavor = ddm_manager.1021.c.flavor
+        scope:ddm_core_candidate = {
+            set_variable = ddm_manual_neutral
+            remove_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+        }
+        remove_list_variable = {
+            name = ddm_domain_review_queue
+            target = scope:ddm_core_candidate
+        }
+        ddm_continue_domain_choice_review_effect = yes
+    }
+    option = {
+        name = ddm_manager.1021.d
+        flavor = ddm_manager.1021.d.flavor
+        scope:ddm_core_candidate = {
+            set_variable = ddm_manual_neutral
+            remove_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+        }
+        remove_list_variable = {
+            name = ddm_domain_review_queue
+            target = scope:ddm_core_candidate
+        }
+        ddm_classify_all_remaining_domain_as_neutral_effect = yes
+        trigger_event = ddm_manager.1022
+    }
+}
+
+ddm_manager.1022 = {
+    type = character_event
+    title = ddm_manager.1022.t
+    desc = ddm_manager.1022.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_dashboard_effect = yes }
+
+    option = {
+        name = ddm_manager.1022.a
+        flavor = ddm_manager.1022.a.flavor
+        trigger = {
+            var:ddm_pending_domain_action > 0
+            ddm_above_protected_domain_target_trigger = yes
+        }
+        if = {
+            limit = { var:ddm_pending_domain_action = 2 }
+            remove_variable = ddm_pending_domain_action
+            ddm_run_full_settlement_effect = yes
+            trigger_event = ddm_manager.0100
+        }
+        else = {
+            remove_variable = ddm_pending_domain_action
+            ddm_distribute_surplus_counties_effect = yes
+            trigger_event = ddm_manager.0101
+        }
+    }
+    option = {
+        name = ddm_manager.1022.b
+        flavor = ddm_manager.1022.b.flavor
+        remove_variable = ddm_pending_domain_action
+        trigger_event = ddm_manager.1010
+    }
+    option = {
+        name = ddm_manager.1022.c
+        flavor = ddm_manager.1022.c.flavor
+        set_variable = { name = ddm_pending_domain_action value = 0 }
+        ddm_begin_full_domain_choice_review_effect = yes
+        if = {
+            limit = { any_in_list = { variable = ddm_domain_review_queue count >= 1 } }
+            trigger_event = ddm_manager.1021
+        }
+        else = {
+            ddm_finish_domain_choice_review_effect = yes
+            trigger_event = ddm_manager.1022
+        }
+    }
+}
+
+ddm_manager.1012 = {
+    type = character_event
+    title = ddm_manager.1012.t
+    desc = ddm_manager.1012.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_dashboard_effect = yes }
+    option = { name = ddm_manager.1012.a trigger_event = ddm_manager.1010 }
+    option = {
+        name = ddm_manager.1012.b
+        trigger = { ddm_above_protected_domain_target_trigger = yes }
+        ddm_distribute_surplus_counties_effect = yes
+        trigger_event = ddm_manager.0101
+    }
+    option = { name = ddm_manager.continue_realm trigger_event = ddm_manager.1000 }
+}
+
+# v1.11: distribution rules live beside the Distribute button. This is a compact
+# cycling menu so the player no longer has to leave Realm & Titles and hunt the
+# generic Administration Policy department for rules that directly govern grants.
+ddm_manager.1050 = {
+    type = character_event
+    title = ddm_manager.1050.t
+    desc = {
+        desc = ddm_manager.1050.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_family_scope_mode = 1 } desc = ddm_manager.family_scope_1 }
+            triggered_desc = { trigger = { var:ddm_family_scope_mode = 3 } desc = ddm_manager.family_scope_3 }
+            triggered_desc = { trigger = { var:ddm_family_scope_mode = 2 } desc = ddm_manager.family_scope_2 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_power_policy = 1 } desc = ddm_manager.power_policy_1 }
+            triggered_desc = { trigger = { var:ddm_power_policy = 2 } desc = ddm_manager.power_policy_2 }
+            triggered_desc = { trigger = { var:ddm_power_policy = 3 } desc = ddm_manager.power_policy_3 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_succession_policy = 1 } desc = ddm_manager.1000.policy_balanced }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 2 } desc = ddm_manager.1000.policy_follow }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 3 } desc = ddm_manager.1000.policy_estate }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 0 } desc = ddm_manager.alliance_policy_0 }
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 1 } desc = ddm_manager.alliance_policy_1 }
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 2 } desc = ddm_manager.alliance_policy_2 }
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 3 } desc = ddm_manager.alliance_policy_3 }
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    option = {
+        name = ddm_manager.1050.family
+        if = { limit = { var:ddm_family_scope_mode = 1 } set_variable = { name = ddm_family_scope_mode value = 3 } }
+        else_if = { limit = { var:ddm_family_scope_mode = 3 } set_variable = { name = ddm_family_scope_mode value = 2 } }
+        else = { set_variable = { name = ddm_family_scope_mode value = 1 } }
+        trigger_event = ddm_manager.1050
+    }
+    option = {
+        name = ddm_manager.1050.power
+        if = { limit = { var:ddm_power_policy = 1 } set_variable = { name = ddm_power_policy value = 2 } }
+        else_if = { limit = { var:ddm_power_policy = 2 } set_variable = { name = ddm_power_policy value = 3 } }
+        else = { set_variable = { name = ddm_power_policy value = 1 } }
+        trigger_event = ddm_manager.1050
+    }
+    option = {
+        name = ddm_manager.1050.succession
+        if = { limit = { var:ddm_succession_policy = 1 } set_variable = { name = ddm_succession_policy value = 2 } }
+        else_if = { limit = { var:ddm_succession_policy = 2 } set_variable = { name = ddm_succession_policy value = 3 } }
+        else = { set_variable = { name = ddm_succession_policy value = 1 } }
+        trigger_event = ddm_manager.1050
+    }
+    option = {
+        name = ddm_manager.1050.alliance
+        if = { limit = { var:ddm_alliance_policy = 0 } set_variable = { name = ddm_alliance_policy value = 1 } }
+        else_if = { limit = { var:ddm_alliance_policy = 1 } set_variable = { name = ddm_alliance_policy value = 2 } }
+        else_if = { limit = { var:ddm_alliance_policy = 2 } set_variable = { name = ddm_alliance_policy value = 3 } }
+        else = { set_variable = { name = ddm_alliance_policy value = 0 } }
+        trigger_event = ddm_manager.1050
+    }
+    option = { name = ddm_manager.1050.advanced trigger_event = ddm_manager.1051 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.1000 }
+}
+
+ddm_manager.1051 = {
+    type = character_event
+    title = ddm_manager.1051.t
+    desc = {
+        desc = ddm_manager.1051.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_regard_mode = 1 } desc = ddm_manager.regard_1 }
+            triggered_desc = { trigger = { var:ddm_regard_mode = 2 } desc = ddm_manager.regard_2 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_gender_alignment = 1 } desc = ddm_manager.gender_alignment_on }
+            desc = ddm_manager.gender_alignment_off
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_realm_integrity = 1 } desc = ddm_manager.realm_integrity_on }
+            desc = ddm_manager.realm_integrity_off
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = {
+        name = ddm_manager.1051.regard
+        if = { limit = { var:ddm_regard_mode = 1 } set_variable = { name = ddm_regard_mode value = 2 } }
+        else = { set_variable = { name = ddm_regard_mode value = 1 } }
+        trigger_event = ddm_manager.1051
+    }
+    option = {
+        name = ddm_manager.1051.gender
+        if = { limit = { var:ddm_gender_alignment = 1 } set_variable = { name = ddm_gender_alignment value = 0 } }
+        else = { set_variable = { name = ddm_gender_alignment value = 1 } }
+        trigger_event = ddm_manager.1051
+    }
+    option = {
+        name = ddm_manager.1051.integrity
+        if = { limit = { var:ddm_realm_integrity = 1 } set_variable = { name = ddm_realm_integrity value = 0 } }
+        else = { set_variable = { name = ddm_realm_integrity value = 1 } }
+        trigger_event = ddm_manager.1051
+    }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.1050 }
+}
+
+ddm_manager.1030 = {
+    type = character_event
+    title = ddm_manager.1030.t
+    desc = ddm_manager.1030.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.1030.a ddm_organize_dynastic_hierarchy_effect = yes trigger_event = ddm_manager.0102 }
+    option = { name = ddm_manager.1030.b ddm_reclaim_non_dynastic_titles_effect = yes trigger_event = ddm_manager.0103 }
+    option = {
+        name = ddm_manager.1030.c
+        if = {
+            limit = {
+                ddm_above_protected_domain_target_trigger = yes
+                OR = { ddm_domain_plan_limit_changed_trigger = yes ddm_domain_plan_target_mismatch_trigger = yes }
+            }
+            set_variable = { name = ddm_pending_domain_action value = 2 }
+            ddm_prepare_domain_planner_effect = yes
+        }
+        else = { ddm_run_full_settlement_effect = yes trigger_event = ddm_manager.0100 }
+    }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.1000 }
+}
+
+
+# v1.14 manual confirmation for reclaiming only unprotected outsider estates.
+ddm_manager.1120 = {
+    type = character_event
+    title = ddm_manager.1120.t
+    desc = ddm_manager.1120.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = {
+        name = ddm_manager.1120.a
+        ddm_reclaim_non_dynastic_titles_effect = yes
+        ddm_prepare_dashboard_effect = yes
+        set_variable = { name = ddm_ui_page value = flag:records }
+        set_variable = { name = ddm_ui_open value = yes }
+    }
+    option = {
+        name = ddm_manager.1120.b
+        ddm_prepare_outsider_holdings_effect = yes
+        set_variable = { name = ddm_ui_page value = flag:outsiders }
+        set_variable = { name = ddm_ui_open value = yes }
+    }
+}
+
+# ============================================================
+# Dynasty & Succession
+# ============================================================
+
+ddm_manager.2000 = {
+    type = character_event
+    title = ddm_manager.2000.t
+    desc = ddm_manager.2000.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    option = { name = ddm_manager.2000.a flavor = ddm_manager.2000.a.flavor trigger_event = ddm_manager.2010 }
+    option = { name = ddm_manager.2000.b flavor = ddm_manager.2000.b.flavor trigger_event = ddm_manager.0200 }
+    option = {
+        name = ddm_manager.2000.c
+        flavor = ddm_manager.2000.c.flavor
+        ddm_refresh_dynastic_alliances_effect = yes
+        trigger_event = ddm_manager.0104
+    }
+    option = {
+        name = ddm_manager.2000.d
+        flavor = ddm_manager.2000.d.flavor
+        ddm_post_succession_cleanup_effect = yes
+        trigger_event = ddm_manager.2020
+    }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.2010 = {
+    type = character_event
+    title = ddm_manager.2010.t
+    desc = {
+        desc = ddm_manager.2010.v19.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_succession_policy = 1 } desc = ddm_manager.2010.v19.policy_balanced }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 2 } desc = ddm_manager.2010.v19.policy_follow }
+            triggered_desc = { trigger = { var:ddm_succession_policy = 3 } desc = ddm_manager.2010.v19.policy_estate }
+        }
+        triggered_desc = { trigger = { exists = scope:ddm_succession_heir_1 } desc = ddm_manager.2010.heir1 }
+        triggered_desc = { trigger = { exists = scope:ddm_succession_heir_2 } desc = ddm_manager.2010.heir2 }
+        triggered_desc = { trigger = { exists = scope:ddm_succession_heir_3 } desc = ddm_manager.2010.heir3 }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_succession_briefing_effect = yes }
+    option = { name = ddm_manager.2010.a trigger_event = ddm_manager.0490 }
+    option = { name = ddm_manager.continue_dynasty trigger_event = ddm_manager.2000 }
+}
+
+ddm_manager.0104 = {
+    type = character_event
+    title = ddm_manager.0104.t
+    desc = ddm_manager.0104.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.continue_dynasty trigger_event = ddm_manager.2000 }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.2020 = {
+    type = character_event
+    title = ddm_manager.2020.t
+    desc = ddm_manager.2020.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.2020.a trigger_event = ddm_manager.2010 }
+    option = { name = ddm_manager.continue_dynasty trigger_event = ddm_manager.2000 }
+}
+
+# Dynasty review / purge hub
+ddm_manager.0200 = {
+    type = character_event
+    title = ddm_manager.0200.t
+    desc = {
+        desc = ddm_manager.0200.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_purge_stage = 1 } desc = ddm_manager.purge_stage_1 }
+            triggered_desc = { trigger = { var:ddm_purge_stage = 2 } desc = ddm_manager.purge_stage_2 }
+            triggered_desc = { trigger = { var:ddm_purge_stage = 3 } desc = ddm_manager.purge_stage_3 }
+            triggered_desc = { trigger = { var:ddm_purge_stage = 4 } desc = ddm_manager.purge_stage_4 }
+            triggered_desc = { trigger = { var:ddm_purge_stage = 5 } desc = ddm_manager.purge_stage_5 }
+            triggered_desc = { trigger = { var:ddm_purge_stage = 6 } desc = ddm_manager.purge_stage_6 }
+            triggered_desc = { trigger = { var:ddm_purge_stage = 7 } desc = ddm_manager.purge_stage_7 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_purge_method = 1 } desc = ddm_manager.purge_method_1 }
+            triggered_desc = { trigger = { var:ddm_purge_method = 2 } desc = ddm_manager.purge_method_2 }
+            triggered_desc = { trigger = { var:ddm_purge_method = 3 } desc = ddm_manager.purge_method_3 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 0 } desc = ddm_manager.floor_0 }
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 4 } desc = ddm_manager.floor_4 }
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 8 } desc = ddm_manager.floor_8 }
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 12 } desc = ddm_manager.floor_12 }
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_count_purge_targets_effect = yes }
+
+    option = { name = ddm_manager.0200.a flavor = ddm_manager.0200.a.flavor trigger_event = ddm_manager.0210 }
+    option = { name = ddm_manager.0200.b flavor = ddm_manager.0200.b.flavor trigger_event = ddm_manager.0220 }
+    option = { name = ddm_manager.0200.c flavor = ddm_manager.0200.c.flavor trigger_event = ddm_manager.0230 }
+    option = { name = ddm_manager.continue_dynasty trigger_event = ddm_manager.2000 }
+}
+
+ddm_manager.0210 = {
+    type = character_event
+    title = ddm_manager.0210.t
+    desc = ddm_manager.0210.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    option = { name = ddm_manager.0210.a set_variable = { name = ddm_purge_stage value = 1 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0210.b set_variable = { name = ddm_purge_stage value = 2 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0210.c set_variable = { name = ddm_purge_stage value = 3 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0210.d set_variable = { name = ddm_purge_stage value = 4 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0210.e set_variable = { name = ddm_purge_stage value = 5 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0210.f set_variable = { name = ddm_purge_stage value = 6 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0210.g set_variable = { name = ddm_purge_stage value = 7 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0200 }
+}
+
+ddm_manager.0220 = {
+    type = character_event
+    title = ddm_manager.0220.t
+    desc = ddm_manager.0220.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.0220.a set_variable = { name = ddm_purge_method value = 1 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0220.b set_variable = { name = ddm_purge_method value = 2 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.0220.c set_variable = { name = ddm_purge_method value = 3 } trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0200 }
+}
+
+ddm_manager.0230 = {
+    type = character_event
+    title = ddm_manager.0230.t
+    desc = ddm_manager.0230.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_count_purge_targets_effect = yes }
+
+    option = {
+        name = ddm_manager.0230.a
+        flavor = ddm_manager.0230.a.flavor
+        trigger = { var:ddm_purge_candidate_count > 0 }
+        ddm_execute_dynasty_purge_effect = yes
+        trigger_event = ddm_manager.0240
+    }
+    option = { name = ddm_manager.0230.b trigger_event = ddm_manager.0200 }
+}
+
+ddm_manager.0240 = {
+    type = character_event
+    title = ddm_manager.0240.t
+    desc = {
+        desc = ddm_manager.0240.desc
+        triggered_desc = { trigger = { var:ddm_purge_stalled = 1 } desc = ddm_manager.0240.stalled }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.0240.a trigger_event = ddm_manager.0200 }
+    option = { name = ddm_manager.continue_dynasty trigger_event = ddm_manager.2000 }
+}
+
+# Assess one member from character interaction
+ddm_manager.0300 = {
+    type = character_event
+    title = ddm_manager.0300.t
+    desc = ddm_manager.0300.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:ddm_subject animation = idle }
+    option = { name = ddm_manager.close }
+}
+
+# ============================================================
+# Military & Construction
+# ============================================================
+
+ddm_manager.3000 = {
+    type = character_event
+    title = ddm_manager.3000.t
+    desc = ddm_manager.3000.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    option = { name = ddm_manager.3000.a flavor = ddm_manager.3000.a.flavor trigger_event = ddm_manager.3010 }
+    option = { name = ddm_manager.3000.b flavor = ddm_manager.3000.b.flavor trigger_event = ddm_manager.3100 }
+    option = {
+        name = ddm_manager.3000.c
+        flavor = ddm_manager.3000.c.flavor
+        ddm_prepare_military_advice_effect = yes
+        ddm_smart_maa_construction_effect = yes
+        trigger_event = ddm_manager.3190
+    }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.3010 = {
+    type = character_event
+    title = ddm_manager.3010.t
+    desc = {
+        desc = ddm_manager.3010.desc
+        triggered_desc = { trigger = { var:ddm_has_skirmishers = 1 } desc = ddm_manager.3010.has_skirmishers }
+        triggered_desc = { trigger = { var:ddm_has_archers = 1 } desc = ddm_manager.3010.has_archers }
+        triggered_desc = { trigger = { var:ddm_has_pikemen = 1 } desc = ddm_manager.3010.has_pikemen }
+        triggered_desc = { trigger = { var:ddm_has_heavy_infantry = 1 } desc = ddm_manager.3010.has_heavy_infantry }
+        triggered_desc = { trigger = { var:ddm_has_light_cavalry = 1 } desc = ddm_manager.3010.has_light_cavalry }
+        triggered_desc = { trigger = { var:ddm_has_heavy_cavalry = 1 } desc = ddm_manager.3010.has_heavy_cavalry }
+        triggered_desc = { trigger = { var:ddm_has_archer_cavalry = 1 } desc = ddm_manager.3010.has_archer_cavalry }
+        triggered_desc = { trigger = { var:ddm_has_camel_cavalry = 1 } desc = ddm_manager.3010.has_camel_cavalry }
+        triggered_desc = { trigger = { var:ddm_has_elephant_cavalry = 1 } desc = ddm_manager.3010.has_elephant_cavalry }
+        triggered_desc = { trigger = { var:ddm_has_gunpowder = 1 } desc = ddm_manager.3010.has_gunpowder }
+        triggered_desc = { trigger = { var:ddm_has_siege = 1 } desc = ddm_manager.3010.has_siege }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 11 } desc = ddm_manager.3010.plan_archer_pike }
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 12 } desc = ddm_manager.3010.plan_archer_core }
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 20 } desc = ddm_manager.3010.plan_cavalry_answer }
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 30 } desc = ddm_manager.3010.plan_skirmisher_answer }
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 40 } desc = ddm_manager.3010.plan_heavy_infantry_answer }
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 50 } desc = ddm_manager.3010.plan_gunpowder }
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 90 } desc = ddm_manager.3010.plan_siege }
+            triggered_desc = { trigger = { var:ddm_maa_roster_plan = 99 } desc = ddm_manager.3010.plan_mixed }
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    immediate = { ddm_prepare_military_advice_effect = yes }
+
+    option = {
+        name = ddm_manager.3010.a
+        flavor = ddm_manager.3010.a.flavor
+        ddm_smart_maa_construction_effect = yes
+        trigger_event = ddm_manager.3190
+    }
+    option = { name = ddm_manager.3010.b trigger_event = ddm_manager.3100 }
+    option = { name = ddm_manager.continue_military trigger_event = ddm_manager.3000 }
+}
+
+ddm_manager.3100 = {
+    type = character_event
+    title = ddm_manager.3100.t
+    desc = {
+        desc = ddm_manager.3100.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_build_reserve = 0 } desc = ddm_manager.reserve_0 }
+            triggered_desc = { trigger = { var:ddm_build_reserve = 500 } desc = ddm_manager.reserve_500 }
+            triggered_desc = { trigger = { var:ddm_build_reserve = 1000 } desc = ddm_manager.reserve_1000 }
+            triggered_desc = { trigger = { var:ddm_build_reserve = 2500 } desc = ddm_manager.reserve_2500 }
+            triggered_desc = { trigger = { var:ddm_build_reserve = 5000 } desc = ddm_manager.reserve_5000 }
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    option = {
+        name = ddm_manager.3100.a
+        flavor = ddm_manager.3100.a.flavor
+        ddm_smart_maa_construction_effect = yes
+        trigger_event = ddm_manager.3190
+    }
+    option = { name = ddm_manager.3100.b flavor = ddm_manager.3100.b.flavor trigger_event = ddm_manager.3110 }
+    option = { name = ddm_manager.3100.c flavor = ddm_manager.3100.c.flavor trigger_event = ddm_manager.3150 }
+    option = { name = ddm_manager.continue_military trigger_event = ddm_manager.3000 }
+}
+
+ddm_manager.3110 = {
+    type = character_event
+    title = ddm_manager.3110.t
+    desc = ddm_manager.3110.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    option = { name = ddm_manager.3110.a flavor = ddm_manager.3110.a.flavor ddm_bulk_build_military_camps_effect = yes trigger_event = ddm_manager.3190 }
+    option = { name = ddm_manager.3110.b flavor = ddm_manager.3110.b.flavor ddm_bulk_build_barracks_effect = yes trigger_event = ddm_manager.3190 }
+    option = { name = ddm_manager.3110.c flavor = ddm_manager.3110.c.flavor ddm_bulk_build_stables_effect = yes trigger_event = ddm_manager.3190 }
+    option = { name = ddm_manager.3110.d flavor = ddm_manager.3110.d.flavor ddm_bulk_build_regimental_grounds_effect = yes trigger_event = ddm_manager.3190 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.3100 }
+}
+
+ddm_manager.3150 = {
+    type = character_event
+    title = ddm_manager.3150.t
+    desc = ddm_manager.3150.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.3150.a set_variable = { name = ddm_build_reserve value = 0 } trigger_event = ddm_manager.3100 }
+    option = { name = ddm_manager.3150.b set_variable = { name = ddm_build_reserve value = 500 } trigger_event = ddm_manager.3100 }
+    option = { name = ddm_manager.3150.c set_variable = { name = ddm_build_reserve value = 1000 } trigger_event = ddm_manager.3100 }
+    option = { name = ddm_manager.3150.d set_variable = { name = ddm_build_reserve value = 2500 } trigger_event = ddm_manager.3100 }
+    option = { name = ddm_manager.3150.e set_variable = { name = ddm_build_reserve value = 5000 } trigger_event = ddm_manager.3100 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.3100 }
+}
+
+ddm_manager.3190 = {
+    type = character_event
+    title = ddm_manager.3190.t
+    desc = ddm_manager.3190.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.3190.a trigger_event = ddm_manager.3100 }
+    option = { name = ddm_manager.3190.b trigger_event = ddm_manager.3010 }
+    option = { name = ddm_manager.continue_military trigger_event = ddm_manager.3000 }
+}
+
+# ============================================================
+# Rules & Preferences: compact category hub
+# ============================================================
+
+ddm_manager.0400 = {
+    type = character_event
+    title = ddm_manager.0400.t
+    desc = ddm_manager.0400.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+
+    option = { name = ddm_manager.0400.a flavor = ddm_manager.0400.a.flavor trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.0400.b flavor = ddm_manager.0400.b.flavor trigger_event = ddm_manager.0470 }
+    option = { name = ddm_manager.0400.c flavor = ddm_manager.0400.c.flavor trigger_event = ddm_manager.0480 }
+    option = { name = ddm_manager.0400.d flavor = ddm_manager.0400.d.flavor trigger_event = ddm_manager.3150 }
+    option = { name = ddm_manager.main set_variable = { name = ddm_ui_page value = flag:overview } set_variable = { name = ddm_ui_open value = yes } }
+}
+
+ddm_manager.0460 = {
+    type = character_event
+    title = ddm_manager.0460.v19.t
+    desc = {
+        desc = ddm_manager.0460.v19.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_family_scope_mode = 1 } desc = ddm_manager.family_scope_1 }
+            triggered_desc = { trigger = { var:ddm_family_scope_mode = 3 } desc = ddm_manager.family_scope_3 }
+            triggered_desc = { trigger = { var:ddm_family_scope_mode = 2 } desc = ddm_manager.family_scope_2 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_power_policy = 1 } desc = ddm_manager.power_policy_1 }
+            triggered_desc = { trigger = { var:ddm_power_policy = 2 } desc = ddm_manager.power_policy_2 }
+            triggered_desc = { trigger = { var:ddm_power_policy = 3 } desc = ddm_manager.power_policy_3 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_realm_integrity = 1 } desc = ddm_manager.realm_integrity_on }
+            desc = ddm_manager.realm_integrity_off
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.0460.a trigger_event = ddm_manager.0410 }
+    option = { name = ddm_manager.0460.b trigger_event = ddm_manager.0420 }
+    option = {
+        name = ddm_manager.0460.d
+        if = { limit = { var:ddm_realm_integrity = 1 } set_variable = { name = ddm_realm_integrity value = 0 } }
+        else = { set_variable = { name = ddm_realm_integrity value = 1 } }
+        trigger_event = ddm_manager.0460
+    }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0400 }
+}
+
+ddm_manager.0470 = {
+    type = character_event
+    title = ddm_manager.0470.t
+    desc = {
+        desc = ddm_manager.0470.v19.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 0 } desc = ddm_manager.alliance_policy_0 }
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 1 } desc = ddm_manager.alliance_policy_1 }
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 2 } desc = ddm_manager.alliance_policy_2 }
+            triggered_desc = { trigger = { var:ddm_alliance_policy = 3 } desc = ddm_manager.alliance_policy_3 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_gender_alignment = 1 } desc = ddm_manager.gender_alignment_on }
+            desc = ddm_manager.gender_alignment_off
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.0470.v19.policy trigger_event = ddm_manager.0490 }
+    option = { name = ddm_manager.0470.b trigger_event = ddm_manager.0491 }
+    option = {
+        name = ddm_manager.0470.d
+        if = { limit = { var:ddm_gender_alignment = 1 } set_variable = { name = ddm_gender_alignment value = 0 } }
+        else = { set_variable = { name = ddm_gender_alignment value = 1 } }
+        trigger_event = ddm_manager.0470
+    }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0400 }
+}
+
+ddm_manager.0480 = {
+    type = character_event
+    title = ddm_manager.0480.t
+    desc = {
+        desc = ddm_manager.0480.desc
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_regard_mode = 1 } desc = ddm_manager.regard_1 }
+            triggered_desc = { trigger = { var:ddm_regard_mode = 2 } desc = ddm_manager.regard_2 }
+        }
+        first_valid = {
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 0 } desc = ddm_manager.floor_0 }
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 4 } desc = ddm_manager.floor_4 }
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 8 } desc = ddm_manager.floor_8 }
+            triggered_desc = { trigger = { var:ddm_min_dynasty_floor = 12 } desc = ddm_manager.floor_12 }
+        }
+    }
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.0480.a trigger_event = ddm_manager.0430 }
+    option = { name = ddm_manager.0480.b trigger_event = ddm_manager.0440 }
+    option = { name = ddm_manager.0480.c trigger_event = ddm_manager.0481 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0400 }
+}
+
+ddm_manager.0481 = {
+    type = character_event
+    title = ddm_manager.0481.t
+    desc = ddm_manager.0481.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.0481.a trigger_event = ddm_manager.0480 }
+}
+
+# Family eligibility
+ddm_manager.0410 = {
+    type = character_event
+    title = ddm_manager.0410.t
+    desc = ddm_manager.0410.desc
+    theme = crown
+    left_portrait = { character = root }
+    option = { name = ddm_manager.0410.a set_variable = { name = ddm_family_scope_mode value = 1 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.0410.b set_variable = { name = ddm_family_scope_mode value = 3 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.0410.c set_variable = { name = ddm_family_scope_mode value = 2 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0460 }
+}
+
+ddm_manager.0420 = {
+    type = character_event
+    title = ddm_manager.0420.t
+    desc = ddm_manager.0420.desc
+    theme = crown
+    left_portrait = { character = root }
+    option = { name = ddm_manager.0420.a set_variable = { name = ddm_power_policy value = 1 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.0420.b set_variable = { name = ddm_power_policy value = 2 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.0420.c set_variable = { name = ddm_power_policy value = 3 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0460 }
+}
+
+ddm_manager.0430 = {
+    type = character_event
+    title = ddm_manager.0430.t
+    desc = ddm_manager.0430.desc
+    theme = crown
+    left_portrait = { character = root }
+    option = { name = ddm_manager.0430.a set_variable = { name = ddm_regard_mode value = 1 } trigger_event = ddm_manager.0480 }
+    option = { name = ddm_manager.0430.b set_variable = { name = ddm_regard_mode value = 2 } trigger_event = ddm_manager.0480 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0480 }
+}
+
+ddm_manager.0440 = {
+    type = character_event
+    title = ddm_manager.0440.t
+    desc = ddm_manager.0440.desc
+    theme = crown
+    left_portrait = { character = root }
+    option = { name = ddm_manager.0440.a set_variable = { name = ddm_min_dynasty_floor value = 0 } trigger_event = ddm_manager.0480 }
+    option = { name = ddm_manager.0440.b set_variable = { name = ddm_min_dynasty_floor value = 4 } trigger_event = ddm_manager.0480 }
+    option = { name = ddm_manager.0440.c set_variable = { name = ddm_min_dynasty_floor value = 8 } trigger_event = ddm_manager.0480 }
+    option = { name = ddm_manager.0440.d set_variable = { name = ddm_min_dynasty_floor value = 12 } trigger_event = ddm_manager.0480 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0480 }
+}
+
+ddm_manager.0450 = {
+    type = character_event
+    title = ddm_manager.0450.t
+    desc = ddm_manager.0450.desc
+    theme = crown
+    left_portrait = { character = root }
+    option = { name = ddm_manager.0450.a set_variable = { name = ddm_core_policy value = 1 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.0450.b set_variable = { name = ddm_core_policy value = 2 } trigger_event = ddm_manager.0460 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0460 }
+}
+
+ddm_manager.0490 = {
+    type = character_event
+    title = ddm_manager.0490.v19.t
+    desc = ddm_manager.0490.v19.desc
+    theme = crown
+    left_portrait = { character = root animation = personality_rational }
+    option = { name = ddm_manager.0490.v19.a flavor = ddm_manager.0490.v19.a.flavor set_variable = { name = ddm_succession_policy value = 1 } trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.0490.v19.b flavor = ddm_manager.0490.v19.b.flavor set_variable = { name = ddm_succession_policy value = 2 } trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.0490.v19.c flavor = ddm_manager.0490.v19.c.flavor set_variable = { name = ddm_succession_policy value = 3 } trigger_event = ddm_manager.1000 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.1000 }
+}
+
+ddm_manager.0491 = {
+    type = character_event
+    title = ddm_manager.0491.t
+    desc = ddm_manager.0491.desc
+    theme = crown
+    left_portrait = { character = root }
+    option = { name = ddm_manager.0491.a set_variable = { name = ddm_alliance_policy value = 0 } trigger_event = ddm_manager.0470 }
+    option = { name = ddm_manager.0491.b set_variable = { name = ddm_alliance_policy value = 1 } trigger_event = ddm_manager.0470 }
+    option = { name = ddm_manager.0491.c set_variable = { name = ddm_alliance_policy value = 2 } trigger_event = ddm_manager.0470 }
+    option = { name = ddm_manager.0491.d set_variable = { name = ddm_alliance_policy value = 3 } trigger_event = ddm_manager.0470 }
+    option = { name = ddm_manager.back trigger_event = ddm_manager.0470 }
+}

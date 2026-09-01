@@ -1,0 +1,159 @@
+﻿# Household Intrigue — Dominion-aware eligibility.
+#
+# Household Intrigue does not create relationships. Dominion
+# reads the relationship and obedience state Dominion has already built and
+# converts that access into household actions.
+
+# Any current Dominion/intimate link that makes the character plausibly willing
+# to work for the Patron. A Pet remains eligible even if CK3 later drops the
+# Crush/Lover relation that originally accompanied their progression.
+dcint_is_linked_to_patron_trigger = {
+    OR = {
+        has_relation_lover = scope:dcint_patron
+        has_relation_soulmate = scope:dcint_patron
+        AND = {
+            has_relation_crush = scope:dcint_patron
+            OR = {
+                AND = {
+                    has_character_flag = domcom_communion_admirer_registered
+                    has_variable = domcom_crush_patron
+                    var:domcom_crush_patron = scope:dcint_patron
+                }
+                AND = {
+                    has_variable = domcom_obedience_patron
+                    var:domcom_obedience_patron = scope:dcint_patron
+                    has_variable = domcom_obedience
+                    var:domcom_obedience > 0
+                }
+            }
+        }
+        AND = {
+            has_variable = domcom_obedience_patron
+            var:domcom_obedience_patron = scope:dcint_patron
+            has_variable = domcom_obedience
+            var:domcom_obedience > 0
+        }
+        AND = {
+            has_character_flag = domcom_pet
+            has_variable = domcom_pet_patron
+            var:domcom_pet_patron = scope:dcint_patron
+        }
+    }
+}
+
+# Established intimacy. This is enough for normal household manipulation even
+# without a high Dominion obedience score.
+dcint_is_intimate_with_patron_trigger = {
+    OR = {
+        has_relation_lover = scope:dcint_patron
+        has_relation_soulmate = scope:dcint_patron
+    }
+}
+
+# 500+ is Dominion's Attached stage. From here the partner can be trusted with
+# actions that materially move people or resources rather than merely gossip.
+dcint_is_attached_to_patron_trigger = {
+    OR = {
+        AND = {
+            has_variable = domcom_obedience_patron
+            var:domcom_obedience_patron = scope:dcint_patron
+            has_variable = domcom_obedience
+            var:domcom_obedience >= 500
+        }
+        AND = {
+            has_character_flag = domcom_pet
+            has_variable = domcom_pet_patron
+            var:domcom_pet_patron = scope:dcint_patron
+        }
+    }
+}
+
+# 750+ is Dominion's Submissive stage. Used to weight consequential actions more
+# heavily without inventing a second progression track in this subsystem.
+dcint_is_submissive_to_patron_trigger = {
+    OR = {
+        AND = {
+            has_variable = domcom_obedience_patron
+            var:domcom_obedience_patron = scope:dcint_patron
+            has_variable = domcom_obedience
+            var:domcom_obedience >= 750
+        }
+        AND = {
+            has_character_flag = domcom_pet
+            has_variable = domcom_pet_patron
+            var:domcom_pet_patron = scope:dcint_patron
+        }
+    }
+}
+
+dcint_is_pet_of_patron_trigger = {
+    has_character_flag = domcom_pet
+    has_variable = domcom_pet_patron
+    var:domcom_pet_patron = scope:dcint_patron
+}
+
+# An intrigue partner must actually be embedded somewhere other than the
+# Patron's own household. A spouse gives domestic access; a foreign liege gives
+# court access.
+dcint_is_intrigue_partner_trigger = {
+    is_alive = yes
+    age >= 18
+    dcint_is_linked_to_patron_trigger = yes
+    OR = {
+        AND = {
+            exists = primary_spouse
+            primary_spouse = { is_alive = yes NOT = { this = scope:dcint_patron } }
+        }
+        AND = {
+            exists = liege
+            NOT = { liege = scope:dcint_patron }
+        }
+    }
+}
+
+# One approach per person per month. The cooldown is on the partner, not the
+# Patron, so changing the monthly candidate does not repeatedly lean on one NPC.
+dcint_partner_available_trigger = {
+    dcint_is_intrigue_partner_trigger = yes
+    NOT = { has_character_flag = dcint_recently_used }
+}
+
+# Even a Crush/Admirer can pass information or shape household talk.
+dcint_can_whisper_trigger = {
+    dcint_is_intrigue_partner_trigger = yes
+    OR = { exists = primary_spouse exists = liege }
+}
+
+# Moving a courtier is a larger betrayal. It requires either established
+# intimacy or at least Dominion's Attached (500+) obedience stage.
+dcint_can_poach_courtier_trigger = {
+    dcint_is_intrigue_partner_trigger = yes
+    OR = {
+        dcint_is_intimate_with_patron_trigger = yes
+        dcint_is_attached_to_patron_trigger = yes
+    }
+    any_courtier = { is_alive = yes age >= 18 is_landed = no }
+}
+
+# Blood pressure remains the loudest action. The partner needs a biological child
+# of the Patron and either intimacy or serious obedience. A landed spouse gives
+# an unlanded partner a valid dynastic household to press against.
+dcint_can_press_blood_claim_trigger = {
+    dcint_is_intrigue_partner_trigger = yes
+    OR = {
+        dcint_is_intimate_with_patron_trigger = yes
+        dcint_is_attached_to_patron_trigger = yes
+    }
+    any_child = {
+        is_alive = yes
+        OR = {
+            father ?= scope:dcint_patron
+            mother ?= scope:dcint_patron
+            real_father ?= scope:dcint_patron
+        }
+    }
+    OR = {
+        is_landed = yes
+        AND = { exists = primary_spouse primary_spouse = { is_landed = yes } }
+    }
+}

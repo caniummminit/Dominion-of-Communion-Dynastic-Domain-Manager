@@ -1,0 +1,65 @@
+# Dominion of Communion - Carnalitas compatibility display hook.
+#
+# Path-identical to Dominion's display hook so load order is deterministic. It
+# applies Dominion's own Endowment trait; the trait definitions and icon files
+# are NOT overridden by this module.
+#
+# kept byte-identical in behaviour to the base mod's copy, including
+# the tier pruning added there.
+
+domcom_apply_native_endowment_trait_effect = {
+    if = {
+        limit = { var:domcom_endowment_category = flag:micro }
+        if = { limit = { has_trait = domcom_endowment_small } remove_trait = domcom_endowment_small }
+        if = { limit = { has_trait = domcom_endowment_average } remove_trait = domcom_endowment_average }
+        if = { limit = { has_trait = domcom_endowment_big } remove_trait = domcom_endowment_big }
+        if = { limit = { has_trait = domcom_endowment_hung } remove_trait = domcom_endowment_hung }
+        if = { limit = { has_trait = domcom_endowment_massive } remove_trait = domcom_endowment_massive }
+        if = { limit = { NOT = { has_trait = domcom_endowment_micro } } add_trait = domcom_endowment_micro }
+    }
+    else_if = {
+        limit = { var:domcom_endowment_category = flag:small }
+        if = { limit = { has_trait = domcom_endowment_micro } remove_trait = domcom_endowment_micro }
+        if = { limit = { has_trait = domcom_endowment_average } remove_trait = domcom_endowment_average }
+        if = { limit = { has_trait = domcom_endowment_big } remove_trait = domcom_endowment_big }
+        if = { limit = { has_trait = domcom_endowment_hung } remove_trait = domcom_endowment_hung }
+        if = { limit = { has_trait = domcom_endowment_massive } remove_trait = domcom_endowment_massive }
+        if = { limit = { NOT = { has_trait = domcom_endowment_small } } add_trait = domcom_endowment_small }
+    }
+    else_if = {
+        limit = { var:domcom_endowment_category = flag:average }
+        if = { limit = { has_trait = domcom_endowment_micro } remove_trait = domcom_endowment_micro }
+        if = { limit = { has_trait = domcom_endowment_small } remove_trait = domcom_endowment_small }
+        if = { limit = { has_trait = domcom_endowment_big } remove_trait = domcom_endowment_big }
+        if = { limit = { has_trait = domcom_endowment_hung } remove_trait = domcom_endowment_hung }
+        if = { limit = { has_trait = domcom_endowment_massive } remove_trait = domcom_endowment_massive }
+        if = { limit = { NOT = { has_trait = domcom_endowment_average } } add_trait = domcom_endowment_average }
+    }
+    else_if = {
+        limit = { var:domcom_endowment_category = flag:big }
+        if = { limit = { has_trait = domcom_endowment_micro } remove_trait = domcom_endowment_micro }
+        if = { limit = { has_trait = domcom_endowment_small } remove_trait = domcom_endowment_small }
+        if = { limit = { has_trait = domcom_endowment_average } remove_trait = domcom_endowment_average }
+        if = { limit = { has_trait = domcom_endowment_hung } remove_trait = domcom_endowment_hung }
+        if = { limit = { has_trait = domcom_endowment_massive } remove_trait = domcom_endowment_massive }
+        if = { limit = { NOT = { has_trait = domcom_endowment_big } } add_trait = domcom_endowment_big }
+    }
+    else_if = {
+        limit = { var:domcom_endowment_category = flag:hung }
+        if = { limit = { has_trait = domcom_endowment_micro } remove_trait = domcom_endowment_micro }
+        if = { limit = { has_trait = domcom_endowment_small } remove_trait = domcom_endowment_small }
+        if = { limit = { has_trait = domcom_endowment_average } remove_trait = domcom_endowment_average }
+        if = { limit = { has_trait = domcom_endowment_big } remove_trait = domcom_endowment_big }
+        if = { limit = { has_trait = domcom_endowment_massive } remove_trait = domcom_endowment_massive }
+        if = { limit = { NOT = { has_trait = domcom_endowment_hung } } add_trait = domcom_endowment_hung }
+    }
+    else_if = {
+        limit = { var:domcom_endowment_category = flag:massive }
+        if = { limit = { has_trait = domcom_endowment_micro } remove_trait = domcom_endowment_micro }
+        if = { limit = { has_trait = domcom_endowment_small } remove_trait = domcom_endowment_small }
+        if = { limit = { has_trait = domcom_endowment_average } remove_trait = domcom_endowment_average }
+        if = { limit = { has_trait = domcom_endowment_big } remove_trait = domcom_endowment_big }
+        if = { limit = { has_trait = domcom_endowment_hung } remove_trait = domcom_endowment_hung }
+        if = { limit = { NOT = { has_trait = domcom_endowment_massive } } add_trait = domcom_endowment_massive }
+    }
+}

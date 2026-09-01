@@ -1,0 +1,1057 @@
+﻿window = {
+  name = "domcom_communion_window"
+  layer = top
+  parentanchor = center
+  size = { 1120 820 }
+  movable = yes
+  visible = "[GetPlayer.MakeScope.Var('domcom_ui_open').IsSet]"
+
+  using = Window_Background
+  using = Window_Decoration
+
+  # 1.0.1 — The Communion is a management surface. Pause once whenever the
+  # window opens while time is running; an already-paused game is left alone.
+  # Actions that intentionally schedule a future event close the Ledger and
+  # resume time themselves so their event can actually fire.
+  widget = {
+    name = "domcom_communion_autopause"
+    size = { 0 0 }
+    visible = "[And(GetPlayer.MakeScope.Var('domcom_ui_open').IsSet, Not(IsGamePaused))]"
+    visible_at_creation = no
+    state = {
+      name = _show
+      on_start = "[OnPause]"
+    }
+  }
+
+  vbox = {
+    layoutpolicy_horizontal = expanding
+    layoutpolicy_vertical = expanding
+    margin = { 26 22 }
+
+    ############################################################
+    # HEADER
+    ############################################################
+    hbox = {
+      layoutpolicy_horizontal = expanding
+      margin_bottom = 10
+
+      vbox = {
+        layoutpolicy_horizontal = expanding
+        spacing = 2
+        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_TITLE fontsize = 24 min_height = 28 align = left }
+        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_SUBTITLE min_height = 20 align = left default_format = "#weak" }
+      }
+
+      button_standard_small = {
+        text = DOMCOM_UI_CLOSE
+        size = { 92 30 }
+        margin_right = 10
+        shortcut = close_window
+        onclick = "[GetScriptedGui('domcom_ui_close').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+      }
+    }
+
+    divider = { layoutpolicy_horizontal = expanding }
+
+    hbox = {
+      layoutpolicy_horizontal = expanding
+      layoutpolicy_vertical = expanding
+
+      ##########################################################
+      # SIDEBAR
+      ##########################################################
+      vbox = {
+        margin = { 6 10 }
+        layoutpolicy_vertical = expanding
+        spacing = 7
+        button_standard_small = { text = DOMCOM_UI_PAGE_OVERVIEW size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_overview').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_CUCKED size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_cucked').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_WORLD_CUCKS size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_world_cucks').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_OWNED size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_owned').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_PROSPECTS size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_prospects').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_BLOOD size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_blood').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_TANTALIZED size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_tantalized').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_SECRETS size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_secrets').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_IMPERIAL size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_imperial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_LEDGER size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_ledger').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_HELP size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_help').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        expand = {}
+        button_standard_small = { text = DOMCOM_UI_REFRESH size = { 154 30 } tooltip = DOMCOM_UI_REFRESH_TT onclick = "[GetScriptedGui('domcom_ui_refresh').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_DEEP_SCAN size = { 154 30 } tooltip = DOMCOM_UI_DEEP_SCAN_TT enabled = "[GetScriptedGui('domcom_ui_deep_scan').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_deep_scan').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        text_multi = { text = DOMCOM_UI_SIDEBAR_NOTE autoresize = yes max_width = 152 max_width = 154 default_format = "#weak" }
+      }
+
+      divider = { layoutpolicy_vertical = expanding }
+
+      ##########################################################
+      # PAGE AREA
+      ##########################################################
+      vbox = {
+        name = "domcom_page_content"
+        layoutpolicy_horizontal = expanding
+        layoutpolicy_vertical = expanding
+        margin_left = 8
+
+        ########################################################
+        # OVERVIEW
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_overview').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 10
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_OVERVIEW_TITLE fontsize = 22 min_height = 30 align = left }
+
+          # The Overview is short enough to live directly in the page. Keeping it
+          # inside a scrollbox let CK3 center the intrinsic-width content, which
+          # pushed the opening flavor text rightward and clipped its last words.
+          vbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 10
+
+            text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OVERVIEW_FLAVOR default_format = "#weak" }
+            divider = { layoutpolicy_horizontal = expanding }
+            text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_OVERVIEW_ROSTER fontsize = 15 min_height = 22 align = center }
+            text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OVERVIEW_COUNTS }
+            divider = { layoutpolicy_horizontal = expanding }
+            text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_OVERVIEW_RULE fontsize = 15 min_height = 22 align = center }
+            text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OVERVIEW_RULE_TEXT default_format = "#weak" }
+
+            hbox = {
+              layoutpolicy_horizontal = expanding
+              spacing = 10
+              button_primary = { text = DOMCOM_UI_VIEW_CUCKED size = { 202 38 } onclick = "[GetScriptedGui('domcom_ui_set_page_cucked').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+              button_standard = { text = DOMCOM_UI_VIEW_OWNED size = { 202 38 } onclick = "[GetScriptedGui('domcom_ui_set_page_owned').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+              button_standard = { text = DOMCOM_UI_VIEW_BLOOD size = { 202 38 } onclick = "[GetScriptedGui('domcom_ui_set_page_blood').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+              expand = {}
+            }
+
+            hbox = {
+              layoutpolicy_horizontal = expanding
+              spacing = 10
+              button_primary = {
+                text = DOMCOM_UI_ENFORCE_DOMINION size = { 220 34 }
+                tooltip = DOMCOM_UI_ENFORCE_DOMINION_TT
+                enabled = "[GetScriptedGui('domcom_ui_enforce_dominion').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                onclick = "[GetScriptedGui('domcom_ui_enforce_dominion').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              }
+              text_multi = { autoresize = yes max_width = 560 layoutpolicy_horizontal = expanding text = DOMCOM_UI_ENFORCE_DOMINION_INLINE default_format = "#weak" }
+            }
+
+            text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DOMCOM_UI_RETRO_NOTE default_format = "#P" }
+            expand = {}
+          }
+        }
+
+        ########################################################
+        # CUCKED
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_cucked').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_TITLE fontsize = 22 min_height = 30 align = left }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_FLAVOR default_format = "#weak" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_SCALE default_format = "#high" }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SORT_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_SORT_RANK size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_rank').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_ENDOW size = { 70 26 } tooltip = DOMCOM_UI_SORT_ENDOW_TT onclick = "[GetScriptedGui('domcom_ui_sort_endowment').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_ALPHA size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_alpha').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_XP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_xp').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_DIP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_diplomacy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_MAR size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_martial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_STE size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_stewardship').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_INT size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_intrigue').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_LEA size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_learning').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRO size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_prowess').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TOTAL size = { 60 26 } tooltip = DOMCOM_UI_SORT_TOTAL_TT onclick = "[GetScriptedGui('domcom_ui_sort_total').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRIZE size = { 62 26 } tooltip = DOMCOM_UI_SORT_PRIZE_TT onclick = "[GetScriptedGui('domcom_ui_sort_prize').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SHOW_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_ALL size = { 68 26 } onclick = "[GetScriptedGui('domcom_ui_filter_all').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_LANDED size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_landed').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_DUKE size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_dukeplus').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_KING size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_kingplus').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_REVERSE size = { 90 26 } onclick = "[GetScriptedGui('domcom_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            expand = {}
+            button_primary = {
+              text = DOMCOM_UI_ALPHA_GAUNTLET size = { 225 32 }
+              tooltip = DOMCOM_UI_ALPHA_GAUNTLET_TT
+              enabled = "[GetScriptedGui('domcom_ui_alpha_gauntlet').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_alpha_gauntlet').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_VISIBLE_COUNT default_format = "#weak" }
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_cucked_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 240
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_cucked_subjects')]"
+                spacing = 4
+                item = {
+                  hbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 7
+                    min_height = 132
+
+                    portrait_head_small = {}
+
+                    vbox = {
+                      min_width = 335 max_width = 335
+                      spacing = 1
+                      text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 335 align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_cuck_link_soulmate').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_CUCK_LINK_SOULMATE max_width = 335 default_format = "#high" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_cuck_link_lover').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_CUCK_LINK_LOVER max_width = 335 default_format = "#high" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_cuck_link_bound').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_CUCK_LINK_BOUND max_width = 335 default_format = "#high" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_cuck_link_blood').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_CUCK_LINK_BLOOD max_width = 335 default_format = "#high" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_cuck_link_historical').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_CUCK_LINK_HISTORICAL max_width = 335 default_format = "#weak" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_cuck_link_none').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_CUCK_LINK_NONE max_width = 335 default_format = "#weak" align = left }
+                      vbox = {
+                        spacing = 2
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_SKILLS align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_VITALS align = left default_format = "#weak" }
+                        text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_has_measurements').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_ROW_ENDOWMENT align = left default_format = "#weak" }
+                        fixedgridbox = {
+                          datamodel = "[Character.GetTraits]"
+                          flipdirection = yes
+                          addcolumn = 27
+                          addrow = 27
+                          datamodel_wrap = 9
+                          maximumsize = { 250 54 }
+                          item = { icon = { size = { 25 25 } texture = "[Trait.GetIcon( Character.GetSex )]" } }
+                        }
+                      }
+                    }
+
+                    vbox = {
+                      min_width = 130 max_width = 130
+                      spacing = 1
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_XP max_width = 130 default_format = "#weak" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_ALPHA_CHANCE max_width = 130 default_format = "#high" align = left }
+                    }
+
+                    expand = {}
+
+                    button_primary = {
+                      text = DOMCOM_UI_ALPHA_CHECK size = { 112 30 }
+                      tooltip = DOMCOM_UI_ALPHA_CHECK_TT
+                      enabled = "[GetScriptedGui('domcom_ui_alpha_check').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]"
+                      onclick = "[GetScriptedGui('domcom_ui_alpha_check').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]"
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_RIGHTCLICK_NOTE default_format = "#weak" }
+        }
+
+        ########################################################
+        # WORLD CUCKS — AI / OTHER PATRONS
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_world_cucks').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_TITLE fontsize = 22 min_height = 30 align = left }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_FLAVOR default_format = "#weak" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_COUNT default_format = "#high" }
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SORT_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_SORT_RANK size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_rank').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_ENDOW size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_endowment').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_XP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_xp').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_DIP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_diplomacy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_MAR size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_martial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_STE size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_stewardship').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_INT size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_intrigue').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_LEA size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_learning').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRO size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_prowess').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TOTAL size = { 60 26 } tooltip = DOMCOM_UI_SORT_TOTAL_TT onclick = "[GetScriptedGui('domcom_ui_sort_total').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRIZE size = { 62 26 } tooltip = DOMCOM_UI_SORT_PRIZE_TT onclick = "[GetScriptedGui('domcom_ui_sort_prize').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_REVERSE size = { 90 26 } onclick = "[GetScriptedGui('domcom_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_world_cucks_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 260
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_world_cucks')]"
+                spacing = 4
+                item = {
+                  hbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 7
+                    min_height = 126
+
+                    portrait_head_small = {}
+                    vbox = {
+                      min_width = 300 max_width = 300
+                      spacing = 1
+                      text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 300 align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_world_cuck_origin_known').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_WORLD_CUCKED_BY max_width = 300 default_format = "#high" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_world_cuck_origin_unknown').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_WORLD_CUCKED_BY_UNKNOWN max_width = 300 default_format = "#weak" align = left }
+                      vbox = {
+                        spacing = 2
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_SKILLS align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_VITALS align = left default_format = "#weak" }
+                        text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_has_measurements').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_ROW_ENDOWMENT align = left default_format = "#weak" }
+                        fixedgridbox = {
+                          datamodel = "[Character.GetTraits]"
+                          flipdirection = yes
+                          addcolumn = 27
+                          addrow = 27
+                          datamodel_wrap = 9
+                          maximumsize = { 250 54 }
+                          item = { icon = { size = { 25 25 } texture = "[Trait.GetIcon( Character.GetSex )]" } }
+                        }
+                      }
+                    }
+                    vbox = {
+                      min_width = 180 max_width = 180
+                      spacing = 1
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_CUCK_XP max_width = 180 default_format = "#weak" align = left }
+                    }
+                    expand = {}
+                  }
+                }
+              }
+            }
+          }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_NOTE default_format = "#P" }
+        }
+
+        ########################################################
+        # OWNED
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_owned').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_TITLE fontsize = 22 min_height = 30 align = left }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_FLAVOR default_format = "#weak" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_COUNTS default_format = "#high" }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SORT_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_SORT_RANK size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_rank').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_ENDOW size = { 70 26 } tooltip = DOMCOM_UI_SORT_ENDOW_TT onclick = "[GetScriptedGui('domcom_ui_sort_endowment').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TRIBUTE size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_tribute').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_XP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_xp').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_DIP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_diplomacy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_MAR size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_martial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_STE size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_stewardship').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_INT size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_intrigue').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_LEA size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_learning').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRO size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_prowess').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TOTAL size = { 60 26 } tooltip = DOMCOM_UI_SORT_TOTAL_TT onclick = "[GetScriptedGui('domcom_ui_sort_total').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRIZE size = { 62 26 } tooltip = DOMCOM_UI_SORT_PRIZE_TT onclick = "[GetScriptedGui('domcom_ui_sort_prize').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SHOW_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_ALL size = { 68 26 } onclick = "[GetScriptedGui('domcom_ui_filter_all').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_LANDED size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_landed').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_DUKE size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_dukeplus').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_KING size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_kingplus').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_REVERSE size = { 90 26 } onclick = "[GetScriptedGui('domcom_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 8
+            text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_VISIBLE_COUNT default_format = "#weak" }
+            button_standard_small = {
+              text = DOMCOM_UI_REPAIR_COLLAPSES size = { 150 28 }
+              tooltip = DOMCOM_UI_REPAIR_COLLAPSES_TT
+              enabled = "[GetScriptedGui('domcom_ui_repair_collapses').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_repair_collapses').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_ENFORCE_DOMINION size = { 190 28 }
+              tooltip = DOMCOM_UI_ENFORCE_DOMINION_TT
+              enabled = "[GetScriptedGui('domcom_ui_enforce_dominion').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_enforce_dominion').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
+
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_owned_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 240
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_owned_subjects')]"
+                spacing = 4
+                item = {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 2
+
+                    hbox = {
+                      layoutpolicy_horizontal = expanding
+                      spacing = 7
+                      min_height = 62
+
+                      portrait_head_small = {}
+
+                      vbox = {
+                        min_width = 285 max_width = 285
+                        spacing = 1
+                        text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 285 align = left }
+                        vbox = {
+                        spacing = 2
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_SKILLS align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_VITALS align = left default_format = "#weak" }
+                        text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_has_measurements').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_ROW_ENDOWMENT align = left default_format = "#weak" }
+                        fixedgridbox = {
+                          datamodel = "[Character.GetTraits]"
+                          flipdirection = yes
+                          addcolumn = 27
+                          addrow = 27
+                          datamodel_wrap = 9
+                          maximumsize = { 250 54 }
+                          item = { icon = { size = { 25 25 } texture = "[Trait.GetIcon( Character.GetSex )]" } }
+                        }
+                      }
+                      }
+
+                      vbox = {
+                        min_width = 210 max_width = 210
+                        spacing = 1
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_XP max_width = 210 default_format = "#weak" align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_TRIBUTE_COMPACT max_width = 210 default_format = "#high" align = left }
+                      }
+
+                      expand = {}
+                    }
+
+                    hbox = {
+                      layoutpolicy_horizontal = expanding
+                      spacing = 6
+                      margin_left = 92
+                      min_height = 30
+                      button_standard_small = { text = DOMCOM_UI_EMBARRASS size = { 100 28 } tooltip = DOMCOM_UI_EMBARRASS_TT enabled = "[GetScriptedGui('domcom_ui_embarrass_owned').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_embarrass_owned').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[OnPause]" }
+                      button_standard_small = { text = DOMCOM_UI_ABDICATE size = { 100 28 } tooltip = DOMCOM_UI_ABDICATE_TT enabled = "[GetScriptedGui('domcom_ui_demand_abdication').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_demand_abdication').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" }
+                      button_primary = { text = DOMCOM_UI_COLLAPSE size = { 90 28 } tooltip = DOMCOM_UI_COLLAPSE_TT enabled = "[GetScriptedGui('domcom_ui_resolve_collapse').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_resolve_collapse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[OnPause]" }
+                      expand = {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_RIGHTCLICK_NOTE default_format = "#weak" }
+        }
+
+        ########################################################
+        # DYNASTIC PROSPECTS
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_prospects').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_PROSPECTS_TITLE fontsize = 22 min_height = 30 align = left }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_PROSPECTS_FLAVOR default_format = "#weak" }
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 8
+            text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_PROSPECTS_COUNT default_format = "#high" }
+            button_primary = {
+              text = DOMCOM_UI_RECEIVE_ALL size = { 180 30 }
+              tooltip = DOMCOM_UI_RECEIVE_ALL_TT
+              enabled = "[GetScriptedGui('domcom_ui_receive_all_prospects').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_receive_all_prospects').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[OnPause]"
+            }
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SORT_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_SORT_RANK size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_rank').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_ENDOW size = { 70 26 } tooltip = DOMCOM_UI_SORT_ENDOW_TT onclick = "[GetScriptedGui('domcom_ui_sort_endowment').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_DIP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_diplomacy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_MAR size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_martial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_STE size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_stewardship').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_INT size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_intrigue').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_LEA size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_learning').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRO size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_prowess').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TOTAL size = { 60 26 } tooltip = DOMCOM_UI_SORT_TOTAL_TT onclick = "[GetScriptedGui('domcom_ui_sort_total').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRIZE size = { 62 26 } tooltip = DOMCOM_UI_SORT_PRIZE_TT onclick = "[GetScriptedGui('domcom_ui_sort_prize').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_REVERSE size = { 90 26 } onclick = "[GetScriptedGui('domcom_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_prospects_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 240
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_prospects')]"
+                spacing = 4
+                item = {
+                  hbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 7
+                    min_height = 126
+
+                    portrait_head_small = {}
+
+                    vbox = {
+                      min_width = 450 max_width = 450
+                      spacing = 1
+                      text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 450 align = left }
+                      vbox = {
+                        spacing = 2
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_SKILLS align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_VITALS align = left default_format = "#weak" }
+                        text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_has_measurements').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_ROW_ENDOWMENT align = left default_format = "#weak" }
+                        fixedgridbox = {
+                          datamodel = "[Character.GetTraits]"
+                          flipdirection = yes
+                          addcolumn = 27
+                          addrow = 27
+                          datamodel_wrap = 9
+                          maximumsize = { 250 54 }
+                          item = { icon = { size = { 25 25 } texture = "[Trait.GetIcon( Character.GetSex )]" } }
+                        }
+                      }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_PROSPECT_ROW_NOTE max_width = 450 default_format = "#weak" align = left }
+                    }
+
+                    expand = {}
+
+                    button_primary = { text = DOMCOM_UI_RECEIVE size = { 130 30 } tooltip = DOMCOM_UI_RECEIVE_TT enabled = "[GetScriptedGui('domcom_ui_receive_prospect').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_receive_prospect').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[OnPause]" }
+                  }
+                }
+              }
+            }
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_PROSPECTS_ORIENTATION_NOTE default_format = "#P" }
+        }
+
+        ########################################################
+        # CHILDREN OF COMMUNION
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_blood').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_BLOOD_TITLE fontsize = 22 min_height = 30 align = left }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 8
+            text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_BLOOD_COUNT default_format = "#high" }
+            button_primary = {
+              text = DOMCOM_UI_ACKNOWLEDGE_ALL size = { 175 30 }
+              tooltip = DOMCOM_UI_ACKNOWLEDGE_ALL_TT
+              enabled = "[GetScriptedGui('domcom_ui_acknowledge_all_blood').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_acknowledge_all_blood').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[OnPause]"
+            }
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SORT_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_SORT_RANK size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_rank').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_DIP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_diplomacy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_MAR size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_martial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_STE size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_stewardship').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_INT size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_intrigue').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_LEA size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_learning').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRO size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_prowess').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TOTAL size = { 60 26 } tooltip = DOMCOM_UI_SORT_TOTAL_TT onclick = "[GetScriptedGui('domcom_ui_sort_total').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRIZE size = { 62 26 } tooltip = DOMCOM_UI_SORT_PRIZE_TT onclick = "[GetScriptedGui('domcom_ui_sort_prize').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_REVERSE size = { 90 26 } onclick = "[GetScriptedGui('domcom_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_BLOOD_FLAVOR default_format = "#weak" }
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_blood_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 240
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_blood_children')]"
+                spacing = 4
+                item = {
+                  hbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 7
+                    min_height = 126
+
+                    portrait_head_small = {}
+
+                    vbox = {
+                      min_width = 450 max_width = 450
+                      spacing = 1
+                      text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 450 align = left }
+                      vbox = {
+                        spacing = 2
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_SKILLS align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_VITALS align = left default_format = "#weak" }
+                        text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_has_measurements').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_ROW_ENDOWMENT align = left default_format = "#weak" }
+                        fixedgridbox = {
+                          datamodel = "[Character.GetTraits]"
+                          flipdirection = yes
+                          addcolumn = 27
+                          addrow = 27
+                          datamodel_wrap = 9
+                          maximumsize = { 250 54 }
+                          item = { icon = { size = { 25 25 } texture = "[Trait.GetIcon( Character.GetSex )]" } }
+                        }
+                      }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_BLOOD_ROW_NOTE max_width = 450 default_format = "#weak" align = left }
+                    }
+
+                    expand = {}
+
+                    button_primary = { text = DOMCOM_UI_ACKNOWLEDGE size = { 132 30 } tooltip = DOMCOM_UI_ACKNOWLEDGE_TT enabled = "[GetScriptedGui('domcom_ui_acknowledge_blood').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_acknowledge_blood').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" }
+                  }
+                }
+              }
+            }
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_BLOOD_WARNING default_format = "#N" }
+        }
+
+        ########################################################
+        # TANTALIZED — OBEDIENCE TRACK (any gender)
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_tantalized').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_TITLE fontsize = 22 min_height = 30 align = left }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_FLAVOR default_format = "#weak" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_COUNT default_format = "#high" }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SORT_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_SORT_OBEDIENCE size = { 88 26 } onclick = "[GetScriptedGui('domcom_ui_sort_obedience').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_RANK size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_rank').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_DIP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_diplomacy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_MAR size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_martial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_STE size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_stewardship').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_INT size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_intrigue').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_LEA size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_learning').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRO size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_prowess').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_REVERSE size = { 90 26 } onclick = "[GetScriptedGui('domcom_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SHOW_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_TFILTER_ALL size = { 74 26 } onclick = "[GetScriptedGui('domcom_ui_tfilter_all').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_TFILTER_WOMEN size = { 84 26 } onclick = "[GetScriptedGui('domcom_ui_tfilter_women').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_TFILTER_MEN size = { 74 26 } onclick = "[GetScriptedGui('domcom_ui_tfilter_men').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_TFILTER_PETS size = { 84 26 } tooltip = DOMCOM_UI_TFILTER_PETS_TT onclick = "[GetScriptedGui('domcom_ui_tfilter_pets').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_tantalized_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 240
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_tantalized')]"
+                spacing = 4
+                item = {
+                  hbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 7
+                    min_height = 132
+
+                    portrait_head_small = {}
+
+                    vbox = {
+                      min_width = 400 max_width = 400
+                      spacing = 2
+                      text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 400 align = left }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_SKILLS align = left }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_VITALS align = left default_format = "#weak" }
+                      fixedgridbox = {
+                        datamodel = "[Character.GetTraits]"
+                        flipdirection = yes
+                        addcolumn = 27
+                        addrow = 27
+                        datamodel_wrap = 9
+                        maximumsize = { 250 54 }
+                        item = { icon = { size = { 25 25 } texture = "[Trait.GetIcon( Character.GetSex )]" } }
+                      }
+                    }
+
+                    vbox = {
+                      min_width = 190 max_width = 190
+                      spacing = 2
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_OBEDIENCE max_width = 190 default_format = "#high" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_OBEDIENCE_STAGE max_width = 190 default_format = "#weak" align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_is_pet').IsShown(GuiScope.SetRoot(Character.MakeScope).End)]" text = DOMCOM_UI_ROW_PET max_width = 190 default_format = "#P" align = left }
+                    }
+
+                    expand = {}
+                  }
+                }
+              }
+            }
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_NOTE default_format = "#P" }
+        }
+
+        ########################################################
+        # SECRETS & TRIBUTE
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_secrets').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_TITLE fontsize = 22 min_height = 30 align = left }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_FLAVOR default_format = "#weak" }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SORT_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_SORT_RANK size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_rank').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TRIBUTE size = { 70 26 } onclick = "[GetScriptedGui('domcom_ui_sort_tribute').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_XP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_xp').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_DIP size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_diplomacy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_MAR size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_martial').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_STE size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_stewardship').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_INT size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_intrigue').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_LEA size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_learning').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRO size = { 54 26 } onclick = "[GetScriptedGui('domcom_ui_sort_prowess').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_TOTAL size = { 60 26 } tooltip = DOMCOM_UI_SORT_TOTAL_TT onclick = "[GetScriptedGui('domcom_ui_sort_total').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_PRIZE size = { 62 26 } tooltip = DOMCOM_UI_SORT_PRIZE_TT onclick = "[GetScriptedGui('domcom_ui_sort_prize').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 4
+            text_single = { text = DOMCOM_UI_SHOW_LABEL size = { 42 26 } align = left default_format = "#weak" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_ALL size = { 68 26 } onclick = "[GetScriptedGui('domcom_ui_filter_all').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_LANDED size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_landed').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_DUKE size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_dukeplus').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_FILTER_KING size = { 80 26 } onclick = "[GetScriptedGui('domcom_ui_filter_kingplus').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            button_standard_small = { text = DOMCOM_UI_SORT_REVERSE size = { 90 26 } onclick = "[GetScriptedGui('domcom_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+            expand = {}
+          }
+
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_secrets_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 240
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_owned_subjects')]"
+                spacing = 4
+                item = {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 2
+
+                    hbox = {
+                      layoutpolicy_horizontal = expanding
+                      spacing = 7
+                      min_height = 62
+
+                      portrait_head_small = {}
+
+                      vbox = {
+                        min_width = 315 max_width = 315
+                        spacing = 1
+                        text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 315 align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_NETWORK_ROW_NOTE max_width = 315 default_format = "#weak" align = left }
+                      }
+
+                      vbox = {
+                        min_width = 210 max_width = 210
+                        spacing = 1
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_TRIBUTE_MONTHLY max_width = 210 default_format = "#high" align = left }
+                        text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_TRIBUTE_ANNUAL max_width = 210 default_format = "#weak" align = left }
+                      }
+
+                      expand = {}
+                    }
+
+                    hbox = {
+                      layoutpolicy_horizontal = expanding
+                      spacing = 6
+                      margin_left = 92
+                      min_height = 30
+                      button_standard = { text = DOMCOM_UI_EXTRACT_SECRETS size = { 140 28 } tooltip = DOMCOM_UI_EXTRACT_SECRETS_TT enabled = "[GetScriptedGui('domcom_ui_refresh_intelligence').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_refresh_intelligence').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[OnPause]" }
+                      button_primary = { text = DOMCOM_UI_DEMAND_TRIBUTE_NOW size = { 175 28 } tooltip = DOMCOM_UI_DEMAND_TRIBUTE_NOW_TT enabled = "[GetScriptedGui('domcom_ui_demand_tribute_now').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" onclick = "[GetScriptedGui('domcom_ui_demand_tribute_now').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" }
+                      expand = {}
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_NOTE default_format = "#P" }
+        }
+
+        ########################################################
+        # IMPERIAL TRIBUTE
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_imperial').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 9
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_TITLE fontsize = 22 min_height = 30 align = left }
+
+          scrollbox = {
+            name = "domcom_imperial_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 300
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                spacing = 9
+
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_FLAVOR default_format = "#weak" }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_STATUS }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_SEASON_TITLE fontsize = 15 min_height = 22 align = center }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_tribute_season_active').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" text = DOMCOM_UI_IMPERIAL_SEASON_ACTIVE }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_tribute_season_cooldown').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" text = DOMCOM_UI_IMPERIAL_SEASON_COOLDOWN default_format = "#N" }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_tribute_season_idle').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" text = DOMCOM_UI_IMPERIAL_SEASON_IDLE default_format = "#weak" }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_SEASON_RESULTS default_format = "#weak" }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_FORMS_TITLE fontsize = 15 min_height = 22 align = center }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_FORMS default_format = "#weak" }
+
+                hbox = {
+                  layoutpolicy_horizontal = expanding
+                  spacing = 10
+                  expand = {}
+                  button_primary = {
+                    text = DOMCOM_UI_SUMMON_TRIBUTE size = { 225 36 }
+                    tooltip = DOMCOM_UI_SUMMON_TRIBUTE_TT
+                    enabled = "[GetScriptedGui('domcom_ui_begin_imperial_tribute').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                    onclick = "[GetScriptedGui('domcom_ui_begin_imperial_tribute').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                    onclick = "[OnPause]"
+                  }
+                  button_standard = { text = DOMCOM_UI_REFRESH size = { 180 36 } onclick = "[GetScriptedGui('domcom_ui_refresh').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                  button_primary = {
+                    text = DOMCOM_UI_DEEP_SCAN size = { 200 36 }
+                    tooltip = DOMCOM_UI_DEEP_SCAN_TT
+                    enabled = "[GetScriptedGui('domcom_ui_deep_scan').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                    onclick = "[GetScriptedGui('domcom_ui_deep_scan').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  }
+                  expand = {}
+                }
+
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_IMPERIAL_NOTE default_format = "#P" }
+              }
+            }
+          }
+        }
+
+        ########################################################
+        # LEDGER
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_ledger').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 10
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_LEDGER_TITLE fontsize = 22 min_height = 30 align = left }
+
+          scrollbox = {
+            name = "domcom_ledger_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 300
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                spacing = 10
+
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LEDGER_FLAVOR default_format = "#weak" }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_LEDGER_ALPHA_TITLE fontsize = 15 min_height = 22 align = center }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LEDGER_ALPHA }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_LEDGER_COMMUNION_TITLE fontsize = 15 min_height = 22 align = center }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LEDGER_COMMUNION }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LEDGER_NOTE default_format = "#weak" }
+
+                hbox = {
+                  layoutpolicy_horizontal = expanding
+                  expand = {}
+                  button_standard = { text = DOMCOM_UI_REFRESH size = { 240 36 } onclick = "[GetScriptedGui('domcom_ui_refresh').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                  expand = {}
+                }
+
+                divider = { layoutpolicy_horizontal = expanding }
+                vbox = {
+                  visible = "[GetScriptedGui('domcom_ui_debug_tools_visible').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  layoutpolicy_horizontal = expanding
+                  spacing = 6
+                  text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_MAINTENANCE_TITLE fontsize = 15 min_height = 22 align = center }
+                  text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_MAINTENANCE_DESC default_format = "#weak" }
+                  hbox = {
+                    layoutpolicy_horizontal = expanding
+                    spacing = 10
+                    expand = {}
+                    button_standard = {
+                      text = DOMCOM_UI_REBUILD_DISPLAY size = { 285 36 }
+                      tooltip = DOMCOM_UI_REBUILD_DISPLAY_TT
+                      enabled = "[GetScriptedGui('domcom_ui_rebuild_endowment_display').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                      onclick = "[GetScriptedGui('domcom_ui_rebuild_endowment_display').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                    }
+                    button_standard = {
+                      text = DOMCOM_UI_REROLL_ENDOWMENTS size = { 285 36 }
+                      tooltip = DOMCOM_UI_REROLL_ENDOWMENTS_TT
+                      enabled = "[GetScriptedGui('domcom_ui_reroll_endowments').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                      onclick = "[GetScriptedGui('domcom_ui_reroll_endowments').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                    }
+                    expand = {}
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        ########################################################
+        # HOW TO USE
+        ########################################################
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_help').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_HELP_TITLE fontsize = 22 min_height = 30 align = left }
+
+          scrollbox = {
+            name = "domcom_help_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 300
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                spacing = 8
+
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_HELP_QUICK default_format = "#high" }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_HELP_FLOW_TITLE fontsize = 15 min_height = 22 align = center }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_HELP_FLOW }
+                divider = { layoutpolicy_horizontal = expanding }
+                text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_HELP_SPECIAL_TITLE fontsize = 15 min_height = 22 align = center }
+                text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_HELP_SPECIAL default_format = "#weak" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

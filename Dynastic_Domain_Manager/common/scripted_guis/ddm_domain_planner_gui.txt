@@ -1,0 +1,260 @@
+﻿# Dynastic Domain Manager unified office UI.
+# Sidebar navigation and page-state layout for the Domain Office.
+
+ddm_ui_close = {
+    scope = character
+    effect = {
+        if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes }
+        remove_variable = ddm_ui_open
+    }
+}
+
+ddm_ui_refresh = { scope = character effect = { ddm_prepare_dashboard_effect = yes } }
+
+ddm_ui_set_page_overview = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_dashboard_effect = yes set_variable = { name = ddm_ui_page value = flag:overview } } }
+ddm_ui_set_page_estate = { scope = character effect = { if = { limit = { NOT = { has_variable = ddm_show_domain_planner } } set_variable = { name = ddm_pending_domain_action value = 0 } ddm_prepare_domain_planner_effect = yes } set_variable = { name = ddm_ui_page value = flag:estate } } }
+ddm_ui_set_page_distribution = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_dashboard_effect = yes set_variable = { name = ddm_ui_page value = flag:distribution } } }
+ddm_ui_set_page_hierarchy = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_dashboard_effect = yes set_variable = { name = ddm_ui_page value = flag:hierarchy } } }
+ddm_ui_set_page_dynasty = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_dashboard_effect = yes ddm_prepare_outsider_recipients_effect = yes set_variable = { name = ddm_ui_page value = flag:dynasty } } }
+ddm_ui_set_page_outsiders = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_outsider_holdings_effect = yes set_variable = { name = ddm_ui_page value = flag:outsiders } } }
+ddm_ui_set_page_succession = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_succession_briefing_effect = yes set_variable = { name = ddm_ui_page value = flag:succession } } }
+ddm_ui_set_page_alliances = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_dashboard_effect = yes set_variable = { name = ddm_ui_page value = flag:alliances } } }
+ddm_ui_set_page_tools = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } set_variable = { name = ddm_ui_page value = flag:tools } } }
+ddm_ui_set_page_records = { scope = character effect = { if = { limit = { has_variable = ddm_show_domain_planner } ddm_cancel_domain_planner_effect = yes } ddm_prepare_dashboard_effect = yes set_variable = { name = ddm_ui_page value = flag:records } } }
+
+ddm_ui_is_page_overview = { scope = character is_shown = { OR = { NOT = { exists = var:ddm_ui_page } var:ddm_ui_page = flag:overview } } }
+ddm_ui_is_page_estate = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:estate } }
+ddm_ui_is_page_distribution = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:distribution } }
+ddm_ui_is_page_hierarchy = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:hierarchy } }
+ddm_ui_is_page_dynasty = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:dynasty } }
+ddm_ui_is_page_outsiders = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:outsiders } }
+ddm_ui_is_page_succession = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:succession } }
+ddm_ui_is_page_alliances = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:alliances } }
+ddm_ui_is_page_tools = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:tools } }
+ddm_ui_is_page_records = { scope = character is_shown = { exists = var:ddm_ui_page var:ddm_ui_page = flag:records } }
+
+# Processing-state helpers. The office remains paused for ordinary browsing,
+# but full settlement workflows may deliberately advance one day before the
+# office reopens and pauses again.
+ddm_ui_settlement_needs_planner = {
+    scope = character
+    is_shown = { is_at_war = no OR = { ddm_domain_plan_limit_changed_trigger = yes ddm_domain_plan_target_mismatch_trigger = yes } }
+}
+ddm_ui_settlement_direct = {
+    scope = character
+    is_shown = { is_at_war = no NOT = { OR = { ddm_domain_plan_limit_changed_trigger = yes ddm_domain_plan_target_mismatch_trigger = yes } } }
+}
+ddm_ui_settlement_at_war = { scope = character is_shown = { is_at_war = yes NOT = { has_variable = ddm_settlement_queued } } }
+ddm_ui_settlement_queued = { scope = character is_shown = { has_variable = ddm_settlement_queued } }
+ddm_ui_domain_plan_pending = {
+    scope = character
+    is_shown = { has_variable = ddm_pending_domain_action var:ddm_pending_domain_action > 0 }
+}
+ddm_ui_domain_plan_idle = {
+    scope = character
+    is_shown = {
+        OR = {
+            NOT = { has_variable = ddm_pending_domain_action }
+            AND = { has_variable = ddm_pending_domain_action var:ddm_pending_domain_action <= 0 }
+        }
+    }
+}
+
+ddm_ui_run_settlement = {
+    scope = character
+    is_valid = { is_landed = yes is_at_war = no }
+    effect = {
+        ddm_initialize_settings_effect = yes
+        if = {
+            limit = { OR = { ddm_domain_plan_limit_changed_trigger = yes ddm_domain_plan_target_mismatch_trigger = yes } }
+            set_variable = { name = ddm_pending_domain_action value = 1 }
+            ddm_prepare_domain_planner_effect = yes
+            set_variable = { name = ddm_ui_page value = flag:estate }
+        }
+        else = {
+            # The office is intentionally paused while open. A full settlement
+            # needs one simulation day so the post-settlement alliance phase can
+            # settle cleanly. The GUI hides the office and resumes the player's
+            # prior simulation speed; a hidden completion event reopens it after
+            # one day and the office pauses the simulation again.
+            set_variable = { name = ddm_ui_processing_settlement value = 1 }
+            remove_variable = ddm_ui_open
+            ddm_run_full_settlement_effect = yes
+            set_variable = { name = ddm_ui_records_mode value = 2 }
+            set_variable = { name = ddm_ui_page value = flag:records }
+            trigger_event = { id = ddm_manager.0111 days = 1 }
+        }
+    }
+}
+
+ddm_ui_queue_settlement = {
+    scope = character
+    is_valid = { is_landed = yes is_at_war = yes NOT = { has_variable = ddm_settlement_queued } }
+    effect = {
+        ddm_initialize_settings_effect = yes
+        set_variable = { name = ddm_settlement_queued value = 1 }
+        remove_variable = ddm_ui_open
+        trigger_event = { id = ddm_manager.0112 days = 3 }
+    }
+}
+
+ddm_ui_preview = { scope = character effect = { ddm_prepare_allocation_preview_effect = yes set_variable = { name = ddm_ui_records_mode value = 1 } set_variable = { name = ddm_ui_page value = flag:records } } }
+ddm_ui_cancel_estate = { scope = character is_valid = { has_variable = ddm_show_domain_planner } effect = { ddm_cancel_domain_planner_effect = yes set_variable = { name = ddm_ui_page value = flag:overview } } }
+ddm_ui_organize_hierarchy = { scope = character effect = { ddm_organize_dynastic_hierarchy_effect = yes ddm_prepare_dashboard_effect = yes set_variable = { name = ddm_ui_records_mode value = 2 } } }
+ddm_ui_distribute_proper_lieges = {
+    scope = character
+    is_valid = { is_landed = yes }
+    effect = {
+        ddm_distribute_to_proper_lieges_effect = yes
+        ddm_prepare_dashboard_effect = yes
+    }
+}
+ddm_ui_post_succession_cleanup = {
+    scope = character
+    effect = {
+        set_variable = { name = ddm_ui_processing_settlement value = 1 }
+        remove_variable = ddm_ui_open
+        ddm_post_succession_cleanup_effect = yes
+        set_variable = { name = ddm_ui_records_mode value = 2 }
+        set_variable = { name = ddm_ui_page value = flag:records }
+        trigger_event = { id = ddm_manager.0111 days = 1 }
+    }
+}
+
+# Distribution / perception controls.
+ddm_ui_set_family_1 = { scope = character effect = { set_variable = { name = ddm_family_scope_mode value = 1 } } }
+ddm_ui_set_family_3 = { scope = character effect = { set_variable = { name = ddm_family_scope_mode value = 3 } } }
+ddm_ui_set_family_2 = { scope = character effect = { set_variable = { name = ddm_family_scope_mode value = 2 } } }
+ddm_ui_family_1 = { scope = character is_shown = { var:ddm_family_scope_mode = 1 } }
+ddm_ui_family_3 = { scope = character is_shown = { var:ddm_family_scope_mode = 3 } }
+ddm_ui_family_2 = { scope = character is_shown = { var:ddm_family_scope_mode = 2 } }
+
+ddm_ui_set_power_1 = { scope = character effect = { set_variable = { name = ddm_power_policy value = 1 } } }
+ddm_ui_set_power_2 = { scope = character effect = { set_variable = { name = ddm_power_policy value = 2 } } }
+ddm_ui_set_power_3 = { scope = character effect = { set_variable = { name = ddm_power_policy value = 3 } } }
+ddm_ui_power_1 = { scope = character is_shown = { var:ddm_power_policy = 1 } }
+ddm_ui_power_2 = { scope = character is_shown = { var:ddm_power_policy = 2 } }
+ddm_ui_power_3 = { scope = character is_shown = { var:ddm_power_policy = 3 } }
+
+ddm_ui_set_regard_1 = { scope = character effect = { set_variable = { name = ddm_regard_mode value = 1 } } }
+ddm_ui_set_regard_2 = { scope = character effect = { set_variable = { name = ddm_regard_mode value = 2 } } }
+ddm_ui_regard_1 = { scope = character is_shown = { var:ddm_regard_mode = 1 } }
+ddm_ui_regard_2 = { scope = character is_shown = { var:ddm_regard_mode = 2 } }
+ddm_ui_gender_on = { scope = character is_shown = { var:ddm_gender_alignment = 1 } }
+ddm_ui_gender_off = { scope = character is_shown = { var:ddm_gender_alignment = 0 } }
+ddm_ui_integrity_on = { scope = character is_shown = { var:ddm_realm_integrity = 1 } }
+ddm_ui_integrity_off = { scope = character is_shown = { var:ddm_realm_integrity = 0 } }
+ddm_ui_toggle_gender = { scope = character effect = { if = { limit = { var:ddm_gender_alignment = 1 } set_variable = { name = ddm_gender_alignment value = 0 } } else = { set_variable = { name = ddm_gender_alignment value = 1 } } } }
+ddm_ui_toggle_integrity = { scope = character effect = { if = { limit = { var:ddm_realm_integrity = 1 } set_variable = { name = ddm_realm_integrity value = 0 } } else = { set_variable = { name = ddm_realm_integrity value = 1 } } } }
+
+ddm_ui_set_succession_1 = { scope = character effect = { set_variable = { name = ddm_succession_policy value = 1 } } }
+ddm_ui_set_succession_2 = { scope = character effect = { set_variable = { name = ddm_succession_policy value = 2 } } }
+ddm_ui_set_succession_3 = { scope = character effect = { set_variable = { name = ddm_succession_policy value = 3 } } }
+ddm_ui_succession_1 = { scope = character is_shown = { var:ddm_succession_policy = 1 } }
+ddm_ui_succession_2 = { scope = character is_shown = { var:ddm_succession_policy = 2 } }
+ddm_ui_succession_3 = { scope = character is_shown = { var:ddm_succession_policy = 3 } }
+
+ddm_ui_set_alliance_0 = { scope = character effect = { set_variable = { name = ddm_alliance_policy value = 0 } } }
+ddm_ui_set_alliance_1 = { scope = character effect = { set_variable = { name = ddm_alliance_policy value = 1 } } }
+ddm_ui_set_alliance_2 = { scope = character effect = { set_variable = { name = ddm_alliance_policy value = 2 } } }
+ddm_ui_set_alliance_3 = { scope = character effect = { set_variable = { name = ddm_alliance_policy value = 3 } } }
+ddm_ui_alliance_0 = { scope = character is_shown = { var:ddm_alliance_policy = 0 } }
+ddm_ui_alliance_1 = { scope = character is_shown = { var:ddm_alliance_policy = 1 } }
+ddm_ui_alliance_2 = { scope = character is_shown = { var:ddm_alliance_policy = 2 } }
+ddm_ui_alliance_3 = { scope = character is_shown = { var:ddm_alliance_policy = 3 } }
+
+ddm_ui_distribution_stalled = { scope = character is_shown = { var:ddm_last_distribution_stalled = 1 } }
+ddm_ui_has_preview_1 = { scope = character is_shown = { exists = scope:ddm_preview_recipient_1 } }
+ddm_ui_has_preview_2 = { scope = character is_shown = { exists = scope:ddm_preview_recipient_2 } }
+ddm_ui_has_preview_3 = { scope = character is_shown = { exists = scope:ddm_preview_recipient_3 } }
+
+# 1.1 holding-list organization. The same ordering is shared by the Crown
+# Estate and Outsider Holdings registers so the ruler does not relearn controls.
+ddm_ui_sort_hierarchy = { scope = character effect = { set_variable = { name = ddm_title_sort_mode value = 0 } if = { limit = { has_variable = ddm_show_domain_planner } ddm_rebuild_domain_planner_sort_effect = yes } if = { limit = { has_variable = ddm_outsider_county_total } ddm_rebuild_outsider_holdings_sort_effect = yes } } }
+ddm_ui_sort_development = { scope = character effect = { set_variable = { name = ddm_title_sort_mode value = 1 } if = { limit = { has_variable = ddm_show_domain_planner } ddm_rebuild_domain_planner_sort_effect = yes } if = { limit = { has_variable = ddm_outsider_county_total } ddm_rebuild_outsider_holdings_sort_effect = yes } } }
+ddm_ui_sort_faith = { scope = character effect = { set_variable = { name = ddm_title_sort_mode value = 2 } if = { limit = { has_variable = ddm_show_domain_planner } ddm_rebuild_domain_planner_sort_effect = yes } if = { limit = { has_variable = ddm_outsider_county_total } ddm_rebuild_outsider_holdings_sort_effect = yes } } }
+ddm_ui_sort_culture = { scope = character effect = { set_variable = { name = ddm_title_sort_mode value = 3 } if = { limit = { has_variable = ddm_show_domain_planner } ddm_rebuild_domain_planner_sort_effect = yes } if = { limit = { has_variable = ddm_outsider_county_total } ddm_rebuild_outsider_holdings_sort_effect = yes } } }
+ddm_ui_sort_reverse = { scope = character effect = { if = { limit = { var:ddm_title_sort_direction < 0 } set_variable = { name = ddm_title_sort_direction value = 1 } } else = { set_variable = { name = ddm_title_sort_direction value = -1 } } if = { limit = { has_variable = ddm_show_domain_planner } ddm_rebuild_domain_planner_sort_effect = yes } if = { limit = { has_variable = ddm_outsider_county_total } ddm_rebuild_outsider_holdings_sort_effect = yes } } }
+
+# 1.1 recipient-scope controls. Mode 0 keeps the original dynasty-only behavior.
+ddm_ui_set_recipient_dynasty = { scope = character effect = { set_variable = { name = ddm_outsider_recipient_mode value = 0 } ddm_prepare_outsider_recipients_effect = yes } }
+ddm_ui_set_recipient_selected = { scope = character effect = { set_variable = { name = ddm_outsider_recipient_mode value = 1 } ddm_prepare_outsider_recipients_effect = yes } }
+ddm_ui_set_recipient_all = { scope = character effect = { set_variable = { name = ddm_outsider_recipient_mode value = 2 } ddm_prepare_outsider_recipients_effect = yes } }
+ddm_ui_recipient_dynasty = { scope = character is_shown = { var:ddm_outsider_recipient_mode = 0 } }
+ddm_ui_recipient_selected = { scope = character is_shown = { var:ddm_outsider_recipient_mode = 1 } }
+ddm_ui_recipient_all = { scope = character is_shown = { var:ddm_outsider_recipient_mode = 2 } }
+ddm_ui_refresh_outsider_recipients = { scope = character effect = { ddm_prepare_outsider_recipients_effect = yes } }
+
+ddm_gui_toggle_outsider_recipient_priority = {
+    scope = character
+    is_valid = { is_alive = yes }
+    effect = {
+        if = { limit = { has_variable = ddm_outsider_favored_for_land } remove_variable = ddm_outsider_favored_for_land }
+        else = { set_variable = ddm_outsider_favored_for_land }
+    }
+}
+
+# Outsider-holding controls. The checkbox itself lives on the county title, so
+# it is durable across inheritance. Bulk actions rebuild the list/counts.
+ddm_ui_set_outsider_policy_respect = { scope = character effect = { set_variable = { name = ddm_outsider_policy value = 0 } ddm_prepare_outsider_holdings_effect = yes } }
+ddm_ui_set_outsider_policy_reclaim = { scope = character effect = { set_variable = { name = ddm_outsider_policy value = 1 } ddm_prepare_outsider_holdings_effect = yes } }
+ddm_ui_outsider_policy_respect = { scope = character is_shown = { var:ddm_outsider_policy = 0 } }
+ddm_ui_outsider_policy_reclaim = { scope = character is_shown = { var:ddm_outsider_policy = 1 } }
+ddm_ui_outsider_protect_all = { scope = character effect = { ddm_protect_all_outsider_counties_effect = yes } }
+ddm_ui_outsider_clear_all = { scope = character effect = { ddm_clear_all_outsider_protections_effect = yes } }
+ddm_ui_outsider_refresh = { scope = character effect = { ddm_prepare_outsider_holdings_effect = yes } }
+ddm_ui_outsider_reclaim_now = { scope = character effect = { remove_variable = ddm_ui_open trigger_event = ddm_manager.1120 } }
+
+ddm_gui_toggle_outsider_protection = {
+    scope = landed_title
+    is_valid = { tier = tier_county has_variable = ddm_outsider_listed }
+    effect = {
+        if = { limit = { has_variable = ddm_outsider_protected } remove_variable = ddm_outsider_protected }
+        else = { set_variable = ddm_outsider_protected }
+    }
+}
+
+# Legacy specialist departments remain callable while their content is migrated
+# into later native tabs. Closing the unified window prevents overlap.
+ddm_ui_open_dynasty_review = { scope = character effect = { remove_variable = ddm_ui_open trigger_event = ddm_manager.2000 } }
+ddm_ui_open_military = { scope = character effect = { remove_variable = ddm_ui_open trigger_event = ddm_manager.3000 } }
+ddm_ui_open_admin = { scope = character effect = { remove_variable = ddm_ui_open trigger_event = ddm_manager.0400 } }
+ddm_ui_confirm_reclaim = { scope = character effect = { remove_variable = ddm_ui_open trigger_event = ddm_manager.1120 } }
+
+# Personal estate controls retained from 1.11, now embedded in the unified window.
+ddm_gui_toggle_core = {
+    scope = landed_title
+    is_valid = {
+        holder = { has_variable = ddm_show_domain_planner }
+        this != holder.capital_county
+        OR = { has_variable = ddm_manual_core holder = { var:ddm_planner_selected_count < var:ddm_planner_target_count } }
+    }
+    effect = {
+        if = { limit = { has_variable = ddm_manual_core } remove_variable = ddm_manual_core }
+        else = { set_variable = ddm_manual_core }
+        remove_variable = ddm_manual_shed
+        remove_variable = ddm_manual_neutral
+        holder = { ddm_refresh_domain_planner_counts_effect = yes }
+    }
+}
+
+ddm_gui_confirm_domain_plan = {
+    scope = character
+    is_valid = { has_variable = ddm_show_domain_planner var:ddm_planner_selected_count <= var:ddm_planner_target_count var:ddm_planner_selected_count >= 1 }
+    effect = {
+        if = {
+            limit = { has_variable = ddm_pending_domain_action var:ddm_pending_domain_action > 0 }
+            set_variable = { name = ddm_ui_processing_settlement value = 1 }
+            ddm_confirm_domain_planner_effect = yes
+            remove_variable = ddm_ui_open
+            trigger_event = { id = ddm_manager.0111 days = 1 }
+        }
+        else = { ddm_confirm_domain_planner_effect = yes }
+    }
+}
+
+ddm_gui_cancel_domain_plan = { scope = character is_valid = { has_variable = ddm_show_domain_planner } effect = { ddm_cancel_domain_planner_effect = yes } }
+ddm_gui_office_recommendation = { scope = character is_valid = { has_variable = ddm_show_domain_planner } effect = { ddm_apply_office_core_recommendation_v19_effect = yes } }
+ddm_gui_protect_maa = { scope = character is_valid = { has_variable = ddm_show_domain_planner } effect = { ddm_apply_maa_core_preset_v19_effect = yes } }
+ddm_gui_protect_capital_duchy = { scope = character is_valid = { has_variable = ddm_show_domain_planner } effect = { ddm_apply_capital_duchy_core_preset_v19_effect = yes } }
+ddm_gui_clear_core = { scope = character is_valid = { has_variable = ddm_show_domain_planner } effect = { ddm_clear_core_selection_v19_effect = yes } }

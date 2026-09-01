@@ -1,0 +1,1 @@
+﻿gui/domcom_communion_window.gui = domcom_communion_window

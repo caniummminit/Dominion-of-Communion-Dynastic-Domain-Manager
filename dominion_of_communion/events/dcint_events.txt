@@ -1,0 +1,55 @@
+﻿namespace = dcint
+
+# Rumour — available even to a Crush/Admirer.
+dcint.100 = {
+    type = character_event
+    title = dcint.100.t
+    desc = dcint.100.desc
+    theme = intrigue
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:dcint_partner animation = flirtation }
+    trigger = { exists = scope:dcint_partner }
+
+    option = {
+        name = dcint.100.a
+        dcint_whisper_effect = yes
+    }
+    option = {
+        name = dcint.100.b
+        scope:dcint_partner = { add_opinion = { target = root modifier = dcint_partner_grateful_opinion } }
+    }
+}
+
+# Courtier poach — requires intimacy or 500+ Dominion Obedience.
+dcint.200 = {
+    type = character_event
+    title = dcint.200.t
+    desc = dcint.200.desc
+    theme = diplomacy
+    left_portrait = { character = root animation = personality_bold }
+    right_portrait = { character = scope:dcint_partner animation = happiness }
+    trigger = { exists = scope:dcint_partner }
+
+    option = {
+        name = dcint.200.a
+        dcint_poach_courtier_effect = yes
+    }
+    option = { name = dcint.200.b }
+}
+
+# Blood claim — requires a child of the Patron plus intimacy/serious obedience.
+dcint.300 = {
+    type = character_event
+    title = dcint.300.t
+    desc = dcint.300.desc
+    theme = intrigue
+    left_portrait = { character = root animation = scheme }
+    right_portrait = { character = scope:dcint_partner animation = worry }
+    trigger = { exists = scope:dcint_partner }
+
+    option = {
+        name = dcint.300.a
+        dcint_press_claim_effect = yes
+    }
+    option = { name = dcint.300.b }
+}

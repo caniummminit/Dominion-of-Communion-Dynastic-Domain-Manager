@@ -1,0 +1,472 @@
+﻿domcom_cuck_evidence_trigger = {
+    # Run from the prospective cuck. Requires scope:actor.
+    is_alive = yes
+    age >= 18
+    NOT = { is_consort_of = scope:actor }
+    OR = {
+        NOT = { has_variable = domcom_cuck_patron }
+        var:domcom_cuck_patron = scope:actor
+    }
+    OR = {
+        # Optional Carnalitas bridge records actual sex with a spouse/concubine or
+        # soulmate even when no persistent Lover relation or child was created.
+        domcom_has_full_sex_evidence_from_actor_trigger = yes
+
+        # Standalone Dominion evidence remains relationship/parentage based.
+        any_consort = {
+            is_alive = yes
+            age >= 18
+            OR = {
+                has_relation_lover = scope:actor
+                has_relation_soulmate = scope:actor
+                any_child = {
+                    OR = {
+                        father ?= scope:actor
+                        mother ?= scope:actor
+                        real_father ?= scope:actor
+                    }
+                }
+            }
+        }
+        any_relation = {
+            type = soulmate
+            is_alive = yes
+            age >= 18
+            OR = {
+                has_relation_lover = scope:actor
+                has_relation_soulmate = scope:actor
+                any_child = {
+                    OR = {
+                        father ?= scope:actor
+                        mother ?= scope:actor
+                        real_father ?= scope:actor
+                    }
+                }
+            }
+        }
+    }
+}
+
+domcom_is_owned_by_actor_trigger = {
+    has_character_flag = domcom_owned_cuck
+    has_variable = domcom_patron
+    var:domcom_patron = scope:actor
+}
+
+domcom_is_eligible_communion_admirer_trigger = {
+    # Run from the candidate with scope:actor = patron.
+    is_alive = yes
+    age >= 18
+    NOT = { this = scope:actor }
+    NOT = { is_close_or_extended_family_of = scope:actor }
+    NOT = { has_character_flag = domcom_communion_admirer_registered }
+    scope:actor = { is_attracted_to_gender_of = prev }
+    is_attracted_to_gender_of = scope:actor
+}
+
+domcom_can_publicly_humiliate_through_recipient_trigger = {
+    # Run from the prospective adult partner, with scope:actor = patron.
+    is_alive = yes
+    age >= 18
+    NOT = { this = scope:actor }
+    scope:actor = { is_attracted_to_gender_of = prev }
+    is_attracted_to_gender_of = scope:actor
+    OR = {
+        has_relation_crush = scope:actor
+        has_relation_lover = scope:actor
+        has_relation_soulmate = scope:actor
+    }
+    OR = {
+        any_spouse = { domcom_is_owned_by_actor_trigger = yes }
+        any_close_or_extended_family_member = { domcom_is_owned_by_actor_trigger = yes }
+    }
+}
+
+# 1.0.0-rc4 — blood succession is Patron-specific. Public acknowledgment can
+# remove a child from vanilla succession when parentage/House changes, so
+# Dominion remembers a child who was the subject's primary heir immediately
+# before acknowledgment in var:domcom_blood_successor.
+# PATRON is the character pressing the succession demand.
+domcom_can_demand_abdication_for_blood_trigger = {
+    is_alive = yes
+    is_landed = yes
+    has_character_flag = domcom_owned_cuck
+    has_variable = domcom_patron
+    var:domcom_patron = $PATRON$
+    NOT = { has_character_flag = domcom_blood_abdication_immunity }
+    NOT = { has_character_flag = domcom_blood_abdication_pending }
+    OR = {
+        AND = {
+            has_variable = domcom_blood_successor
+            var:domcom_blood_successor = {
+                is_alive = yes
+                any_parent = { this = $PATRON$ }
+                trigger_if = {
+                    limit = { exists = $PATRON$.house }
+                    house = $PATRON$.house
+                }
+            }
+        }
+        AND = {
+            exists = primary_heir
+            primary_heir = {
+                is_alive = yes
+                any_parent = { this = $PATRON$ }
+                trigger_if = {
+                    limit = { exists = $PATRON$.house }
+                    house = $PATRON$.house
+                }
+            }
+        }
+    }
+}
+
+domcom_ai_is_enabled_trigger = {
+    OR = {
+        has_game_rule = domcom_ai_all
+        AND = {
+            has_game_rule = domcom_ai_notable
+            OR = {
+                highest_held_title_tier >= tier_kingdom
+                has_trait = seducer
+                has_trait = lustful
+                has_trait = ambitious
+                has_trait = arrogant
+                has_trait = sadistic
+            }
+        }
+    }
+}
+
+# Run from the prospective hegemon.
+domcom_can_summon_imperial_tribute_trigger = {
+    is_alive = yes
+    age >= 18
+    is_landed = yes
+    is_imprisoned = no
+    any_vassal = { is_alive = yes is_landed = yes }
+    NOT = { has_character_flag = domcom_tribute_season_active }
+    NOT = { has_character_flag = domcom_tribute_cooldown }
+    OR = {
+        highest_held_title_tier = tier_empire
+        AND = {
+            highest_held_title_tier = tier_kingdom
+            is_independent_ruler = yes
+        }
+    }
+}
+
+# Run from a vassal with scope:domcom_tribute_patron saved.
+domcom_has_household_tribute_candidate_trigger = {
+    OR = {
+        AND = {
+            age >= 18
+            is_alive = yes
+            scope:domcom_tribute_patron = { is_attracted_to_gender_of = prev }
+            is_attracted_to_gender_of = scope:domcom_tribute_patron
+        }
+        any_spouse = {
+            is_alive = yes age >= 18
+            scope:domcom_tribute_patron = { is_attracted_to_gender_of = prev }
+            is_attracted_to_gender_of = scope:domcom_tribute_patron
+        }
+        any_child = {
+            is_alive = yes age >= 18
+            scope:domcom_tribute_patron = { is_attracted_to_gender_of = prev }
+            is_attracted_to_gender_of = scope:domcom_tribute_patron
+        }
+    }
+}
+
+# 0.4.2 — shared Ledger roster filter. Current scope is the roster character.
+domcom_ui_roster_filter_trigger = {
+    OR = {
+        scope:domcom_ui_patron = { NOT = { exists = var:domcom_ui_filter_mode } }
+        scope:domcom_ui_patron = { var:domcom_ui_filter_mode = flag:all }
+        AND = { scope:domcom_ui_patron = { var:domcom_ui_filter_mode = flag:landed } is_landed = yes }
+        AND = { scope:domcom_ui_patron = { var:domcom_ui_filter_mode = flag:dukeplus } highest_held_title_tier >= tier_duchy }
+        AND = { scope:domcom_ui_patron = { var:domcom_ui_filter_mode = flag:kingplus } highest_held_title_tier >= tier_kingdom }
+    }
+}
+
+
+# 0.6.2 — Alpha Checks are peer/rival dominance contests, not seduction checks.
+# A heterosexual man therefore Alpha Checks men; a heterosexual woman checks women.
+# Gay/bisexual characters may have both Alpha Check and Tantalize available against
+# the same-sex characters they are also sexually attracted to, because the intents differ.
+domcom_general_alpha_target_trigger = {
+    is_alive = yes
+    age >= 18
+    is_imprisoned = no
+    NOT = { this = scope:actor }
+    sex_same_as = scope:actor
+    scope:actor = {
+        is_alive = yes
+        age >= 18
+        is_imprisoned = no
+    }
+}
+
+# Run from a prospective rival with scope:actor = challenger. True if the target
+# is already publicly Cucked by the actor OR the actor has created qualifying
+# cuck evidence that has not yet been formally registered.
+domcom_is_cuck_target_of_actor_trigger = {
+    OR = {
+        AND = {
+            has_character_flag = domcom_cucked
+            has_variable = domcom_cuck_patron
+            var:domcom_cuck_patron = scope:actor
+        }
+        domcom_cuck_evidence_trigger = yes
+    }
+}
+
+# 0.6.2 — sexual influence is separated from Alpha dominance. Tantalize follows
+# actual mutual orientation/attraction, so heterosexual, homosexual and bisexual
+# players naturally receive different eligible pools without hard-coded genders.
+domcom_tantalize_target_trigger = {
+    is_alive = yes
+    age >= 18
+    is_imprisoned = no
+    NOT = { this = scope:actor }
+    # 0.9.8 — the family exclusion is gone. Alpha Check never had one, so a
+    # relative could be dominated but not pursued, which was an asymmetry in the
+    # interaction list rather than a rule anyone had chosen. CK3's own incest
+    # handling (faith, opinion, inbreeding) governs the consequences from here.
+    # Both age floors below remain: Tantalize is adults only, on both sides.
+    scope:actor = {
+        is_alive = yes
+        age >= 18
+        is_imprisoned = no
+        is_attracted_to_gender_of = prev
+    }
+    is_attracted_to_gender_of = scope:actor
+
+    # Obedience is patron-specific. A character already being worked on by this
+    # patron can be Tantalized again; an established Pet cannot.
+    OR = {
+        NOT = { has_variable = domcom_obedience_patron }
+        var:domcom_obedience_patron = scope:actor
+    }
+    NOT = {
+        AND = {
+            has_character_flag = domcom_pet
+            has_variable = domcom_pet_patron
+            var:domcom_pet_patron = scope:actor
+        }
+    }
+}
+
+# 0.5.9 — cheap idempotence guard for the rolling local-population profile pass.
+# True only while a character still lacks something the profile system owns, so
+# repeat passes over the same court cost one variable check per character instead
+# of a full trait resync.
+domcom_needs_profile_init_trigger = {
+    is_alive = yes
+    age >= 18
+    OR = {
+        # Male adult who has never been measured.
+        AND = {
+            is_male = yes
+            NOT = { has_variable = domcom_length_tenths }
+        }
+        # Measured under an older version but never synced to a visible trait.
+        AND = {
+            is_male = yes
+            has_variable = domcom_length_tenths
+            has_variable = domcom_girth_tenths
+            NOT = { has_variable = domcom_endowment_category }
+        }
+        # Attracted to men but has no ranked preference triad yet.
+        AND = {
+            is_attracted_to_men = yes
+            NOT = { has_variable = domcom_size_preference_primary }
+        }
+    }
+}
+
+
+# 0.8.5 — whether a child currently qualifies as the offspring of a registered
+# cuck, following actual biology. Extracted so the modifier refresh can ask the
+# question instead of tearing the modifier down and rebuilding it every pass.
+domcom_is_spawn_of_cuck_trigger = {
+    OR = {
+        AND = { exists = mother mother = { has_character_flag = domcom_cucked } }
+        AND = { exists = real_father real_father = { has_character_flag = domcom_cucked } }
+        AND = {
+            NOT = { exists = real_father }
+            exists = father
+            father = { has_character_flag = domcom_cucked }
+        }
+    }
+}
+
+# 0.9.3 — public player-facing reputation follows Dominion's authoritative
+# Cucked state. If a character has actually been registered as Cucked, the
+# visible moniker identifies that state regardless of whether the underlying
+# affair/paternity evidence is known in-character. Attribution remains separate
+# in domcom_cuck_origin_patron / patron-history data.
+domcom_deserves_cucked_nickname_trigger = {
+    has_character_flag = domcom_cucked
+    NOT = { has_nickname = nick_domcom_the_cucked }
+}
+
+# 0.8.8 — a partner the patron has already won over and may invite to bed.
+# Deliberately requires an established relation rather than mere registration,
+# so Tantalize remains the gate and this is the ongoing consequence of it.
+domcom_intimacy_partner_trigger = {
+    is_alive = yes
+    age >= 18
+    OR = {
+        has_relation_crush = scope:actor
+        has_relation_lover = scope:actor
+        has_relation_soulmate = scope:actor
+    }
+    scope:actor = { is_attracted_to_gender_of = prev }
+    is_attracted_to_gender_of = scope:actor
+}
+
+
+# 1.0.0-rc4 — Crowned Union. This is deliberately an attraction/Obedience
+# consequence, not an Alpha rule.
+
+# Run from a county title. PARTNER is the prospective spouse/patron.
+domcom_county_in_partner_subrealm_trigger = {
+    exists = holder
+    holder = {
+        OR = {
+            this = $PARTNER$
+            is_vassal_or_below_of = $PARTNER$
+        }
+    }
+}
+
+# Run from the crowned ruler. The capital must be in, or no more than five
+# county-border steps from, any county held inside PARTNER's sub-realm.
+domcom_crowned_union_proximity_trigger = {
+    exists = capital_county
+    capital_county = {
+        OR = {
+            domcom_county_in_partner_subrealm_trigger = { PARTNER = $PARTNER$ }
+            any_neighboring_county = {
+                OR = {
+                    domcom_county_in_partner_subrealm_trigger = { PARTNER = $PARTNER$ }
+                    any_neighboring_county = {
+                        OR = {
+                            domcom_county_in_partner_subrealm_trigger = { PARTNER = $PARTNER$ }
+                            any_neighboring_county = {
+                                OR = {
+                                    domcom_county_in_partner_subrealm_trigger = { PARTNER = $PARTNER$ }
+                                    any_neighboring_county = {
+                                        OR = {
+                                            domcom_county_in_partner_subrealm_trigger = { PARTNER = $PARTNER$ }
+                                            any_neighboring_county = {
+                                                domcom_county_in_partner_subrealm_trigger = { PARTNER = $PARTNER$ }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+# Baseline pair eligibility for the direct interaction and autonomous AI offer.
+# The current character is the crowned ruler; PARTNER is the prospective spouse.
+domcom_crowned_union_pair_trigger = {
+    is_alive = yes
+    age >= 18
+    is_female = yes
+    is_landed = yes
+    highest_held_title_tier >= tier_kingdom
+    is_married = yes
+    is_imprisoned = no
+    NOT = { is_close_or_extended_family_of = $PARTNER$ }
+    NOT = { any_spouse = { this = $PARTNER$ } }
+    NOT = { has_trait = celibate }
+    allowed_to_marry_character_gender_trigger = { CHARACTER = $PARTNER$ }
+    $PARTNER$ = {
+        is_alive = yes
+        age >= 18
+        is_imprisoned = no
+        can_marry_trigger = yes
+        allowed_to_marry_character_gender_trigger = { CHARACTER = prev }
+    }
+    domcom_crowned_union_proximity_trigger = { PARTNER = $PARTNER$ }
+}
+
+# Pet-level direct control: the player has already fully won her over.
+domcom_crowned_union_pet_trigger = {
+    domcom_crowned_union_pair_trigger = { PARTNER = $PARTNER$ }
+    has_character_flag = domcom_pet
+    has_variable = domcom_pet_patron
+    var:domcom_pet_patron = $PARTNER$
+}
+
+# Personality gate for a Queen/Empress who independently decides to act on
+# attraction. Stable/content/chaste personalities do not generate proposals.
+domcom_crowned_heart_actor_trigger = {
+    is_ai = yes
+    NOT = { has_trait = celibate }
+    NOR = {
+        has_trait = chaste
+        has_trait = content
+        has_trait = humble
+    }
+    OR = {
+        has_trait = lustful
+        has_trait = ambitious
+        has_trait = deceitful
+        has_trait = arbitrary
+        has_trait = brave
+        has_trait = arrogant
+        has_trait = wrathful
+        has_trait = gregarious
+        has_trait = fickle
+        has_trait = eccentric
+    }
+}
+
+# ---------------------------------------------------------------------------
+# 0.9.7 — Children of Communion eligibility (issue 4)
+# ---------------------------------------------------------------------------
+# Asked of the CHILD, with scope:domcom_ui_patron saved. A child is awaiting
+# acknowledgment when they are mine by blood and not already legally mine.
+# Deliberately says nothing about house: the previous roster used "not in my
+# house" as a proxy for "not already acknowledged", which silently discarded
+# every child sired within my own dynasty.
+domcom_is_unacknowledged_blood_trigger = {
+    is_alive = yes
+    exists = scope:domcom_ui_patron
+    real_father ?= scope:domcom_ui_patron
+    NOT = { father ?= scope:domcom_ui_patron }
+    NOT = { has_character_flag = domcom_blood_acknowledged_child }
+}
+
+# Tantalized roster filter (issue 5). Sex is read from the character, so anyone
+# CK3 records as neither male nor female still appears under "All".
+domcom_tantalize_filter_trigger = {
+    OR = {
+        NOT = { exists = scope:domcom_ui_patron.var:domcom_ui_tantalize_filter }
+        scope:domcom_ui_patron.var:domcom_ui_tantalize_filter = flag:all
+        AND = { scope:domcom_ui_patron.var:domcom_ui_tantalize_filter = flag:women is_female = yes }
+        AND = { scope:domcom_ui_patron.var:domcom_ui_tantalize_filter = flag:men   is_male = yes }
+        AND = { scope:domcom_ui_patron.var:domcom_ui_tantalize_filter = flag:pets  has_character_flag = domcom_pet }
+    }
+}
+
+# 0.9.9 — run from the patron. The Alpha Gauntlet deliberately does not consult
+# this: a Gauntlet is one committed run against a roster the player has already
+# built, not a way to spend eight separate checks in a row, so it neither draws
+# from the budget nor is blocked by an empty one.
+domcom_alpha_budget_available_trigger = {
+    OR = {
+        has_game_rule = domcom_alpha_budget_off
+        NOT = { has_variable = domcom_alpha_budget_used }
+        var:domcom_alpha_budget_used < domcom_alpha_budget_cap_value
+    }
+}

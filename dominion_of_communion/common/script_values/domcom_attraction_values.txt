@@ -1,0 +1,136 @@
+﻿# Dominion of Communion 0.6.3 — individual attraction / compatibility engine.
+# Current scope = the person evaluating attraction.
+# scope:domcom_compatibility_target = the person being evaluated.
+
+domcom_pair_compatibility_value = {
+    value = 0
+
+    # Body build from CK3's current_weight. Approximate bands deliberately avoid
+    # pretending weight is a literal real-world measurement.
+    if = { limit = { OR = { var:domcom_pref_body = flag:lean_mild var:domcom_pref_body = flag:lean_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight <= -20 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_body = flag:lean_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight <= -20 } } add = 6 } else = { add = -4 } }
+    if = { limit = { OR = { var:domcom_pref_body = flag:average_mild var:domcom_pref_body = flag:average_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight > -20 current_weight < 20 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_body = flag:average_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight > -20 current_weight < 20 } } add = 6 } else = { add = -4 } }
+    if = { limit = { OR = { var:domcom_pref_body = flag:heavy_mild var:domcom_pref_body = flag:heavy_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight >= 20 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_body = flag:heavy_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight >= 20 } } add = 6 } else = { add = -4 } }
+
+    # Age bands: young 18-27, prime 28-44, mature 45+.
+    if = { limit = { OR = { var:domcom_pref_age = flag:young_mild var:domcom_pref_age = flag:young_strong } } if = { limit = { scope:domcom_compatibility_target = { age < 28 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_age = flag:young_strong } } if = { limit = { scope:domcom_compatibility_target = { age < 28 } } add = 6 } else = { add = -4 } }
+    if = { limit = { OR = { var:domcom_pref_age = flag:prime_mild var:domcom_pref_age = flag:prime_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 28 age < 45 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_age = flag:prime_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 28 age < 45 } } add = 6 } else = { add = -4 } }
+    if = { limit = { OR = { var:domcom_pref_age = flag:mature_mild var:domcom_pref_age = flag:mature_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 45 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_age = flag:mature_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 45 } } add = 6 } else = { add = -4 } }
+
+    # Culture and heritage are separate preferences: culture equality is exact,
+    # while heritage groups related cultures without pretending culture is race.
+    if = { limit = { OR = { var:domcom_pref_culture = flag:same_mild var:domcom_pref_culture = flag:same_strong } } if = { limit = { culture = scope:domcom_compatibility_target.culture } add = 5 } else = { add = -5 } if = { limit = { var:domcom_pref_culture = flag:same_strong } } if = { limit = { culture = scope:domcom_compatibility_target.culture } add = 5 } else = { add = -5 } }
+    if = { limit = { OR = { var:domcom_pref_culture = flag:different_mild var:domcom_pref_culture = flag:different_strong } } if = { limit = { NOT = { culture = scope:domcom_compatibility_target.culture } } add = 5 } else = { add = -5 } if = { limit = { var:domcom_pref_culture = flag:different_strong } } if = { limit = { NOT = { culture = scope:domcom_compatibility_target.culture } } add = 5 } else = { add = -5 } }
+    if = { limit = { OR = { var:domcom_pref_heritage = flag:same_mild var:domcom_pref_heritage = flag:same_strong } } if = { limit = { culture = { has_same_culture_heritage = scope:domcom_compatibility_target.culture } } add = 4 } else = { add = -4 } if = { limit = { var:domcom_pref_heritage = flag:same_strong } } if = { limit = { culture = { has_same_culture_heritage = scope:domcom_compatibility_target.culture } } add = 4 } else = { add = -4 } }
+    if = { limit = { OR = { var:domcom_pref_heritage = flag:different_mild var:domcom_pref_heritage = flag:different_strong } } if = { limit = { culture = { NOT = { has_same_culture_heritage = scope:domcom_compatibility_target.culture } } } add = 4 } else = { add = -4 } if = { limit = { var:domcom_pref_heritage = flag:different_strong } } if = { limit = { culture = { NOT = { has_same_culture_heritage = scope:domcom_compatibility_target.culture } } } add = 4 } else = { add = -4 } }
+
+    # Beauty.
+    if = { limit = { OR = { var:domcom_pref_beauty = flag:beautiful_mild var:domcom_pref_beauty = flag:beautiful_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = beauty_good_1 has_trait = beauty_good_2 has_trait = beauty_good_3 } } } add = 7 } else = { add = -5 } if = { limit = { var:domcom_pref_beauty = flag:beautiful_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = beauty_good_1 has_trait = beauty_good_2 has_trait = beauty_good_3 } } } add = 7 } else = { add = -5 } }
+    if = { limit = { OR = { var:domcom_pref_beauty = flag:plain_mild var:domcom_pref_beauty = flag:plain_strong } } if = { limit = { scope:domcom_compatibility_target = { NOR = { has_trait = beauty_good_1 has_trait = beauty_good_2 has_trait = beauty_good_3 has_trait = beauty_bad_1 has_trait = beauty_bad_2 has_trait = beauty_bad_3 } } } add = 7 } else = { add = -5 } if = { limit = { var:domcom_pref_beauty = flag:plain_strong } } if = { limit = { scope:domcom_compatibility_target = { NOR = { has_trait = beauty_good_1 has_trait = beauty_good_2 has_trait = beauty_good_3 has_trait = beauty_bad_1 has_trait = beauty_bad_2 has_trait = beauty_bad_3 } } } add = 7 } else = { add = -5 } }
+    if = { limit = { OR = { var:domcom_pref_beauty = flag:unconventional_mild var:domcom_pref_beauty = flag:unconventional_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = beauty_bad_1 has_trait = beauty_bad_2 has_trait = beauty_bad_3 } } } add = 7 } else = { add = -5 } if = { limit = { var:domcom_pref_beauty = flag:unconventional_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = beauty_bad_1 has_trait = beauty_bad_2 has_trait = beauty_bad_3 } } } add = 7 } else = { add = -5 } }
+
+    # Intelligence.
+    if = { limit = { OR = { var:domcom_pref_intellect = flag:brilliant_mild var:domcom_pref_intellect = flag:brilliant_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = intellect_good_1 has_trait = intellect_good_2 has_trait = intellect_good_3 } } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_intellect = flag:brilliant_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = intellect_good_1 has_trait = intellect_good_2 has_trait = intellect_good_3 } } } add = 6 } else = { add = -4 } }
+    if = { limit = { OR = { var:domcom_pref_intellect = flag:ordinary_mild var:domcom_pref_intellect = flag:ordinary_strong } } if = { limit = { scope:domcom_compatibility_target = { NOR = { has_trait = intellect_good_1 has_trait = intellect_good_2 has_trait = intellect_good_3 has_trait = intellect_bad_1 has_trait = intellect_bad_2 has_trait = intellect_bad_3 } } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_intellect = flag:ordinary_strong } } if = { limit = { scope:domcom_compatibility_target = { NOR = { has_trait = intellect_good_1 has_trait = intellect_good_2 has_trait = intellect_good_3 has_trait = intellect_bad_1 has_trait = intellect_bad_2 has_trait = intellect_bad_3 } } } add = 6 } else = { add = -4 } }
+    if = { limit = { OR = { var:domcom_pref_intellect = flag:simple_mild var:domcom_pref_intellect = flag:simple_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = intellect_bad_1 has_trait = intellect_bad_2 has_trait = intellect_bad_3 } } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_intellect = flag:simple_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = intellect_bad_1 has_trait = intellect_bad_2 has_trait = intellect_bad_3 } } } add = 6 } else = { add = -4 } }
+
+    # Prowess / physicality.
+    if = { limit = { OR = { var:domcom_pref_prowess = flag:low_mild var:domcom_pref_prowess = flag:low_strong } } if = { limit = { scope:domcom_compatibility_target = { prowess < 8 } } add = 5 } else = { add = -3 } if = { limit = { var:domcom_pref_prowess = flag:low_strong } } if = { limit = { scope:domcom_compatibility_target = { prowess < 8 } } add = 5 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_prowess = flag:balanced_mild var:domcom_pref_prowess = flag:balanced_strong } } if = { limit = { scope:domcom_compatibility_target = { prowess >= 8 prowess < 16 } } add = 5 } else = { add = -3 } if = { limit = { var:domcom_pref_prowess = flag:balanced_strong } } if = { limit = { scope:domcom_compatibility_target = { prowess >= 8 prowess < 16 } } add = 5 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_prowess = flag:high_mild var:domcom_pref_prowess = flag:high_strong } } if = { limit = { scope:domcom_compatibility_target = { prowess >= 16 } } add = 5 } else = { add = -3 } if = { limit = { var:domcom_pref_prowess = flag:high_strong } } if = { limit = { scope:domcom_compatibility_target = { prowess >= 16 } } add = 5 } else = { add = -3 } }
+
+    # Status.
+    if = { limit = { OR = { var:domcom_pref_status = flag:unlanded_mild var:domcom_pref_status = flag:unlanded_strong } } if = { limit = { scope:domcom_compatibility_target = { is_landed = no } } add = 5 } else = { add = -3 } if = { limit = { var:domcom_pref_status = flag:unlanded_strong } } if = { limit = { scope:domcom_compatibility_target = { is_landed = no } } add = 5 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_status = flag:landed_mild var:domcom_pref_status = flag:landed_strong } } if = { limit = { scope:domcom_compatibility_target = { is_landed = yes highest_held_title_tier < tier_kingdom } } add = 5 } else = { add = -3 } if = { limit = { var:domcom_pref_status = flag:landed_strong } } if = { limit = { scope:domcom_compatibility_target = { is_landed = yes highest_held_title_tier < tier_kingdom } } add = 5 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_status = flag:royal_mild var:domcom_pref_status = flag:royal_strong } } if = { limit = { scope:domcom_compatibility_target = { highest_held_title_tier >= tier_kingdom } } add = 5 } else = { add = -3 } if = { limit = { var:domcom_pref_status = flag:royal_strong } } if = { limit = { scope:domcom_compatibility_target = { highest_held_title_tier >= tier_kingdom } } add = 5 } else = { add = -3 } }
+
+    # Personality archetypes. These are preferences rather than moral judgments.
+    if = { limit = { OR = { var:domcom_pref_personality = flag:gentle_mild var:domcom_pref_personality = flag:gentle_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = compassionate has_trait = forgiving has_trait = calm has_trait = generous } } } add = 6 } else = { add = -3 } if = { limit = { var:domcom_pref_personality = flag:gentle_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = compassionate has_trait = forgiving has_trait = calm has_trait = generous } } } add = 6 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_personality = flag:forceful_mild var:domcom_pref_personality = flag:forceful_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = brave has_trait = wrathful has_trait = ambitious has_trait = arrogant } } } add = 6 } else = { add = -3 } if = { limit = { var:domcom_pref_personality = flag:forceful_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = brave has_trait = wrathful has_trait = ambitious has_trait = arrogant } } } add = 6 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_personality = flag:cunning_mild var:domcom_pref_personality = flag:cunning_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = deceitful has_trait = callous has_trait = arbitrary has_trait = sadistic } } } add = 6 } else = { add = -3 } if = { limit = { var:domcom_pref_personality = flag:cunning_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = deceitful has_trait = callous has_trait = arbitrary has_trait = sadistic } } } add = 6 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_personality = flag:social_mild var:domcom_pref_personality = flag:social_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = gregarious has_trait = lustful has_trait = generous } } } add = 6 } else = { add = -3 } if = { limit = { var:domcom_pref_personality = flag:social_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = gregarious has_trait = lustful has_trait = generous } } } add = 6 } else = { add = -3 } }
+    if = { limit = { OR = { var:domcom_pref_personality = flag:reserved_mild var:domcom_pref_personality = flag:reserved_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = shy has_trait = temperate has_trait = diligent has_trait = chaste } } } add = 6 } else = { add = -3 } if = { limit = { var:domcom_pref_personality = flag:reserved_strong } } if = { limit = { scope:domcom_compatibility_target = { OR = { has_trait = shy has_trait = temperate has_trait = diligent has_trait = chaste } } } add = 6 } else = { add = -3 } }
+
+    # Existing ranked Endowment preference remains a distinct sexual preference.
+    if = {
+        limit = {
+            scope:domcom_compatibility_target = { is_male = yes has_variable = domcom_endowment_category }
+            is_attracted_to_men = yes
+            has_variable = domcom_size_preference_primary
+            has_variable = domcom_size_preference_secondary
+            has_variable = domcom_size_preference_tertiary
+        }
+        if = { limit = { OR = { AND = { var:domcom_size_preference_primary = flag:micro scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:micro } } AND = { var:domcom_size_preference_primary = flag:small scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:small } } AND = { var:domcom_size_preference_primary = flag:average scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:average } } AND = { var:domcom_size_preference_primary = flag:big scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:big } } AND = { var:domcom_size_preference_primary = flag:hung scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:hung } } AND = { var:domcom_size_preference_primary = flag:massive scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:massive } } } } add = 16 }
+        else_if = { limit = { OR = { AND = { var:domcom_size_preference_secondary = flag:micro scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:micro } } AND = { var:domcom_size_preference_secondary = flag:small scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:small } } AND = { var:domcom_size_preference_secondary = flag:average scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:average } } AND = { var:domcom_size_preference_secondary = flag:big scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:big } } AND = { var:domcom_size_preference_secondary = flag:hung scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:hung } } AND = { var:domcom_size_preference_secondary = flag:massive scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:massive } } } } add = 9 }
+        else_if = { limit = { OR = { AND = { var:domcom_size_preference_tertiary = flag:micro scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:micro } } AND = { var:domcom_size_preference_tertiary = flag:small scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:small } } AND = { var:domcom_size_preference_tertiary = flag:average scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:average } } AND = { var:domcom_size_preference_tertiary = flag:big scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:big } } AND = { var:domcom_size_preference_tertiary = flag:hung scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:hung } } AND = { var:domcom_size_preference_tertiary = flag:massive scope:domcom_compatibility_target = { var:domcom_endowment_category = flag:massive } } } } add = 4 }
+        else = { add = -10 }
+    }
+
+    min = -100
+    max = 100
+    round = yes
+}
+
+# Compatibility-adjusted Tantalize chance. Attraction changes receptiveness but
+# remains separate from the 0-1000 Obedience track.
+domcom_tantalize_chance_v063_value = {
+    value = 22
+    if = { limit = { has_variable = domcom_obedience } add = { value = var:domcom_obedience multiply = 0.02 } }
+    add = { value = scope:domcom_tantalize_patron.diplomacy multiply = 0.80 }
+    add = { value = scope:domcom_tantalize_patron.intrigue multiply = 0.35 }
+    add = { value = scope:domcom_tantalize_patron.prestige_level multiply = 4 }
+    add = { value = scope:domcom_tantalize_patron.dread multiply = 0.04 }
+    subtract = { value = diplomacy multiply = 0.25 }
+    if = { limit = { scope:domcom_tantalize_patron = { has_trait = seducer } } add = 12 }
+    if = { limit = { scope:domcom_tantalize_patron = { has_trait = lustful } } add = 8 }
+    if = { limit = { scope:domcom_tantalize_patron = { has_trait = gregarious } } add = 5 }
+    if = { limit = { has_trait = lustful } add = 10 }
+    if = { limit = { has_trait = trusting } add = 5 }
+    if = { limit = { has_trait = chaste } add = -18 }
+    if = { limit = { has_trait = shy } add = -8 }
+    if = { limit = { has_trait = stubborn } add = -5 }
+    if = { limit = { has_relation_crush = scope:domcom_tantalize_patron } add = 18 }
+    if = { limit = { has_relation_lover = scope:domcom_tantalize_patron } add = 30 }
+    if = { limit = { has_relation_soulmate = scope:domcom_tantalize_patron } add = 40 }
+    if = { limit = { has_character_flag = domcom_dominated has_variable = domcom_dominance_patron var:domcom_dominance_patron = scope:domcom_tantalize_patron } add = 15 }
+    add = { value = domcom_pair_compatibility_value multiply = 0.45 }
+    min = 5
+    max = 95
+    round = yes
+}
+
+# Obedience gained by a successful Tantalize. Even obsession does not itself
+# create obedience; it merely makes successful influence more productive.
+domcom_tantalize_obedience_gain_value = {
+    value = 100
+    if = { limit = { var:domcom_last_compatibility >= 90 } add = 125 }
+    else_if = { limit = { var:domcom_last_compatibility >= 75 } add = 90 }
+    else_if = { limit = { var:domcom_last_compatibility >= 50 } add = 55 }
+    else_if = { limit = { var:domcom_last_compatibility >= 20 } add = 25 }
+    else_if = { limit = { var:domcom_last_compatibility <= -80 } add = -60 }
+    else_if = { limit = { var:domcom_last_compatibility <= -50 } add = -40 }
+    else_if = { limit = { var:domcom_last_compatibility <= -20 } add = -20 }
+    min = 40
+    max = 225
+    round = yes
+}
+
+# Family candidates use the same personal compatibility profile as Tantalize.
+domcom_family_attraction_chance_v063_value = {
+    value = 18
+    if = { limit = { is_attracted_to_gender_of = scope:domcom_attraction_patron } add = 20 } else = { add = -100 }
+    if = { limit = { scope:domcom_attraction_patron = { is_attracted_to_gender_of = prev } } add = 10 } else = { add = -100 }
+    add = { value = scope:domcom_attraction_patron.diplomacy multiply = 0.8 }
+    add = { value = scope:domcom_attraction_patron.prestige_level multiply = 5 }
+    add = { value = scope:domcom_attraction_patron.dread multiply = 0.08 }
+    if = { limit = { has_trait = lustful } add = 10 }
+    if = { limit = { has_trait = seducer } add = 8 }
+    if = { limit = { has_trait = brave } add = 3 }
+    if = { limit = { has_trait = chaste } add = -18 }
+    if = { limit = { has_trait = shy } add = -8 }
+    if = { limit = { has_trait = stubborn } add = -6 }
+    if = { limit = { exists = scope:domcom_attraction_source scope:domcom_attraction_source = { has_variable = domcom_cuck_xp } } add = { value = scope:domcom_attraction_source.var:domcom_cuck_xp multiply = 0.02 } }
+    add = { value = domcom_pair_compatibility_value multiply = 0.50 }
+    min = 0
+    max = 90
+    round = yes
+}

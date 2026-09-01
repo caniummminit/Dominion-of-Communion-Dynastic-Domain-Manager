@@ -1,0 +1,13 @@
+﻿# Dominion of Communion 0.6.3 — extreme attraction states used by the yearly
+# spouse-preference pulse. These do not create Obedience on their own.
+
+domcom_extreme_marital_aversion_modifier = {
+    icon = stress_negative
+    diplomacy = -1
+    stress_gain_mult = 0.25
+}
+
+domcom_extreme_marital_fixation_modifier = {
+    icon = love_positive
+    stress_gain_mult = -0.15
+}

@@ -1,0 +1,422 @@
+﻿ddm_assess_dynasty_member_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    desc = ddm_assess_dynasty_member_interaction_desc
+    icon = support_candidacy
+
+    is_shown = {
+        scope:recipient != scope:actor
+        scope:actor = { exists = dynasty }
+        scope:recipient = { dynasty = scope:actor.dynasty }
+    }
+    is_valid_showing_failures_only = { always = yes }
+    on_accept = {
+        scope:actor = {
+            ddm_initialize_settings_effect = yes
+            save_scope_as = ddm_actor
+        }
+        scope:recipient = {
+            save_scope_as = ddm_subject
+            ddm_refresh_one_subject_regard_effect = yes
+        }
+        scope:actor = { trigger_event = ddm_manager.0300 }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_protect_dynasty_member_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    desc = ddm_protect_dynasty_member_interaction_desc
+    icon = alliance
+    is_shown = {
+        scope:recipient != scope:actor
+        scope:actor = { exists = dynasty }
+        scope:recipient = {
+            dynasty = scope:actor.dynasty
+            NOT = { has_character_flag = ddm_protected_from_automation }
+        }
+    }
+    on_accept = { scope:recipient = { add_character_flag = ddm_protected_from_automation } }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_unprotect_dynasty_member_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    desc = ddm_unprotect_dynasty_member_interaction_desc
+    icon = revoke_title
+    is_shown = {
+        scope:actor = { exists = dynasty }
+        scope:recipient = {
+            dynasty = scope:actor.dynasty
+            has_character_flag = ddm_protected_from_automation
+        }
+    }
+    on_accept = { scope:recipient = { remove_character_flag = ddm_protected_from_automation } }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_favor_for_land_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    desc = ddm_favor_for_land_interaction_desc
+    icon = support_candidacy
+    is_shown = {
+        scope:recipient != scope:actor
+        scope:actor = { exists = dynasty }
+        scope:recipient = {
+            dynasty = scope:actor.dynasty
+            NOT = { has_character_flag = ddm_favored_for_land }
+        }
+    }
+    on_accept = {
+        scope:recipient = {
+            add_character_flag = ddm_favored_for_land
+            remove_character_flag = ddm_never_grant_land
+        }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_never_grant_land_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    desc = ddm_never_grant_land_interaction_desc
+    icon = revoke_title
+    is_shown = {
+        scope:recipient != scope:actor
+        scope:actor = { exists = dynasty }
+        scope:recipient = {
+            dynasty = scope:actor.dynasty
+            NOT = { has_character_flag = ddm_never_grant_land }
+        }
+    }
+    on_accept = {
+        scope:recipient = {
+            add_character_flag = ddm_never_grant_land
+            remove_character_flag = ddm_favored_for_land
+        }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_clear_land_preference_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    desc = ddm_clear_land_preference_interaction_desc
+    icon = icon_contract_modification_single
+    is_shown = {
+        scope:actor = { exists = dynasty }
+        scope:recipient = {
+            dynasty = scope:actor.dynasty
+            OR = {
+                has_character_flag = ddm_favored_for_land
+                has_character_flag = ddm_never_grant_land
+            }
+        }
+    }
+    on_accept = {
+        scope:recipient = {
+            remove_character_flag = ddm_favored_for_land
+            remove_character_flag = ddm_never_grant_land
+        }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+# v1.7 manual protected-domain picker. These are self-interactions with a title
+# target, so the player can right-click their own portrait and choose a specific
+# personally held county/barony to lock or unlock.
+ddm_protect_holding_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    target_type = title
+    target_filter = actor_domain_titles
+    desc = ddm_protect_holding_interaction_desc
+    icon = icon_contract_modification_single
+
+    is_shown = {
+        scope:actor = { is_landed = yes }
+        OR = {
+            scope:recipient = scope:actor
+            AND = { exists = scope:actor.player_heir scope:recipient = scope:actor.player_heir }
+        }
+    }
+    can_be_picked_title = {
+        scope:target = {
+            holder = scope:actor
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony title_province = { is_county_capital = no } }
+            }
+            NOT = { has_variable = ddm_manual_core }
+        }
+    }
+    on_accept = {
+        scope:target = {
+            set_variable = ddm_manual_core
+            remove_variable = ddm_manual_shed
+            remove_variable = ddm_manual_neutral
+        }
+        scope:actor = {
+            set_variable = { name = ddm_domain_core_mode value = 1 }
+            ddm_refresh_adaptive_domain_core_effect = yes
+        }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_unprotect_holding_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    target_type = title
+    target_filter = actor_domain_titles
+    desc = ddm_unprotect_holding_interaction_desc
+    icon = revoke_title
+
+    is_shown = {
+        scope:actor = { is_landed = yes }
+        OR = {
+            scope:recipient = scope:actor
+            AND = { exists = scope:actor.player_heir scope:recipient = scope:actor.player_heir }
+        }
+    }
+    can_be_picked_title = {
+        scope:target = {
+            holder = scope:actor
+            has_variable = ddm_manual_core
+        }
+    }
+    on_accept = {
+        scope:target = {
+            remove_variable = ddm_manual_core
+            set_variable = ddm_manual_neutral
+        }
+        scope:actor = {
+            set_variable = { name = ddm_domain_core_mode value = 1 }
+            ddm_refresh_adaptive_domain_core_effect = yes
+        }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+
+# v1.7 explicit sacrifice picker. Same title-picker route as the protection
+# interaction, but it pushes the selected holding to the front of the surplus
+# queue rather than merely leaving it unlocked.
+ddm_prioritize_holding_for_distribution_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    target_type = title
+    target_filter = actor_domain_titles
+    desc = ddm_prioritize_holding_for_distribution_interaction_desc
+    icon = support_candidacy
+
+    is_shown = {
+        scope:actor = { is_landed = yes }
+        OR = {
+            scope:recipient = scope:actor
+            AND = { exists = scope:actor.player_heir scope:recipient = scope:actor.player_heir }
+        }
+    }
+    can_be_picked_title = {
+        scope:target = {
+            holder = scope:actor
+            OR = {
+                tier = tier_county
+                AND = { tier = tier_barony title_province = { is_county_capital = no } }
+            }
+            NOT = { this = scope:actor.capital_county }
+            NOT = { has_variable = ddm_manual_shed }
+        }
+    }
+    on_accept = {
+        scope:target = {
+            set_variable = ddm_manual_shed
+            remove_variable = ddm_manual_core
+            remove_variable = ddm_manual_neutral
+        }
+        scope:actor = { ddm_refresh_adaptive_domain_core_effect = yes }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_clear_holding_distribution_priority_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    target_type = title
+    target_filter = actor_domain_titles
+    desc = ddm_clear_holding_distribution_priority_interaction_desc
+    icon = revoke_title
+
+    is_shown = {
+        scope:actor = { is_landed = yes }
+        OR = {
+            scope:recipient = scope:actor
+            AND = { exists = scope:actor.player_heir scope:recipient = scope:actor.player_heir }
+        }
+    }
+    can_be_picked_title = {
+        scope:target = {
+            holder = scope:actor
+            has_variable = ddm_manual_shed
+        }
+    }
+    on_accept = {
+        scope:target = {
+            remove_variable = ddm_manual_shed
+            set_variable = ddm_manual_neutral
+        }
+        scope:actor = { ddm_refresh_adaptive_domain_core_effect = yes }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+# Direct title reservations. Right-click a legal candidate, then bind one of the
+# actor's subordinate titles to that person. Crown Estate protection and vanilla
+# grant legality remain hard boundaries; otherwise the reservation is processed
+# before ordinary scored allocation.
+ddm_reserve_title_for_recipient_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    target_type = title
+    target_filter = actor_domain_titles
+    desc = ddm_reserve_title_for_recipient_interaction_desc
+    icon = support_candidacy
+
+    is_shown = {
+        scope:recipient != scope:actor
+        scope:actor = { is_landed = yes }
+        scope:recipient = {
+            is_alive = yes
+            NOT = { has_character_flag = ddm_never_grant_land }
+            NOT = { has_character_flag = ddm_protected_from_automation }
+            NOT = { has_trait = incapable }
+            NOT = { has_trait = devoted }
+            NOT = { has_trait = gallivanter }
+            NOT = { is_at_war_with = scope:actor }
+            can_be_granted_titles_by = { RULER = scope:actor }
+            trigger_if = { limit = { is_ruler = no } is_imprisoned = no }
+            OR = {
+                AND = { exists = dynasty scope:actor = { exists = dynasty } dynasty = scope:actor.dynasty }
+                AND = {
+                    OR = { NOT = { exists = dynasty } scope:actor = { exists = dynasty } dynasty != scope:actor.dynasty }
+                    OR = { is_courtier_of = scope:actor is_vassal_or_below_of = scope:actor }
+                }
+            }
+            OR = { is_landed = no highest_held_title_tier < scope:actor.highest_held_title_tier }
+        }
+    }
+
+    can_be_picked_title = {
+        scope:target = {
+            holder = scope:actor
+            tier >= tier_county
+            tier < scope:actor.highest_held_title_tier
+            this != scope:actor.primary_title
+            NOT = { this = scope:actor.capital_county }
+            is_head_of_faith = no
+            is_landless_type_title = no
+            is_noble_family_title = no
+            is_nomad_title = no
+            trigger_if = {
+                limit = { exists = scope:actor.faith exists = scope:actor.faith.religious_head_title }
+                this != scope:actor.faith.religious_head_title
+            }
+            NOT = { exists = var:ddm_reserved_recipient var:ddm_reserved_recipient = scope:recipient }
+        }
+        scope:recipient = {
+            can_be_granted_titles_by = { RULER = scope:actor }
+            trigger_if = {
+                limit = {
+                    scope:actor.var:ddm_gender_alignment = 1
+                    OR = {
+                        scope:actor = { has_realm_law = male_only_law }
+                        scope:actor.primary_title = { has_title_law = male_only_law }
+                        scope:target = { has_title_law = male_only_law }
+                    }
+                }
+                is_male = yes
+            }
+            trigger_if = {
+                limit = {
+                    scope:actor.var:ddm_gender_alignment = 1
+                    OR = {
+                        scope:actor = { has_realm_law = female_only_law }
+                        scope:actor.primary_title = { has_title_law = female_only_law }
+                        scope:target = { has_title_law = female_only_law }
+                    }
+                }
+                is_female = yes
+            }
+        }
+    }
+
+    on_accept = {
+        scope:target = { set_variable = { name = ddm_reserved_recipient value = scope:recipient } }
+    }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+ddm_clear_title_reservation_interaction = {
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    target_type = title
+    target_filter = actor_domain_titles
+    desc = ddm_clear_title_reservation_interaction_desc
+    icon = revoke_title
+
+    is_shown = {
+        scope:recipient != scope:actor
+        scope:actor = {
+            any_held_title = { exists = var:ddm_reserved_recipient var:ddm_reserved_recipient = scope:recipient }
+        }
+    }
+    can_be_picked_title = {
+        scope:target = {
+            holder = scope:actor
+            exists = var:ddm_reserved_recipient
+            var:ddm_reserved_recipient = scope:recipient
+        }
+    }
+    on_accept = { scope:target = { remove_variable = ddm_reserved_recipient } }
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+

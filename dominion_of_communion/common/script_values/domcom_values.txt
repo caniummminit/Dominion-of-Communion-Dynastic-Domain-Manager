@@ -1,0 +1,788 @@
+﻿domcom_cuck_xp_display_value = {
+    value = 0
+    if = {
+        limit = { has_variable = domcom_cuck_xp }
+        add = var:domcom_cuck_xp
+    }
+}
+
+
+domcom_obedience_display_value = {
+    value = 0
+    if = {
+        limit = { has_variable = domcom_obedience }
+        add = var:domcom_obedience
+    }
+    min = 0
+    max = 1000
+}
+
+domcom_monthly_tribute_value = {
+    value = monthly_character_income
+    multiply = 0.22
+    if = {
+        limit = { has_character_flag = domcom_household_dominion }
+        add = { value = monthly_character_income multiply = 0.08 }
+    }
+    min = 0
+    max = gold
+}
+
+# Root/this is the interaction recipient. scope:actor and scope:recipient are supplied
+# by the character interaction. The result is a percentage, capped at 5-95.
+domcom_alpha_check_chance_value = {
+    value = 18
+    if = {
+        limit = { scope:recipient = { has_variable = domcom_cuck_xp } }
+        add = { value = scope:recipient.var:domcom_cuck_xp multiply = 0.05 }
+    }
+    # A previous pre-cuck Alpha victory gives a modest edge once the same rival
+    # returns for a post-cuck reassertion.
+    if = {
+        limit = {
+            scope:recipient = {
+                has_character_flag = domcom_dominated
+                has_variable = domcom_dominance_patron
+                var:domcom_dominance_patron = scope:actor
+            }
+        }
+        add = 12
+    }
+    if = {
+        limit = { scope:recipient = { domcom_has_lover_betrayal_from_actor_trigger = yes } }
+        add = 8
+    }
+    add = { value = scope:actor.diplomacy multiply = 0.70 }
+    subtract = { value = scope:recipient.diplomacy multiply = 0.65 }
+    add = { value = scope:actor.intrigue multiply = 0.75 }
+    subtract = { value = scope:recipient.intrigue multiply = 0.70 }
+    add = { value = scope:actor.prowess multiply = 0.45 }
+    subtract = { value = scope:recipient.prowess multiply = 0.40 }
+    add = { value = scope:actor.prestige_level multiply = 5 }
+    subtract = { value = scope:recipient.prestige_level multiply = 5 }
+    add = { value = scope:actor.dread multiply = 0.12 }
+
+    if = { limit = { scope:actor = { highest_held_title_tier = tier_empire } } add = 18 }
+    else_if = { limit = { scope:actor = { highest_held_title_tier = tier_kingdom } } add = 12 }
+    else_if = { limit = { scope:actor = { highest_held_title_tier = tier_duchy } } add = 6 }
+    else_if = { limit = { scope:actor = { is_landed = no } } add = -8 }
+
+    if = { limit = { scope:recipient = { highest_held_title_tier = tier_empire } } add = -22 }
+    else_if = { limit = { scope:recipient = { highest_held_title_tier = tier_kingdom } } add = -14 }
+    else_if = { limit = { scope:recipient = { highest_held_title_tier = tier_duchy } } add = -7 }
+
+    if = { limit = { scope:actor.max_military_strength > scope:recipient.max_military_strength } add = 7 }
+    if = { limit = { scope:recipient.max_military_strength > scope:actor.max_military_strength } add = -7 }
+
+    if = { limit = { scope:actor = { has_trait = brave } } add = 6 }
+    if = { limit = { scope:actor = { has_trait = ambitious } } add = 6 }
+    if = { limit = { scope:actor = { has_trait = arrogant } } add = 5 }
+    if = { limit = { scope:actor = { has_trait = gregarious } } add = 4 }
+    if = { limit = { scope:actor = { has_trait = callous } } add = 4 }
+    if = { limit = { scope:actor = { has_trait = sadistic } } add = 4 }
+
+    if = { limit = { scope:recipient = { has_trait = stubborn } } add = -8 }
+    if = { limit = { scope:recipient = { has_trait = brave } } add = -8 }
+    if = { limit = { scope:recipient = { has_trait = arrogant } } add = -6 }
+    if = { limit = { scope:recipient = { has_trait = ambitious } } add = -5 }
+    if = { limit = { scope:recipient = { has_trait = craven } } add = 12 }
+    if = { limit = { scope:recipient = { has_trait = content } } add = 8 }
+    if = { limit = { scope:recipient = { has_trait = trusting } } add = 6 }
+
+    min = 3
+    max = 97
+    round = yes
+}
+
+# Sexual influence is intentionally separate from Alpha. This chance uses mutual
+# orientation, social skill, personality, existing intimacy, Obedience momentum,
+# and male Endowment compatibility only when the recipient is attracted to men.
+domcom_tantalize_chance_value = {
+    value = 22
+    if = {
+        limit = { scope:recipient = { has_variable = domcom_obedience } }
+        add = { value = scope:recipient.var:domcom_obedience multiply = 0.02 }
+    }
+    add = { value = scope:actor.diplomacy multiply = 0.80 }
+    add = { value = scope:actor.intrigue multiply = 0.35 }
+    add = { value = scope:actor.prestige_level multiply = 4 }
+    add = { value = scope:actor.dread multiply = 0.04 }
+    subtract = { value = scope:recipient.diplomacy multiply = 0.25 }
+
+    if = { limit = { scope:actor = { has_trait = seducer } } add = 12 }
+    if = { limit = { scope:actor = { has_trait = lustful } } add = 8 }
+    if = { limit = { scope:actor = { has_trait = gregarious } } add = 5 }
+    if = { limit = { scope:recipient = { has_trait = lustful } } add = 15 }
+    if = { limit = { scope:recipient = { has_trait = trusting } } add = 5 }
+    if = { limit = { scope:recipient = { has_trait = chaste } } add = -22 }
+    if = { limit = { scope:recipient = { has_trait = shy } } add = -10 }
+    if = { limit = { scope:recipient = { has_trait = stubborn } } add = -6 }
+
+    if = { limit = { scope:recipient = { has_relation_crush = scope:actor } } add = 18 }
+    if = { limit = { scope:recipient = { has_relation_lover = scope:actor } } add = 30 }
+    if = { limit = { scope:recipient = { has_relation_soulmate = scope:actor } } add = 40 }
+    if = {
+        limit = {
+            scope:recipient = {
+                has_character_flag = domcom_dominated
+                has_variable = domcom_dominance_patron
+                var:domcom_dominance_patron = scope:actor
+            }
+        }
+        add = 15
+    }
+
+    # Endowment is sexual compatibility, so it belongs here rather than in Alpha.
+    if = {
+        limit = {
+            scope:actor = { is_male = yes has_variable = domcom_endowment_category }
+            scope:recipient = {
+                is_attracted_to_men = yes
+                has_variable = domcom_size_preference_primary
+                has_variable = domcom_size_preference_secondary
+                has_variable = domcom_size_preference_tertiary
+            }
+        }
+        if = { limit = { OR = { AND = { scope:recipient = { var:domcom_size_preference_primary = flag:micro } scope:actor = { var:domcom_endowment_category = flag:micro } } AND = { scope:recipient = { var:domcom_size_preference_primary = flag:small } scope:actor = { var:domcom_endowment_category = flag:small } } AND = { scope:recipient = { var:domcom_size_preference_primary = flag:average } scope:actor = { var:domcom_endowment_category = flag:average } } AND = { scope:recipient = { var:domcom_size_preference_primary = flag:big } scope:actor = { var:domcom_endowment_category = flag:big } } AND = { scope:recipient = { var:domcom_size_preference_primary = flag:hung } scope:actor = { var:domcom_endowment_category = flag:hung } } AND = { scope:recipient = { var:domcom_size_preference_primary = flag:massive } scope:actor = { var:domcom_endowment_category = flag:massive } } } } add = 16 }
+        else_if = { limit = { OR = { AND = { scope:recipient = { var:domcom_size_preference_secondary = flag:micro } scope:actor = { var:domcom_endowment_category = flag:micro } } AND = { scope:recipient = { var:domcom_size_preference_secondary = flag:small } scope:actor = { var:domcom_endowment_category = flag:small } } AND = { scope:recipient = { var:domcom_size_preference_secondary = flag:average } scope:actor = { var:domcom_endowment_category = flag:average } } AND = { scope:recipient = { var:domcom_size_preference_secondary = flag:big } scope:actor = { var:domcom_endowment_category = flag:big } } AND = { scope:recipient = { var:domcom_size_preference_secondary = flag:hung } scope:actor = { var:domcom_endowment_category = flag:hung } } AND = { scope:recipient = { var:domcom_size_preference_secondary = flag:massive } scope:actor = { var:domcom_endowment_category = flag:massive } } } } add = 9 }
+        else_if = { limit = { OR = { AND = { scope:recipient = { var:domcom_size_preference_tertiary = flag:micro } scope:actor = { var:domcom_endowment_category = flag:micro } } AND = { scope:recipient = { var:domcom_size_preference_tertiary = flag:small } scope:actor = { var:domcom_endowment_category = flag:small } } AND = { scope:recipient = { var:domcom_size_preference_tertiary = flag:average } scope:actor = { var:domcom_endowment_category = flag:average } } AND = { scope:recipient = { var:domcom_size_preference_tertiary = flag:big } scope:actor = { var:domcom_endowment_category = flag:big } } AND = { scope:recipient = { var:domcom_size_preference_tertiary = flag:hung } scope:actor = { var:domcom_endowment_category = flag:hung } } AND = { scope:recipient = { var:domcom_size_preference_tertiary = flag:massive } scope:actor = { var:domcom_endowment_category = flag:massive } } } } add = 4 }
+        else = { add = -10 }
+    }
+
+    min = 5
+    max = 95
+    round = yes
+}
+domcom_ui_alpha_check_chance_value = {
+    value = 18
+    if = { limit = { has_variable = domcom_cuck_xp } add = { value = var:domcom_cuck_xp multiply = 0.05 } }
+    if = {
+        limit = {
+            has_character_flag = domcom_dominated
+            has_variable = domcom_dominance_patron
+            var:domcom_dominance_patron = scope:domcom_ui_patron
+        }
+        add = 12
+    }
+    add = { value = scope:domcom_ui_patron.diplomacy multiply = 0.70 }
+    subtract = { value = diplomacy multiply = 0.65 }
+    add = { value = scope:domcom_ui_patron.intrigue multiply = 0.75 }
+    subtract = { value = intrigue multiply = 0.70 }
+    add = { value = scope:domcom_ui_patron.prowess multiply = 0.45 }
+    subtract = { value = prowess multiply = 0.40 }
+    add = { value = scope:domcom_ui_patron.prestige_level multiply = 5 }
+    subtract = { value = prestige_level multiply = 5 }
+    add = { value = scope:domcom_ui_patron.dread multiply = 0.12 }
+
+    if = { limit = { scope:domcom_ui_patron = { highest_held_title_tier = tier_empire } } add = 18 }
+    else_if = { limit = { scope:domcom_ui_patron = { highest_held_title_tier = tier_kingdom } } add = 12 }
+    else_if = { limit = { scope:domcom_ui_patron = { highest_held_title_tier = tier_duchy } } add = 6 }
+    else_if = { limit = { scope:domcom_ui_patron = { is_landed = no } } add = -8 }
+
+    if = { limit = { highest_held_title_tier = tier_empire } add = -22 }
+    else_if = { limit = { highest_held_title_tier = tier_kingdom } add = -14 }
+    else_if = { limit = { highest_held_title_tier = tier_duchy } add = -7 }
+
+    if = { limit = { scope:domcom_ui_patron.max_military_strength > max_military_strength } add = 7 }
+    if = { limit = { max_military_strength > scope:domcom_ui_patron.max_military_strength } add = -7 }
+
+    if = { limit = { scope:domcom_ui_patron = { has_trait = brave } } add = 6 }
+    if = { limit = { scope:domcom_ui_patron = { has_trait = ambitious } } add = 6 }
+    if = { limit = { scope:domcom_ui_patron = { has_trait = arrogant } } add = 5 }
+    if = { limit = { scope:domcom_ui_patron = { has_trait = gregarious } } add = 4 }
+    if = { limit = { scope:domcom_ui_patron = { has_trait = callous } } add = 4 }
+    if = { limit = { scope:domcom_ui_patron = { has_trait = sadistic } } add = 4 }
+
+    if = { limit = { has_trait = stubborn } add = -8 }
+    if = { limit = { has_trait = brave } add = -8 }
+    if = { limit = { has_trait = arrogant } add = -6 }
+    if = { limit = { has_trait = ambitious } add = -5 }
+    if = { limit = { has_trait = craven } add = 12 }
+    if = { limit = { has_trait = content } add = 8 }
+    if = { limit = { has_trait = trusting } add = 6 }
+
+    min = 3
+    max = 97
+    round = yes
+}
+domcom_family_attraction_chance_value = {
+    value = 18
+    if = { limit = { is_attracted_to_gender_of = scope:domcom_attraction_patron } add = 20 }
+    else = { add = -100 }
+    if = { limit = { scope:domcom_attraction_patron = { is_attracted_to_gender_of = prev } } add = 10 }
+    else = { add = -100 }
+    add = { value = scope:domcom_attraction_patron.diplomacy multiply = 0.8 }
+    add = { value = scope:domcom_attraction_patron.prestige_level multiply = 5 }
+    add = { value = scope:domcom_attraction_patron.dread multiply = 0.08 }
+    if = { limit = { has_trait = lustful } add = 16 }
+    if = { limit = { has_trait = seducer } add = 10 }
+    if = { limit = { has_trait = brave } add = 4 }
+    if = { limit = { has_trait = chaste } add = -25 }
+    if = { limit = { has_trait = shy } add = -10 }
+    if = { limit = { has_trait = stubborn } add = -8 }
+    if = {
+        limit = { exists = scope:domcom_attraction_source scope:domcom_attraction_source = { has_variable = domcom_cuck_xp } }
+        add = { value = scope:domcom_attraction_source.var:domcom_cuck_xp multiply = 0.02 }
+    }
+
+    if = {
+        limit = {
+            scope:domcom_attraction_patron = { is_male = yes has_variable = domcom_endowment_category }
+            is_attracted_to_men = yes
+            has_variable = domcom_size_preference_primary
+            has_variable = domcom_size_preference_secondary
+            has_variable = domcom_size_preference_tertiary
+        }
+        if = { limit = { OR = { AND = { var:domcom_size_preference_primary = flag:micro scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:micro } } AND = { var:domcom_size_preference_primary = flag:small scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:small } } AND = { var:domcom_size_preference_primary = flag:average scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:average } } AND = { var:domcom_size_preference_primary = flag:big scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:big } } AND = { var:domcom_size_preference_primary = flag:hung scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:hung } } AND = { var:domcom_size_preference_primary = flag:massive scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:massive } } } } add = 14 }
+        else_if = { limit = { OR = { AND = { var:domcom_size_preference_secondary = flag:micro scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:micro } } AND = { var:domcom_size_preference_secondary = flag:small scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:small } } AND = { var:domcom_size_preference_secondary = flag:average scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:average } } AND = { var:domcom_size_preference_secondary = flag:big scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:big } } AND = { var:domcom_size_preference_secondary = flag:hung scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:hung } } AND = { var:domcom_size_preference_secondary = flag:massive scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:massive } } } } add = 8 }
+        else_if = { limit = { OR = { AND = { var:domcom_size_preference_tertiary = flag:micro scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:micro } } AND = { var:domcom_size_preference_tertiary = flag:small scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:small } } AND = { var:domcom_size_preference_tertiary = flag:average scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:average } } AND = { var:domcom_size_preference_tertiary = flag:big scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:big } } AND = { var:domcom_size_preference_tertiary = flag:hung scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:hung } } AND = { var:domcom_size_preference_tertiary = flag:massive scope:domcom_attraction_patron = { var:domcom_endowment_category = flag:massive } } } } add = 4 }
+        else = { add = -10 }
+    }
+    min = 0
+    max = 90
+    round = yes
+}
+
+# Current scope is an Owned ruler. The preferred successor is the child stored
+# in var:domcom_blood_successor when acknowledgment displaced a former vanilla
+# primary heir; otherwise the current primary_heir is used. Minor successors are
+# intentionally harder to impose, especially very young children.
+domcom_abdication_chance_value = {
+    value = 40
+    if = { limit = { has_variable = domcom_cuck_xp } add = { value = var:domcom_cuck_xp multiply = 0.06 } }
+    if = { limit = { has_character_flag = domcom_household_dominion } add = 10 }
+
+    if = {
+        limit = { has_variable = domcom_blood_successor }
+        if = { limit = { var:domcom_blood_successor = { age < 6 } } add = -35 }
+        else_if = { limit = { var:domcom_blood_successor = { age < 12 } } add = -25 }
+        else_if = { limit = { var:domcom_blood_successor = { age < 16 } } add = -15 }
+        else_if = { limit = { var:domcom_blood_successor = { age < 18 } } add = -8 }
+        if = { limit = { var:domcom_blood_successor = { has_character_flag = domcom_blood_repudiated_by_cuck } } add = -15 }
+        if = { limit = { var:domcom_blood_successor = { is_imprisoned = yes } } add = -10 }
+    }
+    else_if = {
+        limit = { exists = primary_heir }
+        if = { limit = { primary_heir = { age < 6 } } add = -35 }
+        else_if = { limit = { primary_heir = { age < 12 } } add = -25 }
+        else_if = { limit = { primary_heir = { age < 16 } } add = -15 }
+        else_if = { limit = { primary_heir = { age < 18 } } add = -8 }
+    }
+
+    if = { limit = { has_trait = stubborn } add = -10 }
+    if = { limit = { has_trait = brave } add = -8 }
+    if = { limit = { has_trait = ambitious } add = -5 }
+    if = { limit = { has_trait = craven } add = 12 }
+    if = { limit = { has_trait = content } add = 8 }
+    if = { limit = { has_trait = trusting } add = 5 }
+    min = 10
+    max = 100
+    round = yes
+}
+
+# Current scope is AI cuck target and scope:domcom_ai_patron is saved.
+domcom_ai_alpha_check_chance_value = {
+    value = 18
+    if = { limit = { has_variable = domcom_cuck_xp } add = { value = var:domcom_cuck_xp multiply = 0.05 } }
+    if = {
+        limit = {
+            has_character_flag = domcom_dominated
+            has_variable = domcom_dominance_patron
+            var:domcom_dominance_patron = scope:domcom_ai_patron
+        }
+        add = 12
+    }
+    if = {
+        limit = {
+            OR = {
+                any_in_list = {
+                    variable = domcom_betrayal_evidence_patrons
+                    this = scope:domcom_ai_patron
+                }
+                any_relation = {
+                    type = lover
+                    is_alive = yes
+                    age >= 18
+                    OR = {
+                        has_relation_lover = scope:domcom_ai_patron
+                        has_relation_soulmate = scope:domcom_ai_patron
+                        any_child = {
+                            OR = {
+                                father ?= scope:domcom_ai_patron
+                                mother ?= scope:domcom_ai_patron
+                                real_father ?= scope:domcom_ai_patron
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        add = 8
+    }
+    add = { value = scope:domcom_ai_patron.diplomacy multiply = 0.70 }
+    subtract = { value = diplomacy multiply = 0.65 }
+    add = { value = scope:domcom_ai_patron.intrigue multiply = 0.75 }
+    subtract = { value = intrigue multiply = 0.70 }
+    add = { value = scope:domcom_ai_patron.prowess multiply = 0.45 }
+    subtract = { value = prowess multiply = 0.40 }
+    add = { value = scope:domcom_ai_patron.prestige_level multiply = 5 }
+    subtract = { value = prestige_level multiply = 5 }
+    add = { value = scope:domcom_ai_patron.dread multiply = 0.12 }
+
+    if = { limit = { scope:domcom_ai_patron = { highest_held_title_tier = tier_empire } } add = 18 }
+    else_if = { limit = { scope:domcom_ai_patron = { highest_held_title_tier = tier_kingdom } } add = 12 }
+    else_if = { limit = { scope:domcom_ai_patron = { highest_held_title_tier = tier_duchy } } add = 6 }
+    else_if = { limit = { scope:domcom_ai_patron = { is_landed = no } } add = -8 }
+
+    if = { limit = { highest_held_title_tier = tier_empire } add = -22 }
+    else_if = { limit = { highest_held_title_tier = tier_kingdom } add = -14 }
+    else_if = { limit = { highest_held_title_tier = tier_duchy } add = -7 }
+
+    if = { limit = { scope:domcom_ai_patron.max_military_strength > max_military_strength } add = 7 }
+    if = { limit = { max_military_strength > scope:domcom_ai_patron.max_military_strength } add = -7 }
+
+    if = { limit = { scope:domcom_ai_patron = { has_trait = brave } } add = 6 }
+    if = { limit = { scope:domcom_ai_patron = { has_trait = ambitious } } add = 6 }
+    if = { limit = { scope:domcom_ai_patron = { has_trait = arrogant } } add = 5 }
+    if = { limit = { scope:domcom_ai_patron = { has_trait = gregarious } } add = 4 }
+    if = { limit = { scope:domcom_ai_patron = { has_trait = callous } } add = 4 }
+    if = { limit = { scope:domcom_ai_patron = { has_trait = sadistic } } add = 4 }
+
+    if = { limit = { has_trait = stubborn } add = -8 }
+    if = { limit = { has_trait = brave } add = -8 }
+    if = { limit = { has_trait = arrogant } add = -6 }
+    if = { limit = { has_trait = ambitious } add = -5 }
+    if = { limit = { has_trait = craven } add = 12 }
+    if = { limit = { has_trait = content } add = 8 }
+    if = { limit = { has_trait = trusting } add = 6 }
+
+    min = 3
+    max = 97
+    round = yes
+}
+domcom_ui_abdication_chance_value = {
+    value = domcom_abdication_chance_value
+}
+
+# ---------------------------------------------------------------------------
+# 0.4.2 — Ledger consolidation / sorting / tribute controls
+# ---------------------------------------------------------------------------
+domcom_annual_tribute_due_value = {
+    value = monthly_character_income
+    multiply = 2.64 # 22% x 12 months
+    if = {
+        limit = { has_character_flag = domcom_household_dominion }
+        add = { value = monthly_character_income multiply = 0.96 } # total = 30% x 12
+    }
+    min = 0
+    round = yes
+}
+
+domcom_sort_rank_value = {
+    value = 0
+    if = { limit = { highest_held_title_tier = tier_county } add = 1 }
+    else_if = { limit = { highest_held_title_tier = tier_duchy } add = 2 }
+    else_if = { limit = { highest_held_title_tier = tier_kingdom } add = 3 }
+    else_if = { limit = { highest_held_title_tier = tier_empire } add = 4 }
+    add = domcom_sort_tiebreak_value
+}
+
+domcom_sort_alpha_value = {
+    value = 0
+    if = { limit = { has_variable = domcom_ui_alpha_chance } add = var:domcom_ui_alpha_chance }
+    add = domcom_sort_tiebreak_value
+}
+
+domcom_sort_xp_value = {
+    value = 0
+    if = { limit = { has_variable = domcom_cuck_xp } add = var:domcom_cuck_xp }
+    add = domcom_sort_tiebreak_value
+}
+
+domcom_sort_tribute_value = {
+    value = domcom_annual_tribute_due_value
+    add = domcom_sort_tiebreak_value
+}
+
+
+
+# 0.5.0 — hidden endowment measurements are stored in tenths of an inch.
+domcom_length_inches_value = {
+    value = 0
+    if = {
+        limit = { exists = root }
+        if = { limit = { has_variable = domcom_length_tenths } add = var:domcom_length_tenths }
+    }
+    divide = 10
+}
+domcom_girth_inches_value = {
+    value = 0
+    if = {
+        limit = { exists = root }
+        if = { limit = { has_variable = domcom_girth_tenths } add = var:domcom_girth_tenths }
+    }
+    divide = 10
+}
+domcom_endowment_sort_value = {
+    value = 0
+    if = {
+        limit = { exists = root }
+        if = { limit = { has_variable = domcom_endowment_index } add = var:domcom_endowment_index }
+    }
+}
+
+# 1.0.0-rc4.4 — length-led, was girth-led.
+#
+# The old weighting was 0.4 length / 0.6 girth, which produced results players
+# read as simply wrong: 5.0 x 6.0 and 6.5 x 5.0 both index 56, so a five-inch
+# one sat in the same band as a six-and-a-half-inch one. Girth deserves real
+# weight, but not more than length, because length is the dimension a player
+# reads first and judges the tier against.
+domcom_endowment_index_value = {
+    value = 0
+    if = {
+        limit = { exists = root }
+        if = { limit = { has_variable = domcom_length_tenths } add = { value = var:domcom_length_tenths multiply = 0.6 } }
+        if = { limit = { has_variable = domcom_girth_tenths } add = { value = var:domcom_girth_tenths multiply = 0.4 } }
+    }
+    round = yes
+}
+
+
+# 0.5.3 — chance that the Patron wins a Taunt the Cuck honor duel.
+# Current scope is the Cucked victim; scope:domcom_taunt_patron is saved.
+domcom_taunt_patron_duel_win_chance_value = {
+    value = 50
+    add = { value = scope:domcom_taunt_patron.prowess multiply = 2.5 }
+    subtract = { value = prowess multiply = 2.5 }
+    add = { value = scope:domcom_taunt_patron.martial multiply = 0.35 }
+    subtract = { value = martial multiply = 0.35 }
+    if = { limit = { scope:domcom_taunt_patron = { has_trait = brave } } add = 8 }
+    if = { limit = { scope:domcom_taunt_patron = { has_trait = wrathful } } add = 5 }
+    if = { limit = { scope:domcom_taunt_patron = { has_trait = strong } } add = 5 }
+    if = { limit = { has_trait = brave } add = -8 }
+    if = { limit = { has_trait = wrathful } add = -5 }
+    if = { limit = { has_trait = strong } add = -5 }
+    if = { limit = { has_trait = craven } add = 8 }
+    min = 10
+    max = 90
+    round = yes
+}
+
+# 0.8.6 — plain sum of the six skills. The obvious ranking that was missing.
+domcom_sort_total_value = {
+    value = diplomacy
+    add = martial
+    add = stewardship
+    add = intrigue
+    add = learning
+    add = prowess
+    add = domcom_sort_tiebreak_value
+}
+
+# 0.8.6 — composite worth: skills, congenital quality, and personality traits
+# that make a subject genuinely valuable rather than merely capable. Prowess is
+# halved because it is on a different scale to the council skills and otherwise
+# dominates the sum for any warrior.
+domcom_sort_prize_value = {
+    value = diplomacy
+    add = martial
+    add = stewardship
+    add = intrigue
+    add = learning
+    add = { value = prowess multiply = 0.5 }
+
+    # Congenital quality.
+    if = { limit = { has_trait = intellect_good_1 } add = 4 }
+    if = { limit = { has_trait = intellect_good_2 } add = 8 }
+    if = { limit = { has_trait = intellect_good_3 } add = 12 }
+    if = { limit = { has_trait = intellect_bad_1 } add = -4 }
+    if = { limit = { has_trait = intellect_bad_2 } add = -8 }
+    if = { limit = { has_trait = intellect_bad_3 } add = -12 }
+    if = { limit = { has_trait = beauty_good_1 } add = 4 }
+    if = { limit = { has_trait = beauty_good_2 } add = 8 }
+    if = { limit = { has_trait = beauty_good_3 } add = 12 }
+    if = { limit = { has_trait = beauty_bad_1 } add = -4 }
+    if = { limit = { has_trait = beauty_bad_2 } add = -8 }
+    if = { limit = { has_trait = beauty_bad_3 } add = -12 }
+    if = { limit = { has_trait = physique_good_1 } add = 3 }
+    if = { limit = { has_trait = physique_good_2 } add = 6 }
+    if = { limit = { has_trait = physique_good_3 } add = 9 }
+    if = { limit = { has_trait = physique_bad_1 } add = -3 }
+    if = { limit = { has_trait = physique_bad_2 } add = -6 }
+    if = { limit = { has_trait = physique_bad_3 } add = -9 }
+
+    # Personality. Weighted toward traits that make someone useful to hold.
+    if = { limit = { has_trait = ambitious } add = 5 }
+    if = { limit = { has_trait = diligent } add = 4 }
+    if = { limit = { has_trait = brave } add = 3 }
+    if = { limit = { has_trait = just } add = 3 }
+    if = { limit = { has_trait = gregarious } add = 3 }
+    if = { limit = { has_trait = patient } add = 3 }
+    if = { limit = { has_trait = temperate } add = 2 }
+    if = { limit = { has_trait = generous } add = 2 }
+    if = { limit = { has_trait = compassionate } add = 2 }
+    if = { limit = { has_trait = honest } add = 2 }
+    if = { limit = { has_trait = content } add = -2 }
+    if = { limit = { has_trait = lazy } add = -4 }
+    if = { limit = { has_trait = craven } add = -3 }
+    if = { limit = { has_trait = shy } add = -3 }
+    if = { limit = { has_trait = impatient } add = -3 }
+    if = { limit = { has_trait = arbitrary } add = -3 }
+
+    # A subject already deep in Dominion is worth more as a holding.
+    if = { limit = { has_variable = domcom_cuck_xp } add = { value = var:domcom_cuck_xp multiply = 0.01 } }
+    add = domcom_sort_tiebreak_value
+}
+
+
+
+# 0.9.0 — Gauntlet difficulty. The Patron starts at 90% of the normal Alpha
+# chance and the multiplier falls another 3 percentage points after each win.
+# Current scope is the Gauntlet target; the patron scope/variable are saved by GUI.
+domcom_gauntlet_alpha_chance_value = {
+    value = var:domcom_ui_alpha_chance
+    multiply = scope:domcom_gauntlet_patron.var:domcom_gauntlet_multiplier
+    min = 1
+    max = 90
+    round = yes
+}
+
+# 0.9.0 — if an Invite to Bed is discovered, this is the Patron's chance to
+# stare down / evade the spouse rather than be cornered. Current scope is the
+# cuckold; scope:domcom_intimacy_patron is the acting Patron.
+domcom_intimacy_escape_chance_value = {
+    value = 50
+    add = { value = scope:domcom_intimacy_patron.intrigue multiply = 1.35 }
+    add = { value = scope:domcom_intimacy_patron.prowess multiply = 0.90 }
+    add = { value = scope:domcom_intimacy_patron.martial multiply = 0.65 }
+    add = { value = scope:domcom_intimacy_patron.dread multiply = 0.25 }
+    subtract = { value = intrigue multiply = 1.20 }
+    subtract = { value = prowess multiply = 0.85 }
+    subtract = { value = martial multiply = 0.60 }
+    subtract = { value = dread multiply = 0.15 }
+    min = 5
+    max = 95
+    round = yes
+}
+
+# 1.0.0-rc4 — chance that an AI Owned subject retaliates when public
+# acknowledgment reveals that the child who had been their heir is the Patron's
+# blood. Deep submission reduces retaliation; vindictive personalities raise it.
+domcom_blood_heir_retaliation_chance_value = {
+    value = 20
+    if = { limit = { has_variable = domcom_cuck_xp } add = { value = var:domcom_cuck_xp multiply = -0.025 } }
+    if = { limit = { has_character_flag = domcom_household_dominion } add = -10 }
+    if = { limit = { has_trait = vengeful } add = 25 }
+    if = { limit = { has_trait = sadistic } add = 18 }
+    if = { limit = { has_trait = wrathful } add = 12 }
+    if = { limit = { has_trait = paranoid } add = 10 }
+    if = { limit = { has_trait = arbitrary } add = 8 }
+    if = { limit = { has_trait = stubborn } add = 5 }
+    if = { limit = { has_trait = compassionate } add = -25 }
+    if = { limit = { has_trait = forgiving } add = -20 }
+    if = { limit = { has_trait = content } add = -12 }
+    if = { limit = { has_trait = craven } add = -5 }
+    if = { limit = { scope:domcom_blood_child = { age < 12 } } add = 5 }
+    min = 0
+    max = 75
+    round = yes
+}
+
+# 0.9.7 — complements of the two chance values, so a random_list can weight
+# success against failure and let CK3 print a percentage beside each outcome.
+domcom_alpha_check_failure_weight_value = {
+    value = 100
+    add = { value = domcom_alpha_check_chance_value multiply = -1 }
+}
+
+domcom_tantalize_failure_weight_value = {
+    value = 100
+    add = { value = domcom_tantalize_chance_v063_value multiply = -1 }
+}
+
+
+
+# 1.0.0-rc4 — complement used by the interaction tooltip.
+domcom_abdication_failure_weight_value = {
+    value = 100
+    add = { value = domcom_abdication_chance_value multiply = -1 }
+}
+
+
+# 1.0.0-rc4 — annual chance that an otherwise eligible nearby AI Queen/Empress
+# actually acts on strong attraction and proposes a Crowned Union.
+domcom_crowned_heart_offer_chance_value = {
+    value = 4
+    if = { limit = { has_relation_crush = scope:domcom_crowned_partner } add = 6 }
+    if = { limit = { has_relation_lover = scope:domcom_crowned_partner } add = 12 }
+    if = { limit = { has_relation_soulmate = scope:domcom_crowned_partner } add = 18 }
+    if = {
+        limit = {
+            has_character_flag = domcom_pet
+            has_variable = domcom_pet_patron
+            var:domcom_pet_patron = scope:domcom_crowned_partner
+        }
+        add = 15
+    }
+    if = { limit = { has_trait = lustful } add = 6 }
+    if = { limit = { has_trait = ambitious } add = 5 }
+    if = { limit = { has_trait = brave } add = 3 }
+    if = { limit = { has_trait = deceitful } add = 3 }
+    if = { limit = { has_trait = arbitrary } add = 2 }
+    min = 2
+    max = 35
+    round = yes
+}
+
+# 1.0.0-rc4.3 — heredity seeds.
+#
+# A son starts from his sire's figure pulled 40% of the way back toward the
+# population mean, then takes a symmetric random step in domcom_assign_endowment_effect.
+# Without the regression term a single outlier ancestor would pin an entire
+# dynasty to the top or bottom tier forever; with it, a line drifts toward an
+# extreme over generations and can drift back out again.
+#
+# The divide/round/multiply tail snaps the result to a multiple of 5, matching
+# the granularity of the flat population tables so sired and unsired characters
+# occupy the same value space.
+#
+# Both values fall back to the population mean, so they are safe to evaluate on
+# a character with no sire on record even though nothing currently does.
+domcom_sire_length_seed_value = {
+    value = 0
+    if = {
+        limit = { exists = root has_variable = domcom_sire_length_tenths }
+        add = var:domcom_sire_length_tenths
+        subtract = 55
+        multiply = 0.6
+        add = 55
+    }
+    else = { add = 55 }
+    divide = 5
+    round = yes
+    multiply = 5
+}
+
+domcom_sire_girth_seed_value = {
+    value = 0
+    if = {
+        limit = { exists = root has_variable = domcom_sire_girth_tenths }
+        add = var:domcom_sire_girth_tenths
+        subtract = 50
+        multiply = 0.6
+        add = 50
+    }
+    else = { add = 50 }
+    divide = 5
+    round = yes
+    multiply = 5
+}
+
+# 1.0.0-rc4.4 — stress became personality-dependent.
+#
+# Every Dominion stress change was previously a flat number, which encoded one
+# mentality: a man who finds all of this shameful and is worn down by it. That
+# is a real character, but it is not the only one, and forcing it on every
+# playthrough made the patron read as someone who does not want what he is
+# doing. These values let the same act steady one character and cost another.
+#
+# Traits that pull toward relief are the ones for whom this is self-expression;
+# traits that pull toward cost are the ones for whom it is transgression. A
+# chaste, humble patron still pays for success - that is the point, his
+# conscience is the obstacle. A lustful or deviant one is genuinely eased by it.
+domcom_dominion_success_stress_value = {
+    value = -5
+    if = { limit = { has_trait = lustful } subtract = 8 }
+    if = { limit = { has_trait = deviant } subtract = 6 }
+    if = { limit = { has_trait = arrogant } subtract = 4 }
+    if = { limit = { has_trait = sadistic } subtract = 4 }
+    if = { limit = { has_trait = callous } subtract = 2 }
+    if = { limit = { has_trait = ambitious } subtract = 2 }
+    if = { limit = { has_trait = chaste } add = 12 }
+    if = { limit = { has_trait = humble } add = 5 }
+    if = { limit = { has_trait = compassionate } add = 4 }
+    if = { limit = { has_trait = honest } add = 3 }
+    if = { limit = { has_trait = shy } add = 3 }
+}
+
+# Rejection floors at zero rather than going negative: a shameless patron is
+# unbothered by a refusal, but nobody is actively relieved by one.
+domcom_dominion_rejection_stress_value = {
+    value = 15
+    if = { limit = { has_trait = lustful } subtract = 5 }
+    if = { limit = { has_trait = deviant } subtract = 5 }
+    if = { limit = { has_trait = arrogant } subtract = 4 }
+    if = { limit = { has_trait = sadistic } subtract = 4 }
+    if = { limit = { has_trait = brave } subtract = 2 }
+    if = { limit = { has_trait = chaste } add = 8 }
+    if = { limit = { has_trait = craven } add = 5 }
+    if = { limit = { has_trait = shy } add = 5 }
+    if = { limit = { has_trait = humble } add = 4 }
+    if = { limit = { has_trait = compassionate } add = 3 }
+    min = 0
+}
+
+# Evaluated on the partner, not the patron.
+domcom_intimacy_discovered_stress_value = {
+    value = 20
+    if = { limit = { has_trait = lustful } subtract = 8 }
+    if = { limit = { has_trait = deviant } subtract = 7 }
+    if = { limit = { has_trait = arrogant } subtract = 3 }
+    if = { limit = { has_trait = brave } subtract = 3 }
+    if = { limit = { has_trait = callous } subtract = 3 }
+    if = { limit = { has_trait = chaste } add = 10 }
+    if = { limit = { has_trait = shy } add = 6 }
+    if = { limit = { has_trait = humble } add = 4 }
+    if = { limit = { has_trait = craven } add = 4 }
+    if = { limit = { has_trait = honest } add = 3 }
+    min = 0
+}
+
+# 0.9.7 — Tantalized ordering (issue 5). Obedience is the natural default; the
+# shared sort buttons fall through to skills so the page behaves like the others.
+domcom_sort_tantalized_value = {
+    value = 0
+    if = {
+        limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_mode = flag:rank } }
+        add = { value = highest_held_title_tier multiply = 1000 }
+    }
+    else_if = { limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_mode = flag:diplomacy } }   add = { value = diplomacy   multiply = 10 } }
+    else_if = { limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_mode = flag:martial } }     add = { value = martial     multiply = 10 } }
+    else_if = { limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_mode = flag:stewardship } } add = { value = stewardship multiply = 10 } }
+    else_if = { limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_mode = flag:intrigue } }    add = { value = intrigue    multiply = 10 } }
+    else_if = { limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_mode = flag:learning } }    add = { value = learning    multiply = 10 } }
+    else_if = { limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_mode = flag:prowess } }     add = { value = prowess     multiply = 10 } }
+    else = { if = { limit = { has_variable = domcom_obedience } add = var:domcom_obedience } }
+    add = domcom_sort_tiebreak_value
+    if = {
+        limit = { exists = scope:domcom_ui_patron scope:domcom_ui_patron = { var:domcom_ui_sort_direction = flag:ascending } }
+        multiply = -1
+    }
+}
+
+# 0.9.9 — Alpha Check budget cap, read from the game rule.
+domcom_alpha_budget_cap_value = {
+    value = 0
+    if = { limit = { has_game_rule = domcom_alpha_budget_4 } add = 4 }
+    else_if = { limit = { has_game_rule = domcom_alpha_budget_16 } add = 16 }
+    else_if = { limit = { has_game_rule = domcom_alpha_budget_off } add = 9999 }
+    else = { add = 8 }
+}
+
+# Remaining checks this quarter, for display. Never negative.
+domcom_alpha_budget_left_value = {
+    value = domcom_alpha_budget_cap_value
+    if = { limit = { has_variable = domcom_alpha_budget_used } subtract = var:domcom_alpha_budget_used }
+    min = 0
+}
+
+# 0.9.11 — deterministic tiebreak for every roster sort.
+# domcom_sort_prize_value can differ by 0.5 (prowess is halved), so the tiebreak
+# is capped at 0.0099 - large enough to order equals consistently, far too small
+# to reorder genuinely different scores.
+domcom_sort_tiebreak_value = {
+    value = 0
+    if = { limit = { has_variable = domcom_sort_seed } add = var:domcom_sort_seed }
+    divide = 100000
+}

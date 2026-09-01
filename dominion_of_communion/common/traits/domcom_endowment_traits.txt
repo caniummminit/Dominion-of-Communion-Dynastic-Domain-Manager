@@ -1,0 +1,252 @@
+﻿# Dominion of Communion — Endowment traits.
+#
+# Endowment is assigned from persistent measurement variables. The visible trait
+# is a display/result layer: inheritance is handled by the measurement system so
+# the trait and the stored values always remain synchronized.
+#
+# Endowment traits are selectable in Ruler Designer. A selected tier is converted
+# into measurements inside that tier at game start and then locked normally.
+#
+# Trait descriptions use CK3's dynamic trait-desc scope so exact measurements are
+# evaluated against the character who actually carries the trait. Generic contexts
+# (including Ruler Designer before measurements exist) fall back cleanly.
+
+domcom_endowment_micro = {
+    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
+    opposites = { domcom_endowment_small domcom_endowment_average domcom_endowment_big domcom_endowment_hung domcom_endowment_massive }
+
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { NOT = { exists = this } }
+                desc = trait_domcom_endowment_micro_desc
+            }
+            triggered_desc = {
+                trigger = {
+                    OR = {
+                        NOT = { has_variable = domcom_length_tenths }
+                        NOT = { has_variable = domcom_girth_tenths }
+                    }
+                }
+                desc = trait_domcom_endowment_micro_desc
+            }
+            desc = trait_domcom_endowment_micro_character_desc
+        }
+    }
+
+    physical = yes
+    genetic = yes
+    shown_in_ruler_designer = yes
+    birth = 0
+    random_creation = 0
+    inherit_chance = 0
+    both_parent_has_trait_inherit_chance = 0
+
+    icon = domcom_endowment_micro.dds
+
+    diplomacy = -3
+    martial = -4
+    intrigue = 3
+    learning = 4
+    attraction_opinion = 10
+
+}
+
+domcom_endowment_small = {
+    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
+    opposites = { domcom_endowment_micro domcom_endowment_average domcom_endowment_big domcom_endowment_hung domcom_endowment_massive }
+
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { NOT = { exists = this } }
+                desc = trait_domcom_endowment_small_desc
+            }
+            triggered_desc = {
+                trigger = {
+                    OR = {
+                        NOT = { has_variable = domcom_length_tenths }
+                        NOT = { has_variable = domcom_girth_tenths }
+                    }
+                }
+                desc = trait_domcom_endowment_small_desc
+            }
+            desc = trait_domcom_endowment_small_character_desc
+        }
+    }
+
+    physical = yes
+    genetic = yes
+    shown_in_ruler_designer = yes
+    birth = 0
+    random_creation = 0
+    inherit_chance = 0
+    both_parent_has_trait_inherit_chance = 0
+
+    icon = domcom_endowment_small.dds
+
+    diplomacy = -2
+    martial = -3
+    intrigue = 2
+    learning = 3
+    attraction_opinion = 5
+
+}
+
+domcom_endowment_average = {
+    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
+    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_big domcom_endowment_hung domcom_endowment_massive }
+
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { NOT = { exists = this } }
+                desc = trait_domcom_endowment_average_desc
+            }
+            triggered_desc = {
+                trigger = {
+                    OR = {
+                        NOT = { has_variable = domcom_length_tenths }
+                        NOT = { has_variable = domcom_girth_tenths }
+                    }
+                }
+                desc = trait_domcom_endowment_average_desc
+            }
+            desc = trait_domcom_endowment_average_character_desc
+        }
+    }
+
+    physical = yes
+    genetic = yes
+    shown_in_ruler_designer = yes
+    birth = 0
+    random_creation = 0
+    inherit_chance = 0
+    both_parent_has_trait_inherit_chance = 0
+
+    icon = domcom_endowment_average.dds
+
+}
+
+domcom_endowment_big = {
+    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
+    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_average domcom_endowment_hung domcom_endowment_massive }
+
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { NOT = { exists = this } }
+                desc = trait_domcom_endowment_big_desc
+            }
+            triggered_desc = {
+                trigger = {
+                    OR = {
+                        NOT = { has_variable = domcom_length_tenths }
+                        NOT = { has_variable = domcom_girth_tenths }
+                    }
+                }
+                desc = trait_domcom_endowment_big_desc
+            }
+            desc = trait_domcom_endowment_big_character_desc
+        }
+    }
+
+    physical = yes
+    genetic = yes
+    shown_in_ruler_designer = yes
+    birth = 0
+    random_creation = 0
+    inherit_chance = 0
+    both_parent_has_trait_inherit_chance = 0
+
+    icon = domcom_endowment_big.dds
+
+    diplomacy = 2
+    martial = 3
+    stewardship = -3
+    intrigue = -2
+    attraction_opinion = 4
+
+}
+
+domcom_endowment_hung = {
+    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
+    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_average domcom_endowment_big domcom_endowment_massive }
+
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { NOT = { exists = this } }
+                desc = trait_domcom_endowment_hung_desc
+            }
+            triggered_desc = {
+                trigger = {
+                    OR = {
+                        NOT = { has_variable = domcom_length_tenths }
+                        NOT = { has_variable = domcom_girth_tenths }
+                    }
+                }
+                desc = trait_domcom_endowment_hung_desc
+            }
+            desc = trait_domcom_endowment_hung_character_desc
+        }
+    }
+
+    physical = yes
+    genetic = yes
+    shown_in_ruler_designer = yes
+    birth = 0
+    random_creation = 0
+    inherit_chance = 0
+    both_parent_has_trait_inherit_chance = 0
+
+    icon = domcom_endowment_hung.dds
+
+    diplomacy = 3
+    martial = 4
+    stewardship = -4
+    intrigue = -3
+    attraction_opinion = 7
+
+}
+
+domcom_endowment_massive = {
+    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
+    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_average domcom_endowment_big domcom_endowment_hung }
+
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { NOT = { exists = this } }
+                desc = trait_domcom_endowment_massive_desc
+            }
+            triggered_desc = {
+                trigger = {
+                    OR = {
+                        NOT = { has_variable = domcom_length_tenths }
+                        NOT = { has_variable = domcom_girth_tenths }
+                    }
+                }
+                desc = trait_domcom_endowment_massive_desc
+            }
+            desc = trait_domcom_endowment_massive_character_desc
+        }
+    }
+
+    physical = yes
+    genetic = yes
+    shown_in_ruler_designer = yes
+    birth = 0
+    random_creation = 0
+    inherit_chance = 0
+    both_parent_has_trait_inherit_chance = 0
+
+    icon = domcom_endowment_massive.dds
+
+    diplomacy = 4
+    martial = 5
+    stewardship = -5
+    intrigue = -4
+    attraction_opinion = 10
+
+}

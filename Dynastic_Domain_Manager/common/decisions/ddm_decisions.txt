@@ -1,0 +1,24 @@
+﻿ddm_open_manager_decision = {
+    picture = { reference = "gfx/interface/illustrations/decisions/decision_dynasty_house.dds" }
+    decision_group_type = ddm_domain_management_group
+    desc = ddm_open_manager_decision_desc
+    selection_tooltip = ddm_open_manager_decision_tooltip
+
+    is_shown = {
+        is_ruler = yes
+        exists = dynasty
+    }
+    is_valid_showing_failures_only = {
+        is_landed = yes
+        highest_held_title_tier >= tier_duchy
+    }
+    effect = {
+        hidden_effect = {
+            ddm_initialize_settings_effect = yes
+            ddm_prepare_dashboard_effect = yes
+            set_variable = { name = ddm_ui_page value = flag:overview }
+            set_variable = { name = ddm_ui_open value = yes }
+        }
+    }
+    ai_check_interval = 0
+}

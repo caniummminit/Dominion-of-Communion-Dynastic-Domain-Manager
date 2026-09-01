@@ -1,0 +1,12 @@
+﻿nick_domcom_the_cucked = {
+    is_bad = yes
+}
+
+# 0.6.2 — terminal Obedience monikers. Localization supplies dynasty/patron and number.
+nick_domcom_dynasty_slave = {
+    is_bad = yes
+}
+
+nick_domcom_personal_slave = {
+    is_bad = yes
+}

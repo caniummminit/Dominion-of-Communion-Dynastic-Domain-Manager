@@ -1,0 +1,21 @@
+DYNASTIC DOMAIN MANAGER 1.0.0
+=============================
+
+FIRST PUBLIC RELEASE
+--------------------
+- Unified paused Domain Office.
+- Crown Estate protection, recommendations and organized holding registers.
+- Dynasty-first title distribution with optional selected/all eligible outsider recipients.
+- Eligible unlanded courtiers can receive a first landed grant.
+- Right-click title reservations for specific candidates.
+- De-jure, claim, territorial-fit, capability, safety, regard and fairness scoring.
+- Separate Domain Limit and Vassal Limit management.
+- Distribute to Proper Lieges realm-hierarchy cleanup.
+- Selective outsider protection and reclamation.
+- Religious-title fallback for untransferable head-of-faith titles.
+- War-aware queued settlement.
+- Succession influence and dynastic alliance policy.
+- Men-at-Arms adviser and bulk military construction tools.
+- Settlement Ledger and blocker diagnostics.
+
+Compatibility target: Crusader Kings III 1.19.*

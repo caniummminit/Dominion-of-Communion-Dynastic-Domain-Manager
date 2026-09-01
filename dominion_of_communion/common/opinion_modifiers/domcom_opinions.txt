@@ -1,0 +1,134 @@
+﻿domcom_cucked_partner_opinion = {
+    opinion = -350
+    decaying = no
+}
+
+domcom_cucked_child_opinion = {
+    opinion = -250
+    decaying = no
+}
+
+domcom_owned_by_patron_opinion = {
+    opinion = 500
+    decaying = no
+    obedient = yes
+}
+
+domcom_resisted_alpha_opinion = {
+    opinion = -100
+    years = 3
+}
+
+domcom_public_humiliation_target_opinion = {
+    opinion = -350
+    decaying = no
+    stacking = yes
+    min = -1000
+}
+
+domcom_public_humiliation_patron_opinion = {
+    opinion = 175
+    decaying = no
+    stacking = yes
+    max = 1000
+}
+
+domcom_acknowledged_blood_opinion = {
+    opinion = 350
+    decaying = no
+}
+
+domcom_imperial_gold_tribute_opinion = { opinion = -30 years = 5 }
+domcom_imperial_military_tribute_opinion = { opinion = -20 years = 5 }
+domcom_imperial_prestige_tribute_opinion = { opinion = 15 years = 5 }
+domcom_imperial_dynastic_tribute_opinion = { opinion = 25 years = 5 }
+domcom_imperial_household_tribute_opinion = { opinion = -10 years = 5 }
+domcom_imperial_refusal_opinion = { opinion = -100 years = 5 }
+
+# Network members forced to cover an Owned ruler's prepaid tribute resent that ruler.
+domcom_forced_to_cover_tribute_opinion = {
+    opinion = -150
+    years = 10
+    stacking = yes
+    min = -1000
+}
+
+
+# 0.5.0
+domcom_dominated_by_opinion = {
+    opinion = 75
+    years = 5
+}
+domcom_final_devotion_opinion = {
+    opinion = 500
+    decaying = no
+    obedient = yes
+}
+domcom_reverse_alpha_shock_opinion = {
+    opinion = 200
+    years = 10
+}
+
+# 0.5.2 — relationship-specific reinforcement for Communion members.
+domcom_communion_acceptance_opinion = {
+    opinion = 500
+    decaying = no
+}
+
+# Public Cucked stigma is -15 General Opinion. Cucked observers receive this
+# permanent +15 toward other Cucked characters, cancelling only that stigma.
+domcom_fellow_cucked_offset_opinion = {
+    opinion = 15
+    decaying = no
+}
+
+
+# 0.6.2 — Alpha no longer grants obedience before cuck evidence exists.
+domcom_pet_obedience_opinion = {
+    opinion = 500
+    decaying = no
+    obedient = yes
+}
+
+domcom_rebuffed_tantalize_opinion = {
+    opinion = -30
+    years = 2
+}
+
+# 0.8.8 — the intimacy cycle.
+domcom_intimacy_shared_opinion = { opinion = 20 years = 5 }
+domcom_intimacy_discovered_partner_opinion = { opinion = -40 years = 10 }
+domcom_intimacy_discovered_court_opinion = { opinion = -25 years = 5 }
+
+
+# 1.0.0-rc4 — Crowned Union consequences.
+domcom_crowned_union_betrayed_opinion = {
+    opinion = -150
+    years = 15
+    stacking = no
+}
+
+domcom_crowned_union_devotion_opinion = {
+    opinion = 150
+    years = 20
+    stacking = no
+}
+
+domcom_crowned_union_rejected_opinion = {
+    opinion = -20
+    years = 5
+    stacking = no
+}
+# 1.0.0-rc4 — displaced-heir consequences after public acknowledgment.
+domcom_blood_heir_repudiated_opinion = {
+    opinion = -80
+    years = 20
+    stacking = no
+}
+
+domcom_blood_heir_persecuted_opinion = {
+    opinion = -80
+    years = 20
+    stacking = no
+}
+

@@ -1,0 +1,9 @@
+﻿# Dominion of Communion — Household Intrigue hook.
+#
+# Dominion owns monthly_playable_pulse and calls this once per month for a living
+# adult human player. The subsystem plugs into that hook without redeclaring the
+# monthly pulse or replacing Dominion's normal upkeep and digest on-actions.
+
+domcom_household_intrigue_monthly_hook_effect = {
+    dcint_run_monthly_intrigue_effect = yes
+}

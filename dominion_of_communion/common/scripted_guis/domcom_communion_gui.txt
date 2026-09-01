@@ -1,0 +1,705 @@
+﻿# Dominion of Communion 0.3.0 management ledger.
+
+domcom_ui_close = {
+    scope = character
+    effect = { remove_variable = domcom_ui_open }
+}
+
+domcom_ui_refresh = {
+    scope = character
+    is_valid = { NOT = { has_character_flag = domcom_ui_lock_refresh } }
+    effect = {
+        if = {
+            limit = { NOT = { has_character_flag = domcom_ui_lock_refresh } }
+            add_character_flag = { flag = domcom_ui_lock_refresh days = 1 }
+     domcom_enforce_communion_for_patron_effect = yes domcom_prepare_ui_effect = yes 
+        }
+    }
+}
+
+
+
+domcom_ui_enforce_dominion = {
+    scope = character
+    is_valid = {
+        NOT = { has_character_flag = domcom_ui_lock_enforce_dominion }
+        is_alive = yes
+        OR = {
+            # rc4.7 — Enforce is also the immediate repair path for Dominion
+            # intimates. Requiring an Owned subject made the button unusable in
+            # the common case where I have already compromised a household but
+            # have not yet completed an Alpha/Dominion takeover.
+            has_variable_list = domcom_ui_cucked_raw
+            has_variable_list = domcom_cucked_registry
+            has_variable_list = domcom_crush_candidates
+            has_variable_list = domcom_intimate_registry
+            has_variable_list = domcom_ui_owned_raw
+            has_variable_list = domcom_owned_registry
+            AND = { exists = dynasty dynasty = { has_variable_list = domcom_owned_subjects } }
+        }
+    }
+    effect = {
+        if = {
+            limit = { NOT = { has_character_flag = domcom_ui_lock_enforce_dominion } }
+            add_character_flag = { flag = domcom_ui_lock_enforce_dominion days = 1 }
+            domcom_enforce_communion_for_patron_effect = yes
+            send_interface_toast = {
+                type = event_toast_effect_good
+                title = DOMCOM_UI_ENFORCE_DOMINION_TOAST
+                left_icon = root
+            }
+            domcom_prepare_ui_effect = yes
+        }
+    }
+}
+
+domcom_ui_set_page_overview = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:overview } } }
+domcom_ui_set_page_cucked = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:cucked } } }
+domcom_ui_set_page_world_cucks = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:world_cucks } } }
+domcom_ui_set_page_owned = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:owned } } }
+domcom_ui_set_page_prospects = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:prospects } } }
+domcom_ui_set_page_blood = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:blood } } }
+domcom_ui_set_page_tantalized = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:tantalized } } }
+domcom_ui_set_page_secrets = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:secrets } } }
+domcom_ui_set_page_imperial = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:imperial } } }
+domcom_ui_set_page_ledger = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:ledger } } }
+domcom_ui_set_page_help = { scope = character effect = { set_variable = { name = domcom_ui_page value = flag:help } } }
+
+domcom_ui_is_page_overview = { scope = character is_shown = { OR = { NOT = { exists = var:domcom_ui_page } var:domcom_ui_page = flag:overview } } }
+domcom_ui_is_page_cucked = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:cucked } }
+domcom_ui_is_page_world_cucks = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:world_cucks } }
+domcom_ui_is_page_owned = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:owned } }
+domcom_ui_is_page_prospects = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:prospects } }
+domcom_ui_is_page_blood = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:blood } }
+domcom_ui_is_page_tantalized = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:tantalized } }
+domcom_ui_is_page_secrets = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:secrets } }
+domcom_ui_is_page_imperial = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:imperial } }
+domcom_ui_is_page_ledger = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:ledger } }
+domcom_ui_is_page_help = { scope = character is_shown = { exists = var:domcom_ui_page var:domcom_ui_page = flag:help } }
+
+# 0.9.5 — World Cucks can retain legacy entries whose original cucker cannot
+# be reconstructed safely. These predicates let the row say Unknown cleanly.
+domcom_ui_world_cuck_origin_known = { scope = character is_shown = { has_variable = domcom_cuck_origin_patron } }
+domcom_ui_world_cuck_origin_unknown = { scope = character is_shown = { NOT = { has_variable = domcom_cuck_origin_patron } } }
+
+# rc4.7 — explain how each personally Cucked household is actually compromised.
+# The row's root is the Cucked character; domcom_prepare_cucked_link_effect writes
+# a lightweight display pointer/status when the Ledger is refreshed.
+domcom_ui_cuck_link_soulmate = { scope = character is_shown = { has_variable = domcom_ui_compromised_partner has_variable = domcom_ui_compromised_link_type var:domcom_ui_compromised_link_type = flag:soulmate } }
+domcom_ui_cuck_link_lover = { scope = character is_shown = { has_variable = domcom_ui_compromised_partner has_variable = domcom_ui_compromised_link_type var:domcom_ui_compromised_link_type = flag:lover } }
+domcom_ui_cuck_link_bound = { scope = character is_shown = { has_variable = domcom_ui_compromised_partner has_variable = domcom_ui_compromised_link_type var:domcom_ui_compromised_link_type = flag:bound } }
+domcom_ui_cuck_link_blood = { scope = character is_shown = { has_variable = domcom_ui_compromised_partner has_variable = domcom_ui_compromised_link_type var:domcom_ui_compromised_link_type = flag:blood } }
+domcom_ui_cuck_link_historical = { scope = character is_shown = { has_variable = domcom_ui_compromised_partner has_variable = domcom_ui_compromised_link_type var:domcom_ui_compromised_link_type = flag:historical } }
+domcom_ui_cuck_link_none = { scope = character is_shown = { NOT = { has_variable = domcom_ui_compromised_partner } } }
+
+domcom_ui_alpha_check = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        age >= 18 is_alive = yes is_imprisoned = no
+        # 0.9.9 — same per-quarter allowance as the right-click path, so the two
+        # interfaces draw on one budget rather than two. The Gauntlet is exempt.
+        domcom_alpha_budget_available_trigger = yes
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_alpha_check }
+            is_alive = yes age >= 18 is_imprisoned = no
+            has_character_flag = domcom_cucked
+            has_variable = domcom_cuck_patron
+            var:domcom_cuck_patron = root
+            NOT = { AND = { has_variable = domcom_cuck_xp var:domcom_cuck_xp >= 1000 } }
+        }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_alpha_check } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_alpha_check days = 1 } }
+            change_variable = { name = domcom_alpha_attempts add = 1 }
+            domcom_spend_alpha_budget_effect = yes
+            save_scope_as = domcom_ui_patron
+            # 0.9.7 — a manual check spends the same yearly challenge the Gauntlet
+            # spends. Without this the rival stayed "fresh" and could be counted
+            # toward the four-rival minimum and then challenged twice.
+            scope:target = {
+                add_character_flag = { flag = domcom_recent_alpha_challenge days = 365 }
+                set_variable = { name = domcom_last_alpha_patron value = root }
+            }
+            scope:target = {
+                set_variable = { name = domcom_ui_alpha_chance value = domcom_ui_alpha_check_chance_value }
+                random = {
+                    chance = var:domcom_ui_alpha_chance
+                    domcom_own_cuck_from_ui_effect = yes
+                    add_character_flag = domcom_ui_alpha_success
+                }
+            }
+            if = {
+                limit = { scope:target = { has_character_flag = domcom_ui_alpha_success } }
+                scope:target = { remove_character_flag = domcom_ui_alpha_success }
+                # 0.8.6 — same stress consequences as the right-click path.
+                domcom_dominion_success_stress_effect = yes
+                change_variable = { name = domcom_alpha_successes add = 1 }
+                send_interface_toast = { type = event_toast_effect_good title = domcom_alpha_check_success_toast left_icon = root right_icon = scope:target }
+            }
+            else = {
+                domcom_dominion_rejection_stress_effect = yes
+                scope:target = {
+                    if = { limit = { NOT = { has_variable = domcom_cuck_xp } } set_variable = { name = domcom_cuck_xp value = 100 } }
+                    change_variable = { name = domcom_cuck_xp add = -50 }
+                    if = { limit = { var:domcom_cuck_xp < 100 } set_variable = { name = domcom_cuck_xp value = 100 } }
+                    add_opinion = { target = root modifier = domcom_resisted_alpha_opinion }
+                    domcom_refresh_cuck_stage_effect = yes
+                }
+                change_variable = { name = domcom_alpha_failures add = 1 }
+                send_interface_toast = { type = event_toast_effect_bad title = domcom_alpha_check_failure_toast left_icon = root right_icon = scope:target }
+            }
+            domcom_prepare_ui_effect = yes
+        }
+    }
+}
+
+domcom_ui_receive_prospect = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        age >= 18 is_alive = yes
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_receive_prospect }
+            is_alive = yes age >= 18
+            has_variable = domcom_crush_patron
+            var:domcom_crush_patron = root
+            OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+        }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_receive_prospect } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_receive_prospect days = 1 } }
+            scope:target = { save_scope_as = domcom_admirer }
+            remove_variable = domcom_ui_open
+            trigger_event = { id = domcom.200 days = 1 }
+        }
+    }
+}
+
+domcom_ui_acknowledge_blood = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        is_alive = yes exists = house
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_acknowledge_blood }
+            is_alive = yes
+            OR = { real_father ?= root father ?= root mother ?= root }
+            OR = { NOT = { exists = house } NOT = { house = root.house } }
+        }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_acknowledge_blood } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_acknowledge_blood days = 1 } }
+            save_scope_as = domcom_ack_patron
+            scope:target = { domcom_acknowledge_child_effect = yes }
+            send_interface_toast = { type = event_toast_effect_good title = domcom_acknowledge_blood_toast left_icon = root right_icon = scope:target }
+            domcom_prepare_ui_effect = yes
+        }
+    }
+}
+
+domcom_ui_acknowledge_all_blood = {
+    scope = character
+    is_valid = {
+        NOT = { has_character_flag = domcom_ui_lock_acknowledge_all_blood }
+        is_alive = yes exists = house has_variable_list = domcom_ui_blood_children
+    }
+    effect = {
+        if = {
+            limit = { NOT = { has_character_flag = domcom_ui_lock_acknowledge_all_blood } }
+            add_character_flag = { flag = domcom_ui_lock_acknowledge_all_blood days = 1 }
+            remove_variable = domcom_ui_open
+            trigger_event = { id = domcom.310 days = 1 } 
+        }
+    }
+}
+
+domcom_ui_embarrass_owned = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        is_alive = yes age >= 18
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_embarrass_owned }
+            is_alive = yes age >= 18
+            has_character_flag = domcom_owned_cuck
+            has_variable = domcom_patron
+            var:domcom_patron = root
+            OR = {
+                any_spouse = {
+                    is_alive = yes age >= 18
+                    root = { is_attracted_to_gender_of = prev }
+                    is_attracted_to_gender_of = root
+                    OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+                }
+                any_close_or_extended_family_member = {
+                    is_alive = yes age >= 18
+                    has_variable = domcom_crush_source
+                    var:domcom_crush_source = scope:target
+                    root = { is_attracted_to_gender_of = prev }
+                    is_attracted_to_gender_of = root
+                    OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+                }
+            }
+        }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_embarrass_owned } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_embarrass_owned days = 1 } }
+            scope:target = { save_scope_as = domcom_gui_humiliated_cuck }
+            remove_variable = domcom_ui_open
+            trigger_event = { id = domcom.320 days = 1 }
+        }
+    }
+}
+
+domcom_ui_demand_abdication = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        is_alive = yes exists = house
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_demand_abdication }
+            domcom_can_demand_abdication_for_blood_trigger = { PATRON = root }
+        }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_demand_abdication } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_demand_abdication days = 1 } }
+            save_scope_as = domcom_ui_patron
+            save_scope_as = domcom_abdication_patron
+            scope:target = {
+                # CK3 1.19 random blocks do not support an attached else.
+                add_character_flag = domcom_ui_abdication_failed_roll
+                random = {
+                    chance = domcom_ui_abdication_chance_value
+                    remove_character_flag = domcom_ui_abdication_failed_roll
+                    domcom_abdicate_to_blood_effect = yes
+                    add_character_flag = domcom_ui_abdication_success
+                }
+                if = {
+                    limit = { has_character_flag = domcom_ui_abdication_failed_roll }
+                    remove_character_flag = domcom_ui_abdication_failed_roll
+                    if = { limit = { NOT = { has_variable = domcom_cuck_xp } } set_variable = { name = domcom_cuck_xp value = 0 } }
+                    change_variable = { name = domcom_cuck_xp add = 100 }
+                    domcom_refresh_cuck_stage_effect = yes
+                }
+            }
+            if = {
+                limit = { scope:target = { has_character_flag = domcom_ui_abdication_success } }
+                scope:target = { remove_character_flag = domcom_ui_abdication_success }
+                send_interface_toast = { type = event_toast_effect_good title = domcom_abdication_success_toast left_icon = root right_icon = scope:target }
+            }
+            else = {
+                send_interface_toast = { type = event_toast_effect_bad title = domcom_abdication_failure_toast left_icon = root right_icon = scope:target }
+            }
+            domcom_prepare_ui_effect = yes
+        }
+    }
+}
+
+domcom_ui_refresh_intelligence = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_refresh_intelligence } is_alive = yes has_character_flag = domcom_owned_cuck has_variable = domcom_patron var:domcom_patron = root }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_refresh_intelligence } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_refresh_intelligence days = 1 } }
+            save_scope_as = domcom_secret_patron
+            scope:target = {
+                save_scope_as = domcom_intelligence_subject
+                domcom_reveal_subject_network_effect = yes
+            }
+            send_interface_toast = { type = event_toast_effect_neutral title = DOMCOM_UI_INTELLIGENCE_REFRESHED left_icon = root right_icon = scope:target }
+            remove_variable = domcom_ui_open
+            trigger_event = { id = domcom.700 days = 1 }
+        }
+    }
+}
+
+domcom_ui_resolve_collapse = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_resolve_collapse }
+            is_alive = yes has_character_flag = domcom_owned_cuck
+            has_variable = domcom_patron var:domcom_patron = root
+            has_variable = domcom_cuck_xp var:domcom_cuck_xp >= 1000
+            NOT = { has_character_flag = domcom_collapse_pending }
+            # 0.8.7 — a seizure that failed to move any title leaves
+            # domcom_collapse_seizure_failed rather than domcom_collapse_resolved,
+            # so Collapse stays available and the attempt can be made again.
+            NOT = { has_character_flag = domcom_collapse_resolved }
+        }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_resolve_collapse } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_resolve_collapse days = 1 } }
+            remove_variable = domcom_ui_open
+            scope:target = { domcom_check_final_collapse_effect = yes }
+        }
+    }
+}
+
+domcom_ui_begin_imperial_tribute = {
+    scope = character
+    is_valid = {
+        NOT = { has_character_flag = domcom_ui_lock_begin_tribute }
+        domcom_can_summon_imperial_tribute_trigger = yes
+    }
+    effect = {
+        if = {
+            limit = { NOT = { has_character_flag = domcom_ui_lock_begin_tribute } }
+            add_character_flag = { flag = domcom_ui_lock_begin_tribute days = 1 }
+            remove_variable = domcom_ui_open
+            domcom_begin_imperial_tribute_effect = yes
+            set_variable = { name = domcom_ui_page value = flag:imperial }
+        }
+    }
+}
+
+# ---------------------------------------------------------------------------
+# 0.4.2 — Ledger sorting, filters, tribute extraction, Alpha Gauntlet
+# ---------------------------------------------------------------------------
+domcom_ui_sort_rank = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:rank } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_endowment = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:endowment } domcom_rebuild_ui_rosters_effect = yes } }
+
+domcom_ui_sort_alpha = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:alpha } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_xp = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:xp } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_diplomacy = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:diplomacy } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_martial = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:martial } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_stewardship = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:stewardship } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_intrigue = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:intrigue } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_learning = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:learning } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_prowess = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:prowess } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_total = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:total } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_prize = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:prize } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_tribute = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:tribute } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_sort_reverse = {
+    scope = character
+    effect = {
+        if = { limit = { var:domcom_ui_sort_direction = flag:ascending } set_variable = { name = domcom_ui_sort_direction value = flag:descending } }
+        else = { set_variable = { name = domcom_ui_sort_direction value = flag:ascending } }
+        domcom_rebuild_ui_rosters_effect = yes
+    }
+}
+domcom_ui_filter_all = { scope = character effect = { set_variable = { name = domcom_ui_filter_mode value = flag:all } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_filter_landed = { scope = character effect = { set_variable = { name = domcom_ui_filter_mode value = flag:landed } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_filter_dukeplus = { scope = character effect = { set_variable = { name = domcom_ui_filter_mode value = flag:dukeplus } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_filter_kingplus = { scope = character effect = { set_variable = { name = domcom_ui_filter_mode value = flag:kingplus } domcom_rebuild_ui_rosters_effect = yes } }
+
+domcom_ui_demand_tribute_now = {
+    scope = character
+    saved_scopes = { target }
+    is_valid = {
+        is_alive = yes
+        scope:target = {
+            NOT = { has_character_flag = domcom_ui_lock_demand_tribute }
+            is_alive = yes has_character_flag = domcom_owned_cuck
+            has_variable = domcom_patron var:domcom_patron = root
+            monthly_character_income > 0
+            NOT = { has_character_flag = domcom_tribute_prepaid }
+        }
+    }
+    effect = {
+        if = {
+            limit = { scope:target = { NOT = { has_character_flag = domcom_ui_lock_demand_tribute } } }
+            scope:target = { add_character_flag = { flag = domcom_ui_lock_demand_tribute days = 1 } }
+            scope:target = { domcom_demand_annual_tribute_effect = yes }
+            send_interface_toast = { type = event_toast_effect_good title = DOMCOM_UI_TRIBUTE_ADVANCE_TOAST left_icon = root right_icon = scope:target }
+            domcom_prepare_ui_effect = yes
+        }
+    }
+}
+
+domcom_ui_alpha_gauntlet = {
+    scope = character
+    is_valid = {
+        NOT = { has_character_flag = domcom_ui_lock_alpha_gauntlet }
+        is_alive = yes age >= 18 has_variable_list = domcom_ui_cucked_raw
+        # A Gauntlet is a run, not a bulk button. Four fresh rivals minimum.
+        any_in_list = {
+            variable = domcom_ui_cucked_raw
+            count >= 4
+            is_alive = yes age >= 18 has_character_flag = domcom_cucked
+            NOT = { has_character_flag = domcom_owned_cuck }
+            has_variable = domcom_cuck_patron var:domcom_cuck_patron = root
+            NOT = {
+                AND = {
+                    has_character_flag = domcom_recent_alpha_challenge
+                    has_variable = domcom_last_alpha_patron
+                    var:domcom_last_alpha_patron = root
+                }
+            }
+        }
+    }
+    effect = {
+        if = {
+            limit = { NOT = { has_character_flag = domcom_ui_lock_alpha_gauntlet } }
+            add_character_flag = { flag = domcom_ui_lock_alpha_gauntlet days = 1 }
+            domcom_initialize_ledger_counters_effect = yes
+            # NOTE: the Gauntlet is deliberately exempt from the Alpha Check
+            # budget. It neither checks domcom_alpha_budget_available_trigger nor
+            # calls domcom_spend_alpha_budget_effect. A Gauntlet is one committed
+            # run against a roster the player already built; charging it eight
+            # separate checks would make the budget the only thing that matters.
+            remove_character_flag = domcom_gauntlet_failed
+            set_variable = { name = domcom_gauntlet_eligible value = 0 }
+            set_variable = { name = domcom_gauntlet_cleared value = 0 }
+            set_variable = { name = domcom_gauntlet_multiplier value = 0.90 }
+            save_scope_as = domcom_gauntlet_patron
+            # 0.9.7 — recount against live state before anything is spent. The
+            # roster can be stale by the time the button is pressed (a rival was
+            # just Owned, died, or was individually checked).
+            domcom_prepare_ui_effect = yes
+            save_scope_as = domcom_gauntlet_patron
+            every_in_list = {
+                variable = domcom_ui_cucked_raw
+                limit = {
+                    is_alive = yes age >= 18 has_character_flag = domcom_cucked
+                    NOT = { has_character_flag = domcom_owned_cuck }
+                    has_variable = domcom_cuck_patron var:domcom_cuck_patron = scope:domcom_gauntlet_patron
+                    NOT = {
+                        AND = {
+                            has_character_flag = domcom_recent_alpha_challenge
+                            has_variable = domcom_last_alpha_patron
+                            var:domcom_last_alpha_patron = scope:domcom_gauntlet_patron
+                        }
+                    }
+                }
+                scope:domcom_gauntlet_patron = { change_variable = { name = domcom_gauntlet_eligible add = 1 } }
+            }
+            if = {
+              limit = { var:domcom_gauntlet_eligible >= 4 }
+              ordered_in_list = {
+                variable = domcom_ui_cucked_raw
+                order_by = { value = domcom_sort_alpha_value multiply = -1 }
+                max = 500 check_range_bounds = no
+                limit = {
+                    is_alive = yes age >= 18 has_character_flag = domcom_cucked NOT = { has_character_flag = domcom_owned_cuck }
+                    has_variable = domcom_cuck_patron var:domcom_cuck_patron = scope:domcom_gauntlet_patron
+                    NOT = {
+                        AND = {
+                            has_character_flag = domcom_recent_alpha_challenge
+                            has_variable = domcom_last_alpha_patron
+                            var:domcom_last_alpha_patron = scope:domcom_gauntlet_patron
+                        }
+                    }
+                }
+                if = {
+                    limit = { scope:domcom_gauntlet_patron = { NOT = { has_character_flag = domcom_gauntlet_failed } } }
+                    save_scope_as = domcom_gauntlet_target
+                    add_character_flag = { flag = domcom_recent_alpha_challenge days = 365 }
+                    set_variable = { name = domcom_last_alpha_patron value = scope:domcom_gauntlet_patron }
+                    add_character_flag = domcom_gauntlet_failed_roll
+                    random = {
+                        chance = domcom_gauntlet_alpha_chance_value
+                        remove_character_flag = domcom_gauntlet_failed_roll
+                        scope:domcom_gauntlet_patron = {
+                            save_scope_as = domcom_owner
+                            change_variable = { name = domcom_alpha_attempts add = 1 }
+                            change_variable = { name = domcom_alpha_successes add = 1 }
+                            change_variable = { name = domcom_gauntlet_cleared add = 1 }
+                            change_variable = { name = domcom_gauntlet_multiplier add = -0.03 }
+                        }
+                        domcom_own_cuck_generic_effect = yes
+                    }
+                    if = {
+                        limit = { has_character_flag = domcom_gauntlet_failed_roll }
+                        remove_character_flag = domcom_gauntlet_failed_roll
+                        # Match the normal post-cuck Alpha rule: a resisted check
+                        # restores 50 XP of resistance rather than rewarding failure.
+                        if = { limit = { NOT = { has_variable = domcom_cuck_xp } } set_variable = { name = domcom_cuck_xp value = 0 } }
+                        if = { limit = { var:domcom_cuck_xp >= 50 } change_variable = { name = domcom_cuck_xp subtract = 50 } }
+                        else = { set_variable = { name = domcom_cuck_xp value = 0 } }
+                        add_opinion = { target = scope:domcom_gauntlet_patron modifier = domcom_resisted_alpha_opinion }
+                        domcom_refresh_cuck_stage_effect = yes
+                        scope:domcom_gauntlet_patron = { add_character_flag = domcom_gauntlet_failed change_variable = { name = domcom_alpha_attempts add = 1 } change_variable = { name = domcom_alpha_failures add = 1 } }
+                        save_scope_as = domcom_gauntlet_failed_target
+                    }
+                }
+              }
+              if = {
+                  limit = { NOT = { has_character_flag = domcom_gauntlet_failed } var:domcom_gauntlet_cleared >= var:domcom_gauntlet_eligible }
+                  add_character_modifier = { modifier = domcom_dominion_unchallenged_modifier years = 5 }
+                  change_variable = { name = domcom_perfect_gauntlets add = 1 }
+                  send_interface_toast = { type = event_toast_effect_good title = DOMCOM_UI_GAUNTLET_PERFECT_TOAST left_icon = root }
+              }
+              else_if = {
+                  limit = { has_character_flag = domcom_gauntlet_failed exists = scope:domcom_gauntlet_failed_target }
+                  send_interface_toast = { type = event_toast_effect_bad title = DOMCOM_UI_GAUNTLET_FAILED_TOAST left_icon = root right_icon = scope:domcom_gauntlet_failed_target }
+              }
+            }
+            else = {
+              # Too few fresh rivals. Nothing is spent and no one is challenged.
+              send_interface_toast = { type = event_toast_effect_neutral title = DOMCOM_UI_GAUNTLET_TOO_FEW_TOAST left_icon = root }
+            }
+            remove_character_flag = domcom_gauntlet_failed
+            remove_variable = domcom_gauntlet_multiplier
+            domcom_prepare_ui_effect = yes
+        }
+    }
+}
+
+# 0.9.0 — maintenance lives inside Dominion instead of cluttering Decisions.
+domcom_ui_debug_tools_visible = {
+    scope = character
+    is_shown = { NOT = { has_game_rule = domcom_debug_tools_off } }
+}
+
+domcom_ui_rebuild_endowment_display = {
+    scope = character
+    is_valid = { is_playable_character = yes }
+    effect = {
+        domcom_rebuild_display_effect = yes
+        domcom_prepare_ui_effect = yes
+        send_interface_toast = { type = event_toast_effect_neutral title = DOMCOM_UI_REBUILD_DONE_TOAST left_icon = root }
+    }
+}
+
+domcom_ui_reroll_endowments = {
+    scope = character
+    is_valid = { is_playable_character = yes }
+    effect = { trigger_event = { id = domcom.900 } }
+}
+
+# 0.8.5 — receive every registered prospect in one action. Individual Receive
+# Them buttons are kept: the per-character choice is the interesting decision,
+# this is for players who have twenty of them queued and do not want twenty
+# clicks. Locked for a day like the other bulk actions so it cannot be spammed.
+domcom_ui_receive_all_prospects = {
+    scope = character
+    is_valid = {
+        NOT = { has_character_flag = domcom_ui_lock_receive_all }
+        age >= 18 is_alive = yes
+        has_variable_list = domcom_ui_prospects_raw
+        any_in_list = {
+            variable = domcom_ui_prospects_raw
+            is_alive = yes age >= 18
+            has_variable = domcom_crush_patron
+            var:domcom_crush_patron = root
+        }
+    }
+    effect = {
+        add_character_flag = { flag = domcom_ui_lock_receive_all days = 1 }
+        remove_variable = domcom_ui_open
+        save_scope_as = domcom_receive_all_patron
+        every_in_list = {
+            variable = domcom_ui_prospects_raw
+            limit = {
+                is_alive = yes age >= 18
+                has_variable = domcom_crush_patron
+                var:domcom_crush_patron = scope:domcom_receive_all_patron
+            }
+            add_character_flag = { flag = domcom_ui_lock_receive_prospect days = 1 }
+            save_scope_as = domcom_admirer
+            # Staggered rather than fired together. domcom.200 is one popup per
+            # prospect, so releasing twenty at once would just relocate the
+            # flood the player is trying to escape.
+            scope:domcom_receive_all_patron = { trigger_event = { id = domcom.200 days = { 1 20 } } }
+        }
+        domcom_prepare_ui_effect = yes
+    }
+}
+
+# 0.8.7 — one-shot repair for subjects stranded by the pre-0.8.7 seizure bug.
+domcom_ui_repair_collapses = {
+    scope = character
+    is_valid = {
+        NOT = { has_character_flag = domcom_ui_lock_repair_collapses }
+        age >= 18 is_alive = yes
+        any_living_character = {
+            is_landed = yes
+            OR = {
+                has_character_flag = domcom_collapse_seizure_failed
+                AND = {
+                    has_character_flag = domcom_collapse_resolved
+                    has_variable = domcom_patron
+                    var:domcom_patron = root
+                }
+            }
+        }
+    }
+    effect = {
+        add_character_flag = { flag = domcom_ui_lock_repair_collapses days = 1 }
+        domcom_repair_failed_collapses_effect = yes
+        domcom_prepare_ui_effect = yes
+    }
+}
+
+
+# 1.0.0-rc4.4 — player toggle for the vanilla Unfaithful chain.
+# Suppressed by default; setting the flag restores Paradox's behaviour intact.
+domcom_ui_toggle_adultery_secrets = {
+    scope = character
+    effect = {
+        if = {
+            limit = { has_character_flag = domcom_allow_adultery_secrets }
+            remove_character_flag = domcom_allow_adultery_secrets
+        }
+        else = { add_character_flag = domcom_allow_adultery_secrets }
+    }
+}
+
+domcom_ui_adultery_secrets_allowed = {
+    scope = character
+    is_shown = { has_character_flag = domcom_allow_adultery_secrets }
+}
+
+# ---------------------------------------------------------------------------
+# 0.9.7 — TANTALIZED ROSTER (issue 5) and DEEP SAVE SCAN (issue 4)
+# ---------------------------------------------------------------------------
+
+domcom_ui_is_pet = { scope = character is_shown = { has_character_flag = domcom_pet } }
+
+domcom_ui_sort_obedience = { scope = character effect = { set_variable = { name = domcom_ui_sort_mode value = flag:obedience } domcom_rebuild_ui_rosters_effect = yes } }
+
+domcom_ui_tfilter_all   = { scope = character effect = { set_variable = { name = domcom_ui_tantalize_filter value = flag:all }   domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_tfilter_women = { scope = character effect = { set_variable = { name = domcom_ui_tantalize_filter value = flag:women } domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_tfilter_men   = { scope = character effect = { set_variable = { name = domcom_ui_tantalize_filter value = flag:men }   domcom_rebuild_ui_rosters_effect = yes } }
+domcom_ui_tfilter_pets  = { scope = character effect = { set_variable = { name = domcom_ui_tantalize_filter value = flag:pets }  domcom_rebuild_ui_rosters_effect = yes } }
+
+# A full-world reconstruction. Deliberately separate from the ordinary refresh
+# because it walks every living character; it is the button to press when a save
+# is picked up mid-game or predates the mod.
+domcom_ui_deep_scan = {
+    scope = character
+    is_valid = { is_alive = yes NOT = { has_character_flag = domcom_ui_lock_deep_scan } }
+    effect = {
+        if = {
+            limit = { NOT = { has_character_flag = domcom_ui_lock_deep_scan } }
+            add_character_flag = { flag = domcom_ui_lock_deep_scan days = 1 }
+            domcom_deep_scan_effect = yes
+            domcom_enforce_communion_for_patron_effect = yes
+            domcom_prepare_ui_effect = yes
+            send_interface_toast = { type = event_toast_effect_good title = DOMCOM_UI_DEEP_SCAN_TOAST left_icon = root }
+        }
+    }
+}
+
+# Tribute season state, so the Imperial page can say which of the three
+# situations the player is actually in instead of leaving them to guess.
+domcom_ui_tribute_season_active   = { scope = character is_shown = { has_character_flag = domcom_tribute_season_active } }
+domcom_ui_tribute_season_cooldown = { scope = character is_shown = { NOT = { has_character_flag = domcom_tribute_season_active } has_character_flag = domcom_tribute_cooldown } }
+domcom_ui_tribute_season_idle     = { scope = character is_shown = { NOR = { has_character_flag = domcom_tribute_season_active has_character_flag = domcom_tribute_cooldown } } }
+
+# 0.9.10 — row-level Endowment visibility. Character is an explicit datacontext
+# in every Dominion roster, so this path cannot inherit a stray tooltip scope.
+domcom_ui_has_measurements = {
+    scope = character
+    is_shown = { is_male = yes age >= 18 has_variable = domcom_length_tenths has_variable = domcom_girth_tenths }
+}

@@ -1,0 +1,23 @@
+﻿l_english:
+
+ dcint.100.t: "A Word in the Right Ear"
+ dcint.100.desc: "[scope:dcint_partner.GetTitledFirstName] has a place inside another household, and that place has value. A suggestion repeated at supper, a doubt placed carefully, a story told by someone who belongs there — influence travels farther when it comes from inside the walls."
+ dcint.100.a: "Let the talk begin."
+ dcint.100.b: "Not yet. Say nothing."
+
+ dcint.200.t: "Someone Worth Taking"
+ dcint.200.desc: "[scope:dcint_partner.GetTitledFirstName] knows the people behind the public face of the household: who is overlooked, who is restless, and who might be persuaded that service to me offers more than service where they stand now."
+ dcint.200.a: "Bring them to my court."
+ dcint.200.b: "Leave them where they are."
+
+ dcint.300.t: "The Question of Blood"
+ dcint.300.desc: "[scope:dcint_partner.GetTitledFirstName] raises the matter carefully. There is a child of my blood inside this household, and blood can become politics when a title, an inheritance, and the right pressure meet."
+ dcint.300.a: "Give my child a claim."
+ dcint.300.b: "Too loud. Too soon."
+
+ dcint_whispered_against_opinion: "Poisoned by Household Whispers"
+ dcint_whispered_against_strong_opinion: "Undermined from Within"
+ dcint_whispered_against_pet_opinion: "Household Turned Against Me"
+ dcint_courtier_poached_opinion: "Poached a Courtier"
+ dcint_claim_pressed_opinion: "Pressed a Blood Claim"
+ dcint_partner_grateful_opinion: "Trusted My Counsel"

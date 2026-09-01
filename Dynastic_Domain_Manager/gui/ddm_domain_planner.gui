@@ -1,0 +1,653 @@
+﻿window = {
+  name = "ddm_office_window"
+  layer = top
+  parentanchor = center
+  size = { 1120 820 }
+  movable = yes
+  visible = "[GetPlayer.MakeScope.Var('ddm_ui_open').IsSet]"
+
+  using = Window_Background
+  using = Window_Decoration
+
+  # The Domain Office is a planning surface. This zero-size helper only becomes
+  # visible while the office is open AND the simulation is running. Its _show
+  # state toggles the vanilla pause control once, so opening the office pauses
+  # without accidentally unpausing a game that was already paused.
+  widget = {
+    name = "ddm_office_autopause"
+    size = { 0 0 }
+    visible = "[And(GetPlayer.MakeScope.Var('ddm_ui_open').IsSet, Not(IsGamePaused))]"
+    visible_at_creation = no
+    state = {
+      name = _show
+      on_start = "[OnPause]"
+    }
+  }
+
+  vbox = {
+    layoutpolicy_horizontal = expanding
+    layoutpolicy_vertical = expanding
+    margin = { 26 22 }
+
+    hbox = {
+      layoutpolicy_horizontal = expanding
+      margin_bottom = 10
+      vbox = {
+        layoutpolicy_horizontal = expanding
+        spacing = 2
+        text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_TITLE fontsize = 24 min_height = 28 align = left }
+        text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_SUBTITLE min_height = 20 align = left default_format = "#weak" }
+      }
+      button_standard_small = { text = DDM_UI_CLOSE size = { 92 30 } margin_right = 10 shortcut = close_window onclick = "[GetScriptedGui('ddm_ui_close').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+    }
+
+    divider = { layoutpolicy_horizontal = expanding }
+
+    hbox = {
+      layoutpolicy_horizontal = expanding
+      layoutpolicy_vertical = expanding
+
+      vbox = {
+        margin = { 6 10 }
+        layoutpolicy_vertical = expanding
+        spacing = 7
+        button_standard_small = { text = DDM_UI_PAGE_OVERVIEW size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_overview').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_ESTATE size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_estate').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_DISTRIBUTION size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_distribution').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_HIERARCHY size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_hierarchy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_DYNASTY size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_dynasty').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_OUTSIDERS size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_outsiders').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_SUCCESSION size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_succession').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_ALLIANCES size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_alliances').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_TOOLS size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_tools').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DDM_UI_PAGE_RECORDS size = { 184 32 } onclick = "[GetScriptedGui('ddm_ui_set_page_records').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        expand = {}
+        text_multi = { autoresize = yes text = DDM_UI_SIDEBAR_NOTE max_width = 184 default_format = "#weak" }
+      }
+
+      divider = { layoutpolicy_vertical = expanding }
+
+      vbox = {
+        name = "ddm_office_page_content"
+        layoutpolicy_horizontal = expanding
+        layoutpolicy_vertical = expanding
+        margin_left = 8
+
+            # OVERVIEW
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_overview').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding
+              spacing = 10
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_OVERVIEW_TITLE fontsize = 22 min_height = 30 align = left }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OVERVIEW_FLAVOR default_format = "#weak" }
+              divider = { layoutpolicy_horizontal = expanding }
+              text_single = { text = DDM_UI_OVERVIEW_CROWN fontsize = 15 size = { 800 22 } align = center }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OVERVIEW_CROWN_STATS }
+              text_single = { text = DDM_UI_OVERVIEW_REALM fontsize = 15 size = { 800 22 } align = center }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OVERVIEW_REALM_STATS }
+              text_single = { text = DDM_UI_OVERVIEW_DYNASTY fontsize = 15 size = { 800 22 } align = center }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OVERVIEW_DYNASTY_STATS }
+              divider = { layoutpolicy_horizontal = expanding }
+              hbox = {
+                layoutpolicy_horizontal = expanding
+                spacing = 10
+                expand = {}
+                button_primary = {
+                  visible = "[GetScriptedGui('ddm_ui_settlement_needs_planner').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  text = DDM_UI_SETTLE size = { 270 38 } tooltip = DDM_UI_SETTLE_TT
+                  enabled = "[GetScriptedGui('ddm_ui_run_settlement').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[GetScriptedGui('ddm_ui_run_settlement').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                }
+                button_primary = {
+                  visible = "[GetScriptedGui('ddm_ui_settlement_direct').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  text = DDM_UI_SETTLE size = { 270 38 } tooltip = DDM_UI_SETTLE_TT
+                  enabled = "[GetScriptedGui('ddm_ui_run_settlement').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[GetScriptedGui('ddm_ui_run_settlement').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[OnPause]"
+                }
+                button_primary = {
+                  visible = "[GetScriptedGui('ddm_ui_settlement_at_war').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  text = DDM_UI_SETTLE_AFTER_WAR size = { 270 38 } tooltip = DDM_UI_SETTLE_AFTER_WAR_TT
+                  enabled = "[GetScriptedGui('ddm_ui_queue_settlement').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[GetScriptedGui('ddm_ui_queue_settlement').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[OnPause]"
+                }
+                button_standard = {
+                  visible = "[GetScriptedGui('ddm_ui_settlement_queued').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  text = DDM_UI_SETTLEMENT_QUEUED size = { 270 38 } tooltip = DDM_UI_SETTLEMENT_QUEUED_TT enabled = no
+                }
+                button_standard = { text = DDM_UI_PREVIEW size = { 270 38 } tooltip = DDM_UI_PREVIEW_TT onclick = "[GetScriptedGui('ddm_ui_preview').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OUTSIDER_INVARIANT default_format = "#P" }
+            }
+
+            # PERSONAL ESTATE
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_estate').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding
+              spacing = 8
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_ESTATE_TITLE fontsize = 22 min_height = 30 align = left }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_ESTATE_FLAVOR default_format = "#weak" }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_ESTATE_COUNT default_format = "#high" }
+              hbox = {
+                layoutpolicy_horizontal = expanding
+                spacing = 8
+                button_standard_small = { text = DDM_UI_ESTATE_RECOMMEND size = { 185 32 } tooltip = DDM_DOMAIN_PLANNER_RECOMMEND_TT onclick = "[GetScriptedGui('ddm_gui_office_recommendation').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_ESTATE_MAA size = { 185 32 } tooltip = DDM_DOMAIN_PLANNER_MAA_TT onclick = "[GetScriptedGui('ddm_gui_protect_maa').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_ESTATE_CAPITAL size = { 185 32 } tooltip = DDM_DOMAIN_PLANNER_CAPITAL_DUCHY_TT onclick = "[GetScriptedGui('ddm_gui_protect_capital_duchy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_ESTATE_CLEAR size = { 185 32 } tooltip = DDM_DOMAIN_PLANNER_CLEAR_TT onclick = "[GetScriptedGui('ddm_gui_clear_core').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              hbox = {
+                layoutpolicy_horizontal = expanding spacing = 6
+                text_single = { text = DDM_UI_SORT_LABEL size = { 58 26 } align = right default_format = "#weak" }
+                button_standard_small = { text = DDM_UI_SORT_HIERARCHY size = { 125 26 } tooltip = DDM_UI_SORT_HIERARCHY_TT onclick = "[GetScriptedGui('ddm_ui_sort_hierarchy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_DEVELOPMENT size = { 120 26 } onclick = "[GetScriptedGui('ddm_ui_sort_development').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_FAITH size = { 90 26 } onclick = "[GetScriptedGui('ddm_ui_sort_faith').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_CULTURE size = { 90 26 } onclick = "[GetScriptedGui('ddm_ui_sort_culture').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_REVERSE size = { 90 26 } tooltip = DDM_UI_SORT_REVERSE_TT onclick = "[GetScriptedGui('ddm_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              scrollbox = {
+                name = "ddm_estate_holdings_scroll"
+                layoutpolicy_horizontal = expanding
+                layoutpolicy_vertical = expanding
+                min_height = 260
+                blockoverride "scrollbox_content" {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    min_width = 780
+                    max_width = 780
+                    datamodel = "[GetPlayer.MakeScope.GetList('ddm_domain_planner_titles')]"
+                    spacing = 4
+                    item = {
+                      hbox = {
+                        datacontext = "[Scope.Title]"
+                        layoutpolicy_horizontal = expanding
+                        min_width = 780
+                        max_width = 780
+                        min_height = 46
+                        spacing = 8
+
+                        coa_title_tiny_crown = { using = tooltip_ne }
+
+                        vbox = {
+                          min_width = 500
+                          max_width = 500
+                          button_checkbox_label = {
+                            layoutpolicy_horizontal = expanding
+                            enabled = "[GetScriptedGui('ddm_gui_toggle_core').IsValid(GuiScope.SetRoot(Title.MakeScope).End)]"
+                            onclick = "[GetScriptedGui('ddm_gui_toggle_core').Execute(GuiScope.SetRoot(Title.MakeScope).End)]"
+                            blockoverride "checkbox" { checked = "[Title.MakeScope.Var('ddm_manual_core').IsSet]" }
+                            blockoverride "text" { text = "[Title.GetNameNoTooltip]" max_width = 450 }
+                          }
+                        }
+
+                        vbox = {
+                          min_width = 210
+                          max_width = 210
+                          spacing = 1
+                          text_single = { layoutpolicy_horizontal = expanding visible = "[Title.MakeScope.Var('ddm_planner_maa').IsSet]" text = DDM_DOMAIN_TAG_MAA max_width = 210 align = left default_format = "#high" }
+                          text_single = { layoutpolicy_horizontal = expanding visible = "[Title.MakeScope.Var('ddm_planner_special').IsSet]" text = DDM_DOMAIN_TAG_SPECIAL max_width = 210 align = left default_format = "#P" }
+                          text_single = { layoutpolicy_horizontal = expanding visible = "[Title.MakeScope.Var('ddm_planner_capital_duchy').IsSet]" text = DDM_DOMAIN_TAG_CAPITAL_DUCHY max_width = 210 align = left default_format = "#weak" }
+                        }
+                        expand = {}
+                      }
+                    }
+                  }
+                }
+              }
+              hbox = {
+                layoutpolicy_horizontal = expanding
+                spacing = 10
+                button_standard = { text = DDM_UI_ESTATE_CANCEL size = { 180 36 } onclick = "[GetScriptedGui('ddm_ui_cancel_estate').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+                button_primary = {
+                  visible = "[GetScriptedGui('ddm_ui_domain_plan_idle').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  text = DDM_UI_ESTATE_SAVE size = { 250 36 } tooltip = DDM_UI_ESTATE_SAVE_TT
+                  enabled = "[GetScriptedGui('ddm_gui_confirm_domain_plan').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[GetScriptedGui('ddm_gui_confirm_domain_plan').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                }
+                button_primary = {
+                  visible = "[GetScriptedGui('ddm_ui_domain_plan_pending').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  text = DDM_UI_ESTATE_SAVE size = { 250 36 } tooltip = DDM_UI_ESTATE_SAVE_TT
+                  enabled = "[GetScriptedGui('ddm_gui_confirm_domain_plan').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[GetScriptedGui('ddm_gui_confirm_domain_plan').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[OnPause]"
+                }
+              }
+            }
+
+            # DISTRIBUTION
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_distribution').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding
+              spacing = 8
+
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_DISTRIBUTION_TITLE fontsize = 22 min_height = 30 align = left }
+
+              scrollbox = {
+                name = "ddm_distribution_scroll"
+                layoutpolicy_horizontal = expanding
+                layoutpolicy_vertical = expanding
+                min_height = 300
+                blockoverride "scrollbox_content" {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    spacing = 10
+
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_DISTRIBUTION_FLAVOR default_format = "#weak" }
+                    divider = { layoutpolicy_horizontal = expanding }
+
+                    # Branch preference
+                    vbox = {
+                      layoutpolicy_horizontal = expanding
+                      spacing = 5
+                      text_single = { text = DDM_UI_DISTRIBUTION_DYNASTIC_PREF fontsize = 15 size = { 780 22 } align = center }
+                      text_single = { text = DDM_UI_FAMILY_HOUSE_ONLY visible = "[GetScriptedGui('ddm_ui_family_1').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" size = { 780 24 } align = center }
+                      text_single = { text = DDM_UI_FAMILY_HOUSE_PREFERRED visible = "[GetScriptedGui('ddm_ui_family_3').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" size = { 780 24 } align = center }
+                      text_single = { text = DDM_UI_FAMILY_DYNASTY_EQUAL visible = "[GetScriptedGui('ddm_ui_family_2').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" size = { 780 24 } align = center }
+                      hbox = {
+                        layoutpolicy_horizontal = expanding spacing = 10
+                        expand = {}
+                        button_standard_small = { text = DDM_UI_FAMILY_SET_1 size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_family_1').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        button_standard_small = { text = DDM_UI_FAMILY_SET_3 size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_family_3').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        button_standard_small = { text = DDM_UI_FAMILY_SET_2 size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_family_2').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        expand = {}
+                      }
+                    }
+
+                    divider = { layoutpolicy_horizontal = expanding }
+
+                    # Concentration of power
+                    vbox = {
+                      layoutpolicy_horizontal = expanding
+                      spacing = 5
+                      text_single = { text = DDM_UI_POWER_TITLE fontsize = 15 size = { 780 22 } align = center }
+                      text_single = { text = DDM_UI_POWER_1 visible = "[GetScriptedGui('ddm_ui_power_1').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" size = { 780 24 } align = center }
+                      text_single = { text = DDM_UI_POWER_2 visible = "[GetScriptedGui('ddm_ui_power_2').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" size = { 780 24 } align = center }
+                      text_single = { text = DDM_UI_POWER_3 visible = "[GetScriptedGui('ddm_ui_power_3').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" size = { 780 24 } align = center }
+                      hbox = {
+                        layoutpolicy_horizontal = expanding spacing = 10
+                        expand = {}
+                        button_standard_small = { text = DDM_UI_POWER_SET_1 size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_power_1').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        button_standard_small = { text = DDM_UI_POWER_SET_2 size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_power_2').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        button_standard_small = { text = DDM_UI_POWER_SET_3 size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_power_3').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        expand = {}
+                      }
+                    }
+
+                    divider = { layoutpolicy_horizontal = expanding }
+
+                    # Eligibility and realm safeguards
+                    vbox = {
+                      layoutpolicy_horizontal = expanding
+                      spacing = 6
+                      text_single = { text = DDM_UI_PERCEPTION_TITLE fontsize = 15 size = { 780 22 } align = center }
+                      hbox = {
+                        layoutpolicy_horizontal = expanding spacing = 10
+                        expand = {}
+                        button_standard_small = { text = DDM_UI_REGARD_CLOSE size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_regard_1').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        button_standard_small = { text = DDM_UI_REGARD_DYNASTY size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_set_regard_2').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        button_standard_small = { text = DDM_UI_GENDER_TOGGLE size = { 165 32 } onclick = "[GetScriptedGui('ddm_ui_toggle_gender').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        expand = {}
+                      }
+                      hbox = {
+                        layoutpolicy_horizontal = expanding
+                        expand = {}
+                        button_standard_small = { text = DDM_UI_INTEGRITY_TOGGLE size = { 225 32 } onclick = "[GetScriptedGui('ddm_ui_toggle_integrity').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                        expand = {}
+                      }
+                      text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_REGARD_CURRENT_CLOSE visible = "[GetScriptedGui('ddm_ui_regard_1').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 align = center }
+                      text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_REGARD_CURRENT_DYNASTY visible = "[GetScriptedGui('ddm_ui_regard_2').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 align = center }
+                      text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_GENDER_ON visible = "[GetScriptedGui('ddm_ui_gender_on').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 align = center }
+                      text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_GENDER_OFF visible = "[GetScriptedGui('ddm_ui_gender_off').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 align = center }
+                      text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_INTEGRITY_ON visible = "[GetScriptedGui('ddm_ui_integrity_on').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 align = center }
+                      text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_INTEGRITY_OFF visible = "[GetScriptedGui('ddm_ui_integrity_off').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 align = center }
+                    }
+
+                    divider = { layoutpolicy_horizontal = expanding }
+                    text_single = { text = DDM_UI_DISTRIBUTION_RULES_TITLE fontsize = 15 size = { 780 22 } align = center }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_DISTRIBUTION_RULES default_format = "#weak" }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_RECIPIENT_SCOPE_DYNASTY_CURRENT visible = "[GetScriptedGui('ddm_ui_recipient_dynasty').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" align = center }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_RECIPIENT_SCOPE_SELECTED_CURRENT visible = "[GetScriptedGui('ddm_ui_recipient_selected').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" align = center }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_RECIPIENT_SCOPE_ALL_CURRENT visible = "[GetScriptedGui('ddm_ui_recipient_all').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" align = center }
+                    divider = { layoutpolicy_horizontal = expanding }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_EXISTING_GRANTS default_format = "#P" }
+                  }
+                }
+              }
+            }
+
+            # HIERARCHY
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_hierarchy').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding spacing = 10
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_HIERARCHY_TITLE fontsize = 22 min_height = 30 align = left }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_HIERARCHY_FLAVOR default_format = "#weak" }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_HIERARCHY_HELD }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_HIERARCHY_CROWN_RULE }
+              divider = { layoutpolicy_horizontal = expanding }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_HIERARCHY_VASSAL_LIMIT }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_HIERARCHY_PROPER_LAST default_format = "#P" }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_HIERARCHY_LAST }
+              hbox = { layoutpolicy_horizontal = expanding spacing = 12
+                expand = {}
+                button_primary = { text = DDM_UI_HIERARCHY_RUN size = { 280 38 } tooltip = DDM_UI_HIERARCHY_RUN_TT onclick = "[GetScriptedGui('ddm_ui_organize_hierarchy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard = {
+                  text = DDM_UI_HIERARCHY_PROPER_LIEGES size = { 280 38 } tooltip = DDM_UI_HIERARCHY_PROPER_LIEGES_TT
+                  enabled = "[GetScriptedGui('ddm_ui_distribute_proper_lieges').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[GetScriptedGui('ddm_ui_distribute_proper_lieges').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                }
+                expand = {}
+              }
+            }
+
+            # RECIPIENTS (internal page key retained as dynasty for save/UI compatibility)
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_dynasty').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding spacing = 8
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_DYNASTY_TITLE fontsize = 22 min_height = 30 align = left }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_DYNASTY_FLAVOR default_format = "#weak" }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_DYNASTY_STATS }
+
+              divider = { layoutpolicy_horizontal = expanding }
+              text_single = { text = DDM_UI_RECIPIENT_SCOPE_TITLE fontsize = 15 size = { 800 22 } align = center }
+              text_multi = { autoresize = yes max_width = 800 align = center text = DDM_UI_RECIPIENT_SCOPE_DYNASTY_CURRENT visible = "[GetScriptedGui('ddm_ui_recipient_dynasty').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+              text_multi = { autoresize = yes max_width = 800 align = center text = DDM_UI_RECIPIENT_SCOPE_SELECTED_CURRENT visible = "[GetScriptedGui('ddm_ui_recipient_selected').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+              text_multi = { autoresize = yes max_width = 800 align = center text = DDM_UI_RECIPIENT_SCOPE_ALL_CURRENT visible = "[GetScriptedGui('ddm_ui_recipient_all').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+              hbox = { layoutpolicy_horizontal = expanding spacing = 10
+                expand = {}
+                button_standard_small = { text = DDM_UI_RECIPIENT_SCOPE_DYNASTY size = { 180 32 } onclick = "[GetScriptedGui('ddm_ui_set_recipient_dynasty').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_RECIPIENT_SCOPE_SELECTED size = { 180 32 } onclick = "[GetScriptedGui('ddm_ui_set_recipient_selected').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_RECIPIENT_SCOPE_ALL size = { 180 32 } onclick = "[GetScriptedGui('ddm_ui_set_recipient_all').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_RECIPIENT_PRIORITY_NOTE default_format = "#P" }
+
+              scrollbox = {
+                name = "ddm_outsider_recipient_scroll"
+                layoutpolicy_horizontal = expanding
+                layoutpolicy_vertical = expanding
+                min_height = 220
+                blockoverride "scrollbox_content" {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    min_width = 780 max_width = 780
+                    datamodel = "[GetPlayer.MakeScope.GetList('ddm_outsider_recipient_candidates')]"
+                    spacing = 4
+                    item = {
+                      hbox = {
+                        datacontext = "[Scope.GetCharacter]"
+                        layoutpolicy_horizontal = expanding min_width = 780 max_width = 780 min_height = 44 spacing = 8
+                        portrait_head_small = {}
+                        vbox = {
+                          min_width = 540 max_width = 540
+                          button_checkbox_label = {
+                            layoutpolicy_horizontal = expanding
+                            onclick = "[GetScriptedGui('ddm_gui_toggle_outsider_recipient_priority').Execute(GuiScope.SetRoot(Character.MakeScope).End)]"
+                            tooltip = DDM_UI_RECIPIENT_PRIORITY_TT
+                            blockoverride "checkbox" { checked = "[Character.MakeScope.Var('ddm_outsider_favored_for_land').IsSet]" }
+                            blockoverride "text" { text = "[Character.GetShortUINameNoTooltip]" max_width = 500 }
+                          }
+                        }
+                        expand = {}
+                      }
+                    }
+                  }
+                }
+              }
+              hbox = { layoutpolicy_horizontal = expanding spacing = 12
+                button_standard = { text = DDM_UI_DYNASTY_REVIEW size = { 235 36 } onclick = "[GetScriptedGui('ddm_ui_open_dynasty_review').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+                button_standard = { text = DDM_UI_RECIPIENT_REFRESH size = { 180 36 } onclick = "[GetScriptedGui('ddm_ui_refresh_outsider_recipients').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+              }
+            }
+
+            # OUTSIDER HOLDINGS
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_outsiders').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding
+              spacing = 9
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_OUTSIDERS_TITLE fontsize = 22 min_height = 30 align = left }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OUTSIDERS_FLAVOR default_format = "#weak" }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OUTSIDERS_STATS default_format = "#high" }
+              divider = { layoutpolicy_horizontal = expanding }
+              text_single = { text = DDM_UI_OUTSIDERS_POLICY_TITLE fontsize = 15 size = { 800 22 } align = center }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_OUTSIDERS_POLICY_RESPECT_CURRENT visible = "[GetScriptedGui('ddm_ui_outsider_policy_respect').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_OUTSIDERS_POLICY_RECLAIM_CURRENT visible = "[GetScriptedGui('ddm_ui_outsider_policy_reclaim').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              hbox = { layoutpolicy_horizontal = expanding spacing = 10
+                expand = {}
+                button_standard = { text = DDM_UI_OUTSIDERS_POLICY_RESPECT size = { 330 34 } tooltip = DDM_UI_OUTSIDERS_POLICY_RESPECT_TT onclick = "[GetScriptedGui('ddm_ui_set_outsider_policy_respect').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard = { text = DDM_UI_OUTSIDERS_POLICY_RECLAIM size = { 330 34 } tooltip = DDM_UI_OUTSIDERS_POLICY_RECLAIM_TT onclick = "[GetScriptedGui('ddm_ui_set_outsider_policy_reclaim').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              divider = { layoutpolicy_horizontal = expanding }
+              hbox = { layoutpolicy_horizontal = expanding spacing = 8
+                expand = {}
+                button_standard_small = { text = DDM_UI_OUTSIDERS_PROTECT_ALL size = { 215 32 } tooltip = DDM_UI_OUTSIDERS_PROTECT_ALL_TT onclick = "[GetScriptedGui('ddm_ui_outsider_protect_all').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_OUTSIDERS_CLEAR_ALL size = { 215 32 } tooltip = DDM_UI_OUTSIDERS_CLEAR_ALL_TT onclick = "[GetScriptedGui('ddm_ui_outsider_clear_all').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_OUTSIDERS_REFRESH size = { 215 32 } tooltip = DDM_UI_OUTSIDERS_REFRESH_TT onclick = "[GetScriptedGui('ddm_ui_outsider_refresh').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              hbox = {
+                layoutpolicy_horizontal = expanding spacing = 6
+                text_single = { text = DDM_UI_SORT_LABEL size = { 58 26 } align = right default_format = "#weak" }
+                button_standard_small = { text = DDM_UI_SORT_HIERARCHY size = { 125 26 } tooltip = DDM_UI_SORT_HIERARCHY_TT onclick = "[GetScriptedGui('ddm_ui_sort_hierarchy').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_DEVELOPMENT size = { 120 26 } onclick = "[GetScriptedGui('ddm_ui_sort_development').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_FAITH size = { 90 26 } onclick = "[GetScriptedGui('ddm_ui_sort_faith').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_CULTURE size = { 90 26 } onclick = "[GetScriptedGui('ddm_ui_sort_culture').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SORT_REVERSE size = { 90 26 } tooltip = DDM_UI_SORT_REVERSE_TT onclick = "[GetScriptedGui('ddm_ui_sort_reverse').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_OUTSIDERS_LIST_NOTE default_format = "#weak" }
+              scrollbox = {
+                name = "ddm_outsider_holdings_scroll"
+                layoutpolicy_horizontal = expanding
+                layoutpolicy_vertical = expanding
+                min_height = 210
+                blockoverride "scrollbox_content" {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    min_width = 780
+                    max_width = 780
+                    datamodel = "[GetPlayer.MakeScope.GetList('ddm_outsider_counties')]"
+                    spacing = 4
+                    item = {
+                      hbox = {
+                        datacontext = "[Scope.Title]"
+                        layoutpolicy_horizontal = expanding
+                        min_width = 780
+                        max_width = 780
+                        min_height = 46
+                        spacing = 8
+
+                        coa_title_tiny_crown = { using = tooltip_ne }
+
+                        vbox = {
+                          min_width = 500
+                          max_width = 500
+                          button_checkbox_label = {
+                            layoutpolicy_horizontal = expanding
+                            enabled = "[GetScriptedGui('ddm_gui_toggle_outsider_protection').IsValid(GuiScope.SetRoot(Title.MakeScope).End)]"
+                            onclick = "[GetScriptedGui('ddm_gui_toggle_outsider_protection').Execute(GuiScope.SetRoot(Title.MakeScope).End)]"
+                            tooltip = DDM_UI_OUTSIDERS_CHECKBOX_TT
+                            blockoverride "checkbox" { checked = "[Title.MakeScope.Var('ddm_outsider_protected').IsSet]" }
+                            blockoverride "text" { text = "[Title.GetNameNoTooltip]" max_width = 450 }
+                          }
+                        }
+
+                        vbox = {
+                          min_width = 220
+                          max_width = 220
+                          text_single = { layoutpolicy_horizontal = expanding text = "[Title.GetHolder.GetShortUINameNoTooltip]" max_width = 220 align = left default_format = "#weak" }
+                        }
+                        expand = {}
+                      }
+                    }
+                  }
+                }
+              }
+              hbox = { layoutpolicy_horizontal = expanding
+                expand = {}
+                button_primary = { text = DDM_UI_OUTSIDERS_RECLAIM_NOW size = { 300 38 } tooltip = DDM_UI_OUTSIDERS_RECLAIM_NOW_TT onclick = "[GetScriptedGui('ddm_ui_outsider_reclaim_now').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+            }
+
+            # SUCCESSION
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_succession').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding spacing = 10
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_SUCCESSION_TITLE fontsize = 22 min_height = 30 align = left }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_SUCCESSION_FLAVOR default_format = "#weak" }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_SUCCESSION_HEIRS }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_SUCCESSION_NEUTRAL visible = "[GetScriptedGui('ddm_ui_succession_1').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_SUCCESSION_HEIR visible = "[GetScriptedGui('ddm_ui_succession_2').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_SUCCESSION_ESTATE visible = "[GetScriptedGui('ddm_ui_succession_3').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              hbox = { layoutpolicy_horizontal = expanding spacing = 10
+                expand = {}
+                button_standard_small = { text = DDM_UI_SUCCESSION_SET_1 size = { 170 32 } onclick = "[GetScriptedGui('ddm_ui_set_succession_1').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SUCCESSION_SET_2 size = { 170 32 } onclick = "[GetScriptedGui('ddm_ui_set_succession_2').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_SUCCESSION_SET_3 size = { 170 32 } onclick = "[GetScriptedGui('ddm_ui_set_succession_3').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              divider = { layoutpolicy_horizontal = expanding }
+              hbox = { layoutpolicy_horizontal = expanding
+                expand = {}
+                button_standard = {
+                  text = DDM_UI_SUCCESSION_CLEANUP size = { 280 36 } tooltip = DDM_UI_SUCCESSION_CLEANUP_TT
+                  onclick = "[GetScriptedGui('ddm_ui_post_succession_cleanup').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+                  onclick = "[OnPause]"
+                }
+                expand = {}
+              }
+            }
+
+            # ALLIANCES
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_alliances').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding spacing = 10
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCES_TITLE fontsize = 22 min_height = 30 align = left }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCES_FLAVOR default_format = "#weak" }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCE_OFF visible = "[GetScriptedGui('ddm_ui_alliance_0').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCE_ALL visible = "[GetScriptedGui('ddm_ui_alliance_1').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCE_DIRECT visible = "[GetScriptedGui('ddm_ui_alliance_2').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              text_multi = { autoresize = yes layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCE_HIGH visible = "[GetScriptedGui('ddm_ui_alliance_3').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 800 align = center }
+              hbox = { layoutpolicy_horizontal = expanding spacing = 8
+                expand = {}
+                button_standard_small = { text = DDM_UI_ALLIANCE_SET_0 size = { 125 32 } onclick = "[GetScriptedGui('ddm_ui_set_alliance_0').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_ALLIANCE_SET_1 size = { 125 32 } onclick = "[GetScriptedGui('ddm_ui_set_alliance_1').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_ALLIANCE_SET_2 size = { 125 32 } onclick = "[GetScriptedGui('ddm_ui_set_alliance_2').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                button_standard_small = { text = DDM_UI_ALLIANCE_SET_3 size = { 125 32 } onclick = "[GetScriptedGui('ddm_ui_set_alliance_3').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                expand = {}
+              }
+              divider = { layoutpolicy_horizontal = expanding }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCE_LAST }
+              text_multi = { autoresize = yes max_width = 800 layoutpolicy_horizontal = expanding text = DDM_UI_ALLIANCE_NOTIFICATION_NOTE default_format = "#P" }
+            }
+
+            # TOOLS
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_tools').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding
+              spacing = 8
+
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_TOOLS_TITLE fontsize = 22 min_height = 30 align = left }
+
+              scrollbox = {
+                name = "ddm_tools_scroll"
+                layoutpolicy_horizontal = expanding
+                layoutpolicy_vertical = expanding
+                min_height = 300
+                blockoverride "scrollbox_content" {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    spacing = 10
+
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_TOOLS_FLAVOR default_format = "#weak" }
+                    divider = { layoutpolicy_horizontal = expanding }
+
+                    hbox = {
+                      layoutpolicy_horizontal = expanding spacing = 12
+                      expand = {}
+                      button_standard = { text = DDM_UI_TOOL_DYNASTY size = { 235 38 } onclick = "[GetScriptedGui('ddm_ui_open_dynasty_review').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                      button_standard = { text = DDM_UI_TOOL_MILITARY size = { 235 38 } onclick = "[GetScriptedGui('ddm_ui_open_military').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                      expand = {}
+                    }
+                    hbox = {
+                      layoutpolicy_horizontal = expanding spacing = 12
+                      expand = {}
+                      button_standard = { text = DDM_UI_TOOL_ADMIN size = { 235 38 } onclick = "[GetScriptedGui('ddm_ui_open_admin').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                      button_standard = { text = DDM_UI_TOOL_RECLAIM size = { 235 38 } tooltip = DDM_UI_DYNASTY_RECLAIM_TT onclick = "[GetScriptedGui('ddm_ui_set_page_outsiders').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                      expand = {}
+                    }
+
+                    divider = { layoutpolicy_horizontal = expanding }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_TOOLS_LEGACY_NOTE default_format = "#weak" }
+                  }
+                }
+              }
+            }
+
+            # RECORDS
+            vbox = {
+              visible = "[GetScriptedGui('ddm_ui_is_page_records').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              layoutpolicy_horizontal = expanding
+              layoutpolicy_vertical = expanding
+              spacing = 8
+
+              text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_RECORDS_TITLE fontsize = 22 min_height = 30 align = left }
+
+              scrollbox = {
+                name = "ddm_records_scroll"
+                layoutpolicy_horizontal = expanding
+                layoutpolicy_vertical = expanding
+                min_height = 300
+                blockoverride "scrollbox_content" {
+                  vbox = {
+                    layoutpolicy_horizontal = expanding
+                    spacing = 10
+
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_RECORDS_FLAVOR default_format = "#weak" }
+                    divider = { layoutpolicy_horizontal = expanding }
+
+                    text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_RECORDS_LAST_SETTLEMENT fontsize = 15 min_height = 22 align = center }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_RECORDS_SETTLEMENT }
+                    text_multi = { autoresize = yes text = DDM_UI_RECORDS_STALLED visible = "[GetScriptedGui('ddm_ui_distribution_stalled').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 default_format = "#N" }
+
+                    divider = { layoutpolicy_horizontal = expanding }
+
+                    text_single = { layoutpolicy_horizontal = expanding text = DDM_UI_RECORDS_PREVIEW fontsize = 15 min_height = 22 align = center }
+                    text_multi = { autoresize = yes max_width = 780 layoutpolicy_horizontal = expanding text = DDM_UI_RECORDS_PREVIEW_COUNTS }
+                    text_multi = { autoresize = yes text = DDM_UI_RECORDS_PREVIEW_1 visible = "[GetScriptedGui('ddm_ui_has_preview_1').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 }
+                    text_multi = { autoresize = yes text = DDM_UI_RECORDS_PREVIEW_2 visible = "[GetScriptedGui('ddm_ui_has_preview_2').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 }
+                    text_multi = { autoresize = yes text = DDM_UI_RECORDS_PREVIEW_3 visible = "[GetScriptedGui('ddm_ui_has_preview_3').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" max_width = 780 }
+
+                    divider = { layoutpolicy_horizontal = expanding }
+                    hbox = {
+                      layoutpolicy_horizontal = expanding spacing = 12
+                      expand = {}
+                      button_standard = { text = DDM_UI_PREVIEW size = { 235 36 } onclick = "[GetScriptedGui('ddm_ui_preview').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                      button_standard = { text = DDM_UI_REFRESH size = { 235 36 } onclick = "[GetScriptedGui('ddm_ui_refresh').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+                      expand = {}
+                    }
+                  }
+                }
+              }
+            }
+
+      }
+    }
+  }
+}

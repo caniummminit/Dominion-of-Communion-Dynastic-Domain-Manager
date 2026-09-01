@@ -1,0 +1,889 @@
+﻿namespace = domcom
+
+domcom.100 = {
+    type = character_event
+    title = domcom.100.t
+    desc = domcom.100.desc
+    theme = intrigue
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_collapsing_subject animation = worry }
+
+    trigger = {
+        exists = scope:domcom_collapsing_subject
+        scope:domcom_collapsing_subject = {
+            is_alive = yes
+            has_character_flag = domcom_owned_cuck
+            NOT = { has_character_flag = domcom_collapse_resolved }
+            has_variable = domcom_patron
+            var:domcom_patron = root
+            has_variable = domcom_cuck_xp
+            var:domcom_cuck_xp >= 1000
+        }
+    }
+
+    option = {
+        name = domcom.100.a
+        save_scope_as = domcom_collapse_patron
+        scope:domcom_collapsing_subject = {
+            add_character_modifier = domcom_abject_stage_modifier
+            domcom_ai_resolve_collapse_effect = yes
+        }
+    }
+
+    option = {
+        name = domcom.100.b
+        save_scope_as = domcom_collapse_patron
+        change_variable = { name = domcom_collapses_resolved add = 1 }
+        scope:domcom_collapsing_subject = {
+            domcom_surrender_prestige_if_lower_effect = yes
+            add_character_flag = domcom_collapse_resolved
+            remove_character_flag = domcom_collapse_pending
+            death = { death_reason = death_suicide }
+        }
+    }
+}
+
+# A Patron's own spouse/concubine/lover does not repeatedly "collapse" into
+# destruction. The terminal state is permanent devotion and is resolved once.
+domcom.101 = {
+    type = character_event
+    title = domcom.101.t
+    desc = domcom.101.desc
+    theme = seduction
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_collapsing_subject animation = personality_content }
+
+    trigger = {
+        exists = scope:domcom_collapsing_subject
+        scope:domcom_collapsing_subject = {
+            is_alive = yes
+            has_character_flag = domcom_owned_cuck
+            NOT = { has_character_flag = domcom_collapse_resolved }
+            has_variable = domcom_patron
+            var:domcom_patron = root
+        }
+    }
+
+    option = {
+        name = domcom.101.a
+        save_scope_as = domcom_collapse_patron
+        scope:domcom_collapsing_subject = { domcom_resolve_devotion_collapse_effect = yes }
+    }
+}
+
+# When both spouses in a Household Dominion reach the terminal threshold,
+# resolve them together rather than firing two independent collapse loops.
+domcom.105 = {
+    type = character_event
+    title = domcom.105.t
+    desc = domcom.105.desc
+    theme = intrigue
+    left_portrait = { character = scope:domcom_collapsing_subject animation = personality_content }
+    right_portrait = { character = scope:domcom_collapsing_spouse animation = personality_content }
+
+    trigger = {
+        exists = scope:domcom_collapsing_subject
+        exists = scope:domcom_collapsing_spouse
+        scope:domcom_collapsing_subject = {
+            is_alive = yes
+            NOT = { has_character_flag = domcom_collapse_resolved }
+            has_variable = domcom_patron
+            var:domcom_patron = root
+        }
+        scope:domcom_collapsing_spouse = {
+            is_alive = yes
+            NOT = { has_character_flag = domcom_collapse_resolved }
+            has_variable = domcom_patron
+            var:domcom_patron = root
+        }
+    }
+
+    option = {
+        name = domcom.105.a
+        save_scope_as = domcom_collapse_patron
+        scope:domcom_collapsing_subject = { domcom_resolve_household_collapse_effect = yes }
+    }
+}
+
+
+domcom.200 = {
+    type = character_event
+    title = domcom.200.t
+    # Description branches on whether the family link is still on record.
+    # The admirer is drawn in through a relative who already belongs to the
+    # Communion, and the player had no way to see which one, which made the
+    # event read as a stranger appearing from nowhere.
+    desc = {
+        first_valid = {
+            triggered_desc = {
+                trigger = { exists = scope:domcom_crush_source }
+                desc = domcom.200.desc.kin
+            }
+            desc = domcom.200.desc
+        }
+    }
+    theme = seduction
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_admirer animation = flirtation_left }
+
+    immediate = {
+        if = {
+            limit = {
+                exists = scope:domcom_admirer
+                scope:domcom_admirer = { has_variable = domcom_crush_source }
+                scope:domcom_admirer.var:domcom_crush_source = { is_alive = yes }
+            }
+            scope:domcom_admirer.var:domcom_crush_source = { save_scope_as = domcom_crush_source }
+        }
+    }
+
+    trigger = {
+        exists = scope:domcom_admirer
+        scope:domcom_admirer = {
+            is_alive = yes
+            age >= 18
+            has_variable = domcom_crush_patron
+            var:domcom_crush_patron = root
+            OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+        }
+        root = { age >= 18 is_alive = yes }
+    }
+
+    option = {
+        name = domcom.200.a
+        scope:domcom_admirer = {
+            root = { save_scope_as = domcom_admirer_patron }
+            domcom_consummate_admirer_effect = yes
+
+            # Receiving a prospect is a one-time resolution. Keep any resulting
+            # Crush/Lover/Soulmate relationship, but retire the prospect marker
+            # so the same person does not remain forever in the queue.
+            if = {
+                limit = { has_variable = domcom_crush_source }
+                var:domcom_crush_source = {
+                    remove_list_variable = {
+                        name = domcom_family_admirers
+                        target = scope:domcom_admirer
+                    }
+                }
+                remove_variable = domcom_crush_source
+            }
+            remove_variable = domcom_crush_patron
+            add_character_flag = domcom_prospect_received
+        }
+        remove_list_variable = { name = domcom_crush_candidates target = scope:domcom_admirer }
+        ai_chance = { base = 80 }
+    }
+
+    option = {
+        name = domcom.200.b
+        scope:domcom_admirer = {
+            if = {
+                limit = { has_variable = domcom_crush_source }
+                var:domcom_crush_source = {
+                    remove_list_variable = {
+                        name = domcom_family_admirers
+                        target = scope:domcom_admirer
+                    }
+                }
+                remove_variable = domcom_crush_source
+            }
+            remove_relation_crush = root
+            remove_variable = domcom_crush_patron
+        }
+        remove_list_variable = { name = domcom_crush_candidates target = scope:domcom_admirer }
+        ai_chance = { base = 20 }
+    }
+}
+
+# Hidden post-Alpha attraction check. No family member is automatically assigned
+# a Crush; each adult candidate rolls a few days after Dominion is established.
+domcom.210 = {
+    type = character_event
+    hidden = yes
+    trigger = {
+        is_alive = yes
+        age >= 18
+        has_character_flag = domcom_communion_attraction_pending
+        exists = scope:domcom_attraction_patron
+        scope:domcom_attraction_patron = { is_alive = yes age >= 18 }
+    }
+    immediate = {
+        scope:domcom_attraction_patron = { save_scope_as = domcom_compatibility_target }
+        random = {
+            chance = domcom_family_attraction_chance_v063_value
+            domcom_register_communion_admirer_effect = yes
+        
+            add_character_flag = domcom_rng_attraction
+        }
+        # CK3 has no else on random; a failed attraction check must explicitly clear its pending flag.
+        if = {
+            limit = { NOT = { has_character_flag = domcom_rng_attraction } } remove_character_flag = domcom_communion_attraction_pending
+        }
+        remove_character_flag = domcom_rng_attraction
+    }
+}
+
+# Mass acknowledgment confirmation from the Children of Communion page.
+domcom.310 = {
+    type = character_event
+    title = domcom.310.t
+    desc = domcom.310.desc
+    theme = family
+    left_portrait = { character = root animation = personality_rational }
+
+    option = {
+        name = domcom.310.a
+        domcom_acknowledge_all_blood_effect = yes
+        domcom_prepare_ui_effect = yes
+    }
+    option = { name = domcom.310.b }
+}
+
+# GUI-first public humiliation. The player acts on the Owned subject and then
+# chooses whether to use an eligible spouse or another eligible relative.
+domcom.320 = {
+    type = character_event
+    title = domcom.320.t
+    desc = domcom.320.desc
+    theme = seduction
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_gui_humiliated_cuck animation = worry }
+
+    trigger = {
+        exists = scope:domcom_gui_humiliated_cuck
+        scope:domcom_gui_humiliated_cuck = {
+            is_alive = yes
+            has_character_flag = domcom_owned_cuck
+            has_variable = domcom_patron
+            var:domcom_patron = root
+        }
+    }
+
+    option = {
+        name = domcom.320.a
+        trigger = {
+            scope:domcom_gui_humiliated_cuck = {
+                any_spouse = {
+                    is_alive = yes age >= 18
+                    root = { is_attracted_to_gender_of = prev }
+                    is_attracted_to_gender_of = root
+                    OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+                }
+            }
+        }
+        root = { save_scope_as = domcom_public_patron }
+        scope:domcom_gui_humiliated_cuck = { save_scope_as = domcom_humiliated_cuck }
+        scope:domcom_gui_humiliated_cuck = {
+            random_spouse = {
+                limit = {
+                    is_alive = yes age >= 18
+                    root = { is_attracted_to_gender_of = prev }
+                    is_attracted_to_gender_of = root
+                    OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+                }
+                domcom_apply_public_humiliation_generic_effect = yes
+            }
+        }
+        change_variable = { name = domcom_public_humiliations add = 1 }
+        domcom_prepare_ui_effect = yes
+    }
+
+    option = {
+        name = domcom.320.b
+        trigger = {
+            scope:domcom_gui_humiliated_cuck = {
+                any_close_or_extended_family_member = {
+                    is_alive = yes age >= 18
+                    has_variable = domcom_crush_source
+                    var:domcom_crush_source = scope:domcom_gui_humiliated_cuck
+                    root = { is_attracted_to_gender_of = prev }
+                    is_attracted_to_gender_of = root
+                    OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+                }
+            }
+        }
+        root = { save_scope_as = domcom_public_patron }
+        scope:domcom_gui_humiliated_cuck = { save_scope_as = domcom_humiliated_cuck }
+        scope:domcom_gui_humiliated_cuck = {
+            random_close_or_extended_family_member = {
+                limit = {
+                    is_alive = yes age >= 18
+                    has_variable = domcom_crush_source
+                    var:domcom_crush_source = scope:domcom_gui_humiliated_cuck
+                    root = { is_attracted_to_gender_of = prev }
+                    is_attracted_to_gender_of = root
+                    OR = { has_relation_crush = root has_relation_lover = root has_relation_soulmate = root }
+                }
+                domcom_apply_public_humiliation_generic_effect = yes
+            }
+        }
+        change_variable = { name = domcom_public_humiliations add = 1 }
+        domcom_prepare_ui_effect = yes
+    }
+
+    option = { name = domcom.320.c }
+}
+
+# An Owned ruler and patron are direct war leaders. The Owned ruler offers
+# submission one day after the war begins instead of fighting normally.
+domcom.400 = {
+    type = character_event
+    title = domcom.400.t
+    desc = domcom.400.desc
+    theme = intrigue
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_war_subject animation = worry }
+
+    trigger = {
+        exists = scope:domcom_war_subject
+        exists = scope:domcom_submission_war
+        scope:domcom_war_subject = {
+            is_alive = yes
+            has_character_flag = domcom_owned_cuck
+            has_variable = domcom_patron
+            var:domcom_patron = root
+        }
+    }
+
+    option = {
+        name = domcom.400.a
+        if = {
+            limit = { scope:domcom_submission_war = { is_attacker = root } }
+            scope:domcom_submission_war = { end_war = attacker }
+        }
+        else = { scope:domcom_submission_war = { end_war = defender } }
+    }
+
+    option = {
+        name = domcom.400.b
+        scope:domcom_submission_war = { end_war = white_peace }
+    }
+
+    option = { name = domcom.400.c }
+}
+
+# ---------------------------------------------------------------------------
+# IMPERIAL TRIBUTE COURT
+# ---------------------------------------------------------------------------
+
+domcom.500 = {
+    type = character_event
+    hidden = yes
+    trigger = { has_character_flag = domcom_tribute_season_active }
+    immediate = { domcom_advance_imperial_tribute_effect = yes }
+}
+
+domcom.510 = {
+    type = character_event
+    title = domcom.510.t
+    desc = domcom.510.desc
+    theme = court
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_tribute_patron animation = personality_rational }
+
+    trigger = {
+        exists = scope:domcom_tribute_patron
+        scope:domcom_tribute_patron = { is_alive = yes has_character_flag = domcom_tribute_season_active }
+        is_alive = yes
+        is_vassal_of = scope:domcom_tribute_patron
+    }
+
+    option = {
+        name = domcom.510.a
+        add_character_modifier = { modifier = domcom_imperial_gold_tribute_modifier years = 5 }
+        add_character_modifier = { modifier = domcom_imperial_favor_modifier years = 5 }
+        add_opinion = { target = scope:domcom_tribute_patron modifier = domcom_imperial_gold_tribute_opinion }
+        scope:domcom_tribute_patron = { change_variable = { name = domcom_tribute_gold_count add = 1 } }
+        domcom_finish_tribute_petition_effect = yes
+        ai_chance = { base = 30 modifier = { add = 25 has_trait = greedy } modifier = { add = -15 has_trait = generous } }
+    }
+
+    option = {
+        name = domcom.510.b
+        add_prestige = -200
+        add_character_modifier = { modifier = domcom_imperial_favor_modifier years = 5 }
+        add_opinion = { target = scope:domcom_tribute_patron modifier = domcom_imperial_prestige_tribute_opinion }
+        scope:domcom_tribute_patron = { add_prestige = 400 change_variable = { name = domcom_tribute_prestige_count add = 1 } }
+        domcom_finish_tribute_petition_effect = yes
+        ai_chance = { base = 20 modifier = { add = 25 has_trait = arrogant } modifier = { add = 15 has_trait = ambitious } }
+    }
+
+    option = {
+        name = domcom.510.c
+        add_character_modifier = { modifier = domcom_imperial_military_tribute_modifier years = 5 }
+        add_character_modifier = { modifier = domcom_imperial_favor_modifier years = 5 }
+        add_opinion = { target = scope:domcom_tribute_patron modifier = domcom_imperial_military_tribute_opinion }
+        scope:domcom_tribute_patron = { change_variable = { name = domcom_tribute_military_count add = 1 } }
+        domcom_finish_tribute_petition_effect = yes
+        ai_chance = { base = 20 modifier = { add = 30 has_trait = brave } modifier = { add = 20 martial >= 15 } }
+    }
+
+    option = {
+        name = domcom.510.d
+        add_character_modifier = { modifier = domcom_imperial_favor_modifier years = 5 }
+        add_opinion = { target = scope:domcom_tribute_patron modifier = domcom_imperial_dynastic_tribute_opinion }
+        every_secret = { reveal_to = scope:domcom_tribute_patron }
+        every_child = {
+            limit = { is_alive = yes age >= 18 }
+            every_secret = { reveal_to = scope:domcom_tribute_patron }
+        }
+        scope:domcom_tribute_patron = { add_prestige = 150 change_variable = { name = domcom_tribute_dynastic_count add = 1 } }
+        domcom_finish_tribute_petition_effect = yes
+        ai_chance = { base = 20 modifier = { add = 10 has_trait = content } }
+    }
+
+    option = {
+        name = domcom.510.e
+        trigger = { domcom_has_household_tribute_candidate_trigger = yes }
+        save_scope_as = domcom_tribute_vassal
+        domcom_select_household_tribute_offering_effect = yes
+        if = {
+            limit = { exists = scope:domcom_household_offering }
+            scope:domcom_household_offering = { domcom_resolve_household_tribute_effect = yes }
+            scope:domcom_tribute_patron = { trigger_event = { id = domcom.520 days = 1 } }
+        }
+        domcom_finish_tribute_petition_effect = yes
+        ai_chance = {
+            base = 10
+            modifier = { add = 25 has_trait = craven }
+            modifier = { add = 15 has_trait = lustful }
+            modifier = { add = -25 has_trait = chaste }
+            modifier = { add = -15 has_trait = brave }
+            modifier = { add = 20 scope:domcom_tribute_patron = { dread >= 60 } }
+        }
+    }
+
+    option = {
+        name = domcom.510.f
+        add_character_modifier = { modifier = domcom_imperial_defiant_modifier years = 5 }
+        add_opinion = { target = scope:domcom_tribute_patron modifier = domcom_imperial_refusal_opinion }
+        add_prestige = 100
+        scope:domcom_tribute_patron = { add_dread = 5 change_variable = { name = domcom_tribute_refusal_count add = 1 } change_variable = { name = domcom_tribute_refusal_season_count add = 1 } }
+        domcom_finish_tribute_petition_effect = yes
+        ai_chance = {
+            base = 5
+            modifier = { add = 35 has_trait = brave }
+            modifier = { add = 30 has_trait = stubborn }
+            modifier = { add = 25 has_trait = arrogant }
+            modifier = { add = -35 has_trait = craven }
+            modifier = { add = -25 scope:domcom_tribute_patron = { dread >= 60 } }
+        }
+    }
+}
+
+domcom.520 = {
+    type = character_event
+    title = domcom.520.t
+    desc = domcom.520.desc
+    theme = seduction
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_household_offering animation = flirtation_left }
+    trigger = { exists = scope:domcom_household_offering }
+    option = { name = domcom.520.a }
+}
+
+domcom.530 = {
+    type = character_event
+    title = domcom.530.t
+    desc = domcom.530.desc
+    theme = court
+    trigger = { is_alive = yes }
+    option = { name = domcom.530.a }
+}
+
+
+# ---------------------------------------------------------------------------
+# TAUNT THE CUCK
+# ---------------------------------------------------------------------------
+
+domcom.600 = {
+    type = character_event
+    title = domcom.600.t
+    desc = domcom.600.desc
+    theme = rival_relation
+    left_portrait = { character = root animation = anger }
+    right_portrait = { character = scope:domcom_taunt_patron animation = schadenfreude }
+
+    trigger = {
+        has_character_flag = domcom_cucked
+        has_variable = domcom_taunt_patron
+        var:domcom_taunt_patron = { is_alive = yes age >= 18 }
+    }
+
+    immediate = {
+        var:domcom_taunt_patron = { save_scope_as = domcom_taunt_patron }
+        save_scope_as = domcom_taunt_victim
+    }
+
+    option = {
+        name = domcom.600.a
+        # The duel is intentionally non-fatal; prowess and martial ability drive
+        # the resolution so it can be used even without replacing vanilla combat files.
+        random = {
+            chance = domcom_taunt_patron_duel_win_chance_value
+            add_character_flag = domcom_taunt_patron_won_duel
+        }
+        if = {
+            limit = { has_character_flag = domcom_taunt_patron_won_duel }
+            remove_character_flag = domcom_taunt_patron_won_duel
+            change_variable = { name = domcom_cuck_xp add = 300 }
+            add_prestige = -300
+            add_character_modifier = { modifier = domcom_cuck_duel_defeat_modifier years = 10 }
+            domcom_refresh_cuck_stage_effect = yes
+            domcom_check_final_collapse_effect = yes
+            scope:domcom_taunt_patron = {
+                add_prestige = 300
+                add_dread = 5
+                if = {
+                    limit = { is_ai = no }
+                    trigger_event = { id = domcom.601 days = 1 }
+                }
+            }
+        }
+        else = {
+            if = { limit = { has_variable = domcom_cuck_xp var:domcom_cuck_xp >= 100 } change_variable = { name = domcom_cuck_xp subtract = 100 } }
+            add_prestige = 300
+            add_character_modifier = { modifier = domcom_cuck_duel_honor_modifier years = 5 }
+            domcom_refresh_cuck_stage_effect = yes
+            scope:domcom_taunt_patron = {
+                add_prestige = -150
+                if = {
+                    limit = { is_ai = no }
+                    trigger_event = { id = domcom.602 days = 1 }
+                }
+            }
+        }
+        ai_chance = {
+            base = 50
+            modifier = { add = 45 has_trait = brave }
+            modifier = { add = 35 has_trait = wrathful }
+            modifier = { add = 30 has_trait = arrogant }
+            modifier = { add = 25 has_trait = vengeful }
+            modifier = { add = -55 has_trait = craven }
+            modifier = { add = -25 has_trait = content }
+            modifier = { add = -20 has_trait = forgiving }
+        }
+    }
+
+    option = {
+        name = domcom.600.b
+        change_variable = { name = domcom_cuck_xp add = 150 }
+        add_prestige = -200
+        add_character_modifier = { modifier = domcom_cuck_duel_refusal_modifier years = 10 }
+        domcom_refresh_cuck_stage_effect = yes
+        domcom_check_final_collapse_effect = yes
+        scope:domcom_taunt_patron = {
+            add_prestige = 150
+            if = {
+                limit = { is_ai = no }
+                trigger_event = { id = domcom.603 days = 1 }
+            }
+        }
+        ai_chance = {
+            base = 25
+            modifier = { add = 60 has_trait = craven }
+            modifier = { add = 25 has_trait = content }
+            modifier = { add = 20 has_trait = forgiving }
+            modifier = { add = -45 has_trait = brave }
+            modifier = { add = -35 has_trait = wrathful }
+            modifier = { add = -30 has_trait = arrogant }
+        }
+    }
+}
+
+domcom.601 = {
+    type = character_event
+    title = domcom.601.t
+    desc = domcom.601.desc
+    theme = rival_relation
+    option = { name = domcom.601.a }
+}
+
+domcom.602 = {
+    type = character_event
+    title = domcom.602.t
+    desc = domcom.602.desc
+    theme = rival_relation
+    option = { name = domcom.602.a }
+}
+
+domcom.603 = {
+    type = character_event
+    title = domcom.603.t
+    desc = domcom.603.desc
+    theme = rival_relation
+    option = { name = domcom.603.a }
+}
+
+
+domcom.700 = {
+    type = character_event
+    title = domcom.700.t
+    desc = domcom.700.desc
+    theme = intrigue
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_intelligence_subject animation = personality_rational }
+
+    trigger = {
+        exists = scope:domcom_intelligence_subject
+        scope:domcom_intelligence_subject = { is_alive = yes }
+    }
+
+    option = { name = domcom.700.a }
+}
+
+# How, not whether: the choice is between discretion and humiliation.
+# the bolder the approach the more Cuck Experience it yields, and the likelier
+# the household is to see it happen.
+domcom.800 = {
+    type = character_event
+    title = domcom.800.t
+    desc = domcom.800.desc
+    theme = seduction
+    left_portrait = { character = root animation = personality_bold }
+    right_portrait = { character = scope:domcom_intimacy_partner animation = flirtation }
+
+    trigger = {
+        exists = scope:domcom_intimacy_partner
+        scope:domcom_intimacy_partner = { is_alive = yes age >= 18 }
+    }
+
+    option = {
+        name = domcom.800.a
+        custom_tooltip = domcom.800.a.tt
+        save_scope_value_as = { name = domcom_intimacy_xp value = 40 }
+        save_scope_value_as = { name = domcom_intimacy_prestige_loss value = -100 }
+        save_scope_value_as = { name = domcom_intimacy_style value = flag:discreet }
+        hidden_effect = {
+            domcom_intimacy_resolve_effect = yes
+            random_list = {
+                10 = { domcom_intimacy_discovered_effect = yes }
+                90 = { domcom_intimacy_undetected_effect = yes }
+            }
+        }
+    }
+
+    option = {
+        name = domcom.800.b
+        custom_tooltip = domcom.800.b.tt
+        save_scope_value_as = { name = domcom_intimacy_xp value = 90 }
+        save_scope_value_as = { name = domcom_intimacy_prestige_loss value = -250 }
+        save_scope_value_as = { name = domcom_intimacy_style value = flag:open }
+        hidden_effect = {
+            domcom_intimacy_resolve_effect = yes
+            random_list = {
+                35 = { domcom_intimacy_discovered_effect = yes }
+                65 = { domcom_intimacy_undetected_effect = yes }
+            }
+        }
+    }
+
+    option = {
+        name = domcom.800.c
+        custom_tooltip = domcom.800.c.tt
+        save_scope_value_as = { name = domcom_intimacy_xp value = 180 }
+        save_scope_value_as = { name = domcom_intimacy_prestige_loss value = -500 }
+        save_scope_value_as = { name = domcom_intimacy_style value = flag:brazen }
+        hidden_effect = {
+            domcom_intimacy_resolve_effect = yes
+            random_list = {
+                65 = { domcom_intimacy_discovered_effect = yes }
+                35 = { domcom_intimacy_undetected_effect = yes }
+            }
+        }
+    }
+
+    option = { name = domcom.800.d }
+}
+
+# Discovered, but the Patron won the Martial/Prowess/Intrigue/Dread contest.
+domcom.801 = {
+    type = character_event
+    title = domcom.801.t
+    desc = domcom.801.desc
+    theme = intrigue
+    left_portrait = { character = root animation = personality_bold }
+    right_portrait = { character = scope:domcom_intimacy_partner animation = fear }
+    trigger = { exists = scope:domcom_intimacy_partner }
+    option = { name = domcom.801.a }
+}
+
+# Discovered and cornered. Imprisonment only happens where the spouse actually
+# has authority over the Patron/partner; otherwise the failure is social.
+domcom.802 = {
+    type = character_event
+    title = domcom.802.t
+    desc = domcom.802.desc
+    theme = intrigue
+    left_portrait = { character = root animation = shame }
+    right_portrait = { character = scope:domcom_intimacy_partner animation = fear }
+    trigger = { exists = scope:domcom_intimacy_partner }
+    option = { name = domcom.802.a }
+}
+
+# Destructive Endowment reroll confirmation, now launched from the Ledger.
+domcom.900 = {
+    type = character_event
+    title = domcom.900.t
+    desc = domcom.900.desc
+    theme = intrigue
+    option = {
+        name = domcom.900.a
+        custom_tooltip = domcom.900.a.tt
+        hidden_effect = {
+            domcom_rebuild_measurements_effect = yes
+            domcom_prepare_ui_effect = yes
+        }
+    }
+    option = { name = domcom.900.b }
+}
+
+
+# Monthly register of interest. Reports, does not consume: everyone
+# counted here is already on Dynastic Prospects and stays there, so the player
+
+# Monthly prospect digest. This is deliberately separate from the
+# destructive Endowment reroll confirmation at domcom.900.
+domcom.910 = {
+    type = character_event
+    title = domcom.910.t
+    desc = domcom.910.desc
+    theme = seduction
+
+    trigger = {
+        has_variable = domcom_digest_pending
+        var:domcom_digest_pending > 0
+    }
+
+    option = {
+        name = domcom.910.a
+        hidden_effect = {
+            set_variable = { name = domcom_digest_pending value = 0 }
+        }
+    }
+}
+
+
+
+# An independently attracted nearby Queen/Empress decides to act.
+# This event is sent to the human player; accepting performs the same protected
+# divorce/remarriage effect used by the Pet-level direct interaction.
+domcom.920 = {
+    type = character_event
+    title = domcom.920.t
+    desc = domcom.920.desc
+    theme = seduction
+
+    left_portrait = { character = root animation = personality_rational }
+    right_portrait = { character = scope:domcom_crowned_queen animation = flirtation }
+
+    trigger = {
+        exists = scope:domcom_crowned_queen
+        scope:domcom_crowned_queen = {
+            is_alive = yes
+            domcom_crowned_union_pair_trigger = { PARTNER = root }
+        }
+    }
+
+    option = {
+        name = domcom.920.a
+        hidden_effect = {
+            save_scope_as = domcom_crowned_partner
+            scope:domcom_crowned_queen = {
+                remove_character_flag = domcom_crowned_offer_pending
+                domcom_form_crowned_union_effect = yes
+                remove_character_flag = domcom_crowned_union_completed
+            }
+        }
+    }
+
+    option = {
+        name = domcom.920.b
+        hidden_effect = {
+            scope:domcom_crowned_queen = {
+                remove_character_flag = domcom_crowned_offer_pending
+                add_character_flag = { flag = domcom_crowned_heart_rejected years = 10 }
+                add_opinion = { target = root modifier = domcom_crowned_union_rejected_opinion }
+            }
+        }
+    }
+}
+
+
+# An AI Patron has already won the abdication pressure roll
+# against the human player. The player may stake the succession on a prowess
+# duel; refusing escalates automatically into the scripted succession war.
+domcom.930 = {
+    type = character_event
+    title = domcom.930.t
+    desc = domcom.930.desc
+    theme = rival_relation
+    left_portrait = { character = root animation = personality_bold }
+    right_portrait = { character = scope:domcom_abdication_patron animation = personality_bold }
+
+    trigger = {
+        is_ai = no
+        is_alive = yes
+        is_landed = yes
+        has_character_flag = domcom_blood_abdication_pending
+        exists = scope:domcom_abdication_patron
+        scope:domcom_abdication_patron = { is_alive = yes is_landed = yes }
+        has_character_flag = domcom_owned_cuck
+        has_variable = domcom_patron
+        var:domcom_patron = scope:domcom_abdication_patron
+        OR = {
+            AND = {
+                has_variable = domcom_blood_successor
+                var:domcom_blood_successor = { is_alive = yes any_parent = { this = scope:domcom_abdication_patron } }
+            }
+            AND = {
+                exists = primary_heir
+                primary_heir = { is_alive = yes any_parent = { this = scope:domcom_abdication_patron } }
+            }
+        }
+    }
+
+    option = {
+        name = domcom.930.a
+        trigger = {
+            is_imprisoned = no
+            prowess > 0
+            scope:domcom_abdication_patron = { is_imprisoned = no prowess > 0 }
+        }
+        custom_tooltip = domcom.930.a.tt
+        duel = {
+            skill = prowess
+            target = scope:domcom_abdication_patron
+            50 = {
+                compare_modifier = { value = scope:duel_value multiplier = 3.5 min = -49 }
+                min = 5
+                root = {
+                    domcom_player_wins_blood_duel_effect = yes
+                    send_interface_toast = { title = domcom_blood_duel_victory_toast }
+                }
+            }
+            50 = {
+                compare_modifier = { value = scope:duel_value multiplier = -3.5 min = -49 }
+                min = 5
+                root = {
+                    remove_character_flag = domcom_blood_abdication_pending
+                    domcom_abdicate_to_blood_effect = yes
+                    send_interface_toast = { title = domcom_blood_duel_defeat_toast }
+                }
+            }
+        }
+    }
+
+    option = {
+        name = domcom.930.b
+        custom_tooltip = domcom.930.b.tt
+        hidden_effect = {
+            save_scope_as = domcom_blood_war_defender
+            remove_character_flag = domcom_blood_abdication_pending
+            scope:domcom_abdication_patron = {
+                domcom_start_blood_succession_war_effect = yes
+            }
+        }
+    }
+}

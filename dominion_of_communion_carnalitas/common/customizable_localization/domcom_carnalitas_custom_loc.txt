@@ -1,0 +1,15 @@
+﻿DomcomCarnMeasurements = {
+    type = character
+    text = {
+        trigger = {
+            age >= 18
+            has_variable = domcom_length_tenths
+            has_variable = domcom_girth_tenths
+        }
+        localization_key = domcom_carn_measurements_present
+    }
+    text = {
+        localization_key = domcom_carn_measurements_absent
+        fallback = yes
+    }
+}

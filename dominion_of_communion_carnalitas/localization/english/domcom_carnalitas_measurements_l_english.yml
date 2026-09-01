@@ -1,0 +1,9 @@
+﻿l_english:
+ domcom_carn_measurements_present: "#V Measurements:#! [ROOT.GetCharacter.MakeScope.ScriptValue('domcom_length_inches_value')|2] in long × [ROOT.GetCharacter.MakeScope.ScriptValue('domcom_girth_inches_value')|2] in girth\n\n"
+ domcom_carn_measurements_absent: ""
+ trait_dick_small_1_character_desc: "[ROOT.GetCharacter.Custom('DomcomCarnMeasurements')][ROOT.GetCharacter.GetFirstNameNoTooltip]'s Endowment falls within the smaller end of the normal range."
+ trait_dick_small_2_character_desc: "[ROOT.GetCharacter.Custom('DomcomCarnMeasurements')][ROOT.GetCharacter.GetFirstNameNoTooltip]'s Endowment is distinctly small."
+ trait_dick_small_3_character_desc: "[ROOT.GetCharacter.Custom('DomcomCarnMeasurements')][ROOT.GetCharacter.GetFirstNameNoTooltip]'s Endowment falls within Dominion's smallest tier."
+ trait_dick_big_1_character_desc: "[ROOT.GetCharacter.Custom('DomcomCarnMeasurements')][ROOT.GetCharacter.GetFirstNameNoTooltip]'s Endowment is notably above average."
+ trait_dick_big_2_character_desc: "[ROOT.GetCharacter.Custom('DomcomCarnMeasurements')][ROOT.GetCharacter.GetFirstNameNoTooltip]'s Endowment is exceptionally large."
+ trait_dick_big_3_character_desc: "[ROOT.GetCharacter.Custom('DomcomCarnMeasurements')][ROOT.GetCharacter.GetFirstNameNoTooltip]'s Endowment falls within Dominion's largest tier."

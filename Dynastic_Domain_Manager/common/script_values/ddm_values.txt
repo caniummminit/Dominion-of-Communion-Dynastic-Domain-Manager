@@ -1,0 +1,768 @@
+﻿# ============================================================
+# Dynastic merit model
+# ============================================================
+# CK3 does not expose one official "dynastic worth" number. For congenital
+# traits, this mod therefore uses Paradox's own Ruler Designer point costs as
+# the canonical weighting wherever vanilla defines one. Those point costs are
+# Values mirror vanilla Ruler Designer point costs. Fame traits hidden from Ruler Designer are kept
+# deliberately small and are weighted by their actual vanilla opinion effect,
+# rather than being treated as superior genetics.
+
+ddm_quality_trait_value = {
+    value = 0
+
+    # Intellect: Quick / Intelligent / Genius — vanilla RD cost 80 / 160 / 240.
+    if = { limit = { has_trait = intellect_good_1 } add = 80 }
+    if = { limit = { has_trait = intellect_good_2 } add = 160 }
+    if = { limit = { has_trait = intellect_good_3 } add = 240 }
+
+    # Physique: Hale / Robust / Herculean-Amazonian — 60 / 120 / 180.
+    if = { limit = { has_trait = physique_good_1 } add = 60 }
+    if = { limit = { has_trait = physique_good_2 } add = 120 }
+    if = { limit = { has_trait = physique_good_3 } add = 180 }
+
+    # Beauty: Comely / Pretty-Handsome / Beautiful — 40 / 80 / 120.
+    if = { limit = { has_trait = beauty_good_1 } add = 40 }
+    if = { limit = { has_trait = beauty_good_2 } add = 80 }
+    if = { limit = { has_trait = beauty_good_3 } add = 120 }
+
+    # Other positive physical traits — vanilla RD cost 50 each.
+    if = { limit = { has_trait = pure_blooded } add = 50 }
+    if = { limit = { has_trait = fecund } add = 50 }
+    if = { limit = { has_trait = strong } add = 50 }
+    if = { limit = { has_trait = shrewd } add = 50 }
+
+    # Negative congenital traits — vanilla RD refunds/costs.
+    if = { limit = { has_trait = intellect_bad_1 } add = -15 }
+    if = { limit = { has_trait = intellect_bad_2 } add = -30 }
+    if = { limit = { has_trait = intellect_bad_3 } add = -45 }
+    if = { limit = { has_trait = physique_bad_1 } add = -15 }
+    if = { limit = { has_trait = physique_bad_2 } add = -30 }
+    if = { limit = { has_trait = physique_bad_3 } add = -45 }
+    if = { limit = { has_trait = beauty_bad_1 } add = -10 }
+    if = { limit = { has_trait = beauty_bad_2 } add = -20 }
+    if = { limit = { has_trait = beauty_bad_3 } add = -30 }
+
+    # Other physical/genetic traits with non-zero vanilla RD values. Zero-cost
+    # traits (Albino, Scaly, Dwarf, Club-footed, Infertile) intentionally add 0.
+    if = { limit = { has_trait = giant } add = 20 }
+    if = { limit = { has_trait = dull } add = -20 }
+    if = { limit = { has_trait = hunchbacked } add = -10 }
+    if = { limit = { has_trait = lisping } add = -5 }
+    if = { limit = { has_trait = stuttering } add = -5 }
+    if = { limit = { has_trait = spindly } add = -10 }
+    if = { limit = { has_trait = wheezing } add = -10 }
+    if = { limit = { has_trait = bleeder } add = -20 }
+    if = { limit = { has_trait = inbred } add = -30 }
+    if = { limit = { has_trait = weak } add = -10 }
+
+    # The heritable health variants are separate internal traits in vanilla and
+    # have their own Ruler Designer values. Event-acquired non-genetic variants
+    # are not treated as inherited bloodline quality.
+    if = { limit = { has_trait = depressed_genetic } add = -20 }
+    if = { limit = { has_trait = lunatic_genetic } add = -15 }
+    if = { limit = { has_trait = possessed_genetic } add = -20 }
+
+    # Infertile, Albino, Scaly, Dwarf and Club-footed have vanilla RD cost 0 and
+    # therefore receive no invented hereditary score. Their practical effects can
+    # still influence skills, opinion, succession, fertility or political safety.
+
+    # Consecrated/Divine Blood are fame traits, not genetic quality tiers.
+    # Vanilla hides them from Ruler Designer. Their score mirrors their modest
+    # opinion effect instead of the huge arbitrary bonuses used by earlier builds.
+    if = { limit = { has_trait = consecrated_blood } add = 10 }
+    if = { limit = { has_trait = divine_blood } add = 5 }
+}
+
+# Compatibility alias for older GUI/script references.
+ddm_hereditary_trait_value = {
+    value = ddm_quality_trait_value
+}
+
+# Formal education is a trait too, and unlike a generic "merit" score it has
+# an official comparable Ruler Designer scale. The current CK3 trait table
+# prices education tiers at 0 / 20 / 40 / 80 / 150, independent of discipline.
+# We copy those values 1:1. Prowess-only education is not priced in Ruler
+# Designer and is therefore left to demonstrated prowess below rather than
+# inventing an "official" value for it.
+ddm_education_trait_value = {
+    value = 0
+
+    if = {
+        limit = {
+            OR = {
+                has_trait = education_diplomacy_2
+                has_trait = education_martial_2
+                has_trait = education_stewardship_2
+                has_trait = education_intrigue_2
+                has_trait = education_learning_2
+            }
+        }
+        add = 20
+    }
+    else_if = {
+        limit = {
+            OR = {
+                has_trait = education_diplomacy_3
+                has_trait = education_martial_3
+                has_trait = education_stewardship_3
+                has_trait = education_intrigue_3
+                has_trait = education_learning_3
+            }
+        }
+        add = 40
+    }
+    else_if = {
+        limit = {
+            OR = {
+                has_trait = education_diplomacy_4
+                has_trait = education_martial_4
+                has_trait = education_stewardship_4
+                has_trait = education_intrigue_4
+                has_trait = education_learning_4
+            }
+        }
+        add = 80
+    }
+    else_if = {
+        limit = {
+            OR = {
+                has_trait = education_diplomacy_5
+                has_trait = education_martial_5
+                has_trait = education_stewardship_5
+                has_trait = education_intrigue_5
+                has_trait = education_learning_5
+            }
+        }
+        add = 150
+    }
+    # Tier 1 is intentionally 0: that is its vanilla Ruler Designer cost.
+}
+
+# Current governing competence. CK3 does not publish one universal "good ruler"
+# formula, so the raw-skill component is deliberately modest and transparent
+# rather than being presented as official. The official education-trait cost
+# above carries the strongest formal-merit signal. Stewardship gets a small
+# practical premium because this office is chiefly choosing landholders.
+ddm_governance_merit_value = {
+    value = ddm_education_trait_value
+    if = {
+        limit = { age >= 16 }
+        add = diplomacy
+        add = martial
+        add = { value = stewardship multiply = 1.5 }
+        add = intrigue
+        add = learning
+        add = { value = prowess multiply = 0.25 }
+    }
+    else = {
+        # Children cannot fairly be judged by unfinished adult skills. They get
+        # a developmental baseline plus parental-potential signals; their own
+        # congenital traits are still scored at the full vanilla RD values by
+        # ddm_quality_trait_value. This keeps "all ages" reviewable without
+        # pretending a newborn's 0–2 skills are failed adult performance.
+        add = 65
+        if = { limit = { father ?= { has_trait = intellect_good_1 } } add = 10 }
+        if = { limit = { father ?= { has_trait = intellect_good_2 } } add = 20 }
+        if = { limit = { father ?= { has_trait = intellect_good_3 } } add = 30 }
+        if = { limit = { mother ?= { has_trait = intellect_good_1 } } add = 10 }
+        if = { limit = { mother ?= { has_trait = intellect_good_2 } } add = 20 }
+        if = { limit = { mother ?= { has_trait = intellect_good_3 } } add = 30 }
+        if = { limit = { father ?= { has_trait = physique_good_3 } } add = 12 }
+        if = { limit = { mother ?= { has_trait = physique_good_3 } } add = 12 }
+        if = { limit = { father ?= { has_trait = beauty_good_3 } } add = 8 }
+        if = { limit = { mother ?= { has_trait = beauty_good_3 } } add = 8 }
+        if = { limit = { father ?= { has_trait = pure_blooded } } add = 6 }
+        if = { limit = { mother ?= { has_trait = pure_blooded } } add = 6 }
+    }
+}
+
+# Overall review score: canonical congenital weighting + actual competence + a
+# deliberately modest social-consensus component. No single trait is a gate.
+ddm_dynastic_value = {
+    value = ddm_quality_trait_value
+    add = ddm_governance_merit_value
+    if = {
+        limit = { has_variable = ddm_family_regard }
+        add = { value = var:ddm_family_regard multiply = 0.15 }
+    }
+}
+
+# Character temperament / political safety. Rather than manually declaring
+# "Content = +20" etc., this reads CK3's own AI personality axes, which vanilla
+# traits themselves modify. The conversion into one DDM safety score is a policy
+# heuristic, but the underlying temperament values are Paradox's.
+ddm_loyalty_value = {
+    value = 50
+    add = { value = ai_honor multiply = 0.35 }
+    add = { value = ai_compassion multiply = 0.15 }
+    add = { value = ai_rationality multiply = 0.15 }
+    add = { value = ai_energy multiply = 0.05 }
+    add = { value = ai_greed multiply = -0.25 }
+    add = { value = ai_vengefulness multiply = -0.20 }
+    add = { value = ai_boldness multiply = -0.08 }
+    if = {
+        limit = { exists = scope:ddm_actor }
+        add = { value = "opinion(scope:ddm_actor)" multiply = 0.35 }
+        if = { limit = { has_claim_on = scope:ddm_actor.primary_title } add = -30 }
+        if = { limit = { has_relation_rival = scope:ddm_actor } add = -35 }
+        if = { limit = { has_relation_friend = scope:ddm_actor } add = 20 }
+    }
+}
+
+# The threshold is a DDM policy dial; the ingredients above are the important
+# part. Stage III (Balanced) is the default and is viable from a 867/1066 start.
+ddm_current_purge_threshold = {
+    value = 0
+    if = { limit = { var:ddm_purge_stage = 1 } add = 40 }
+    else_if = { limit = { var:ddm_purge_stage = 2 } add = 75 }
+    else_if = { limit = { var:ddm_purge_stage = 3 } add = 110 }
+    else_if = { limit = { var:ddm_purge_stage = 4 } add = 155 }
+    else_if = { limit = { var:ddm_purge_stage = 5 } add = 210 }
+    else_if = { limit = { var:ddm_purge_stage = 6 } add = 280 }
+    else_if = { limit = { var:ddm_purge_stage = 7 } add = 360 }
+}
+
+# Title grants care about merit, political safety, succession, family regard,
+# and territorial coherence. Repeated grants in the same batch are penalized so
+# one excellent cousin does not consume the whole realm unless de-jure logic or
+# succession need clearly outweighs that fairness cost.
+ddm_land_recipient_score = {
+    # Compatibility wrapper. v1.10 uses one title-specific rightfulness model
+    # everywhere, including any older single-title effect that still references
+    # this legacy value name.
+    value = ddm_rightful_title_recipient_value
+}
+
+# Stable fallback used only if the full recipient score cannot produce an
+# ordered candidate despite a known legal-heir pool. It deliberately avoids
+# title/de-jure/foreign-heir lookups while preserving the priorities the player
+# actually cares about: inheritable quality, education/competence, opinion,
+# family regard and fairness across repeated grants.
+ddm_land_recipient_failsafe_score = {
+    # Scope-light compatibility fallback: keep the same dynastic legitimacy
+    # philosophy without making succession the recipient universe.
+    value = ddm_rightful_ruler_value
+    if = { limit = { has_character_flag = ddm_favored_for_land } add = 160 }
+    if = { limit = { is_landed = no } add = 45 }
+    if = { limit = { is_landed = yes } add = { value = domain_size multiply = -50 } }
+    if = { limit = { has_variable = ddm_batch_land_grants } add = { value = var:ddm_batch_land_grants multiply = -65 } }
+}
+
+
+# v1.8 grant score: intentionally scope-light. Previous versions mixed title,
+# succession, de-jure, foreign-heir and character lookups into one ordered
+# dynasty iterator. A single exotic lookup could make the iterator return no
+# character at all. This score keeps the priorities the player asked for while
+# using only character + actor data that is safe in ordered_in_list.
+ddm_v18_land_recipient_score = {
+    # Compatibility wrapper for v1.8-era previews/helpers. It now shares the
+    # v1.10 rightful-ruler calculation rather than an heir-first score.
+    value = ddm_rightful_title_recipient_value
+}
+
+# One title-pool score for the v1.8 list-driven distributor. Explicit GIVE AWAY
+# orders come first; secondary baronies are shed before counties; among delegated
+# counties, the less valuable holdings go first.
+ddm_v18_title_shed_priority = {
+    value = 100
+    if = { limit = { tier = tier_barony } add = 25000 }
+    if = { limit = { tier = tier_county } add = ddm_county_give_priority }
+    if = { limit = { tier = tier_barony } add = ddm_barony_give_priority }
+}
+
+ddm_duchy_recipient_score = {
+    value = ddm_land_recipient_score
+    if = { limit = { is_landed = yes highest_held_title_tier = tier_county } add = 70 }
+    if = { limit = { is_landed = yes highest_held_title_tier >= tier_duchy } add = -120 }
+    if = { limit = { is_landed = no } add = 25 }
+    if = {
+        limit = {
+            exists = scope:ddm_title
+            any_held_title = { tier = tier_county scope:ddm_title = { is_de_jure_liege_or_above_target = prev } }
+        }
+        add = 100
+    }
+}
+
+ddm_kingdom_recipient_score = {
+    value = ddm_land_recipient_score
+    if = { limit = { is_landed = yes highest_held_title_tier = tier_duchy } add = 90 }
+    if = { limit = { is_landed = yes highest_held_title_tier = tier_county } add = 55 }
+    if = { limit = { is_landed = yes highest_held_title_tier >= tier_kingdom } add = -180 }
+    if = { limit = { is_landed = no } add = 25 }
+    if = {
+        limit = {
+            exists = scope:ddm_title
+            any_held_title = { tier >= tier_county scope:ddm_title = { is_de_jure_liege_or_above_target = prev } }
+        }
+        add = 110
+    }
+}
+
+
+# Stable display arithmetic for the review result. This avoids relying on a
+# second nested-scope counter, which could render fixed-point values incorrectly
+# in some builds.
+ddm_purge_unprocessed_value = {
+    value = var:ddm_purge_candidate_count
+    add = { value = var:ddm_last_purged multiply = -1 }
+    min = 0
+}
+
+# Last zero-based index used by ordered_held_title when showing the top
+# domain_limit recommended holdings. Example: limit 4 -> max index 3.
+ddm_core_last_index = {
+    value = scope:ddm_actor.domain_limit
+    add = -1
+    min = 0
+}
+
+# One comparable score for recommending the personal core. Highest score is
+# retained in previews; v1.7 no longer turns this recommendation into a hard
+# blocker unless the player explicitly locks those titles.
+ddm_holding_retention_priority = {
+    value = 100
+    add = { value = title_province.county.development_level multiply = 10 }
+    if = { limit = { tier = tier_county this = scope:ddm_actor.capital_county } add = 20000 }
+    if = {
+        limit = {
+            tier = tier_county
+            exists = scope:ddm_actor.capital_county.de_jure_liege
+            de_jure_liege = scope:ddm_actor.capital_county.de_jure_liege
+        }
+        add = 6500
+    }
+    if = { limit = { title_province = { has_stationed_regiment = yes } } add = 9000 }
+    if = { limit = { title_province = { has_special_building = yes } } add = 6000 }
+    if = {
+        limit = {
+            title_province = {
+                OR = {
+                    has_building_or_higher = military_camps_01
+                    has_building_or_higher = barracks_01
+                    has_building_or_higher = stables_01
+                    has_building_or_higher = regimental_grounds_01
+                    has_building_or_higher = warrior_lodges_01
+                    has_building_or_higher = smiths_01
+                }
+            }
+        }
+        add = 750
+    }
+}
+
+ddm_barony_give_priority = {
+    value = 100
+    # A player-marked sacrifice is an explicit command: shed it before any
+    # merely inferred optimizer preference (unless it is also protected, in
+    # which case the hard-protection trigger keeps it out of this list).
+    if = { limit = { has_variable = ddm_manual_shed } add = 25000 }
+    # Highest score is shed first. Development and military infrastructure are
+    # therefore negative: better holdings are retained.
+    add = { value = title_province.county.development_level multiply = -8 }
+    if = { limit = { title_province = { has_special_building = yes } } add = -5000 }
+    if = { limit = { title_province = { has_stationed_regiment = yes } } add = -8000 }
+    if = {
+        limit = {
+            title_province = {
+                OR = {
+                    has_building_or_higher = military_camps_01
+                    has_building_or_higher = barracks_01
+                    has_building_or_higher = stables_01
+                    has_building_or_higher = regimental_grounds_01
+                    has_building_or_higher = warrior_lodges_01
+                }
+            }
+        }
+        add = -650
+    }
+}
+
+ddm_county_give_priority = {
+    value = 100
+    # Explicit player sacrifice marker. This lets the ruler say not only what
+    # must survive, but which unlocked holding should be the first one out.
+    if = { limit = { has_variable = ddm_manual_shed } add = 25000 }
+    # Domain optimizer: preserve the capital, capital duchy, stationed MAA,
+    # special buildings, strong military infrastructure and development.
+    if = { limit = { this = scope:ddm_actor.capital_county } add = -20000 }
+    if = {
+        limit = {
+            exists = scope:ddm_actor.capital_county.de_jure_liege
+            de_jure_liege = scope:ddm_actor.capital_county.de_jure_liege
+        }
+        add = -6500
+    }
+    if = { limit = { title_province = { has_stationed_regiment = yes } } add = -9000 }
+    if = { limit = { title_province = { has_special_building = yes } } add = -6000 }
+    if = {
+        limit = {
+            title_province = {
+                OR = {
+                    has_building_or_higher = military_camps_01
+                    has_building_or_higher = barracks_01
+                    has_building_or_higher = stables_01
+                    has_building_or_higher = regimental_grounds_01
+                    has_building_or_higher = warrior_lodges_01
+                    has_building_or_higher = smiths_01
+                }
+            }
+        }
+        add = -750
+    }
+    add = { value = title_province.county.development_level multiply = -10 }
+}
+
+ddm_preview_projected_grant_rank = {
+    value = 0
+    if = { limit = { has_variable = ddm_preview_projected_grants } add = { value = var:ddm_preview_projected_grants multiply = 10000 } }
+    add = ddm_general_ruler_value
+}
+
+ddm_safe_strength_cap = {
+    value = scope:ddm_actor.current_military_strength
+    if = { limit = { scope:ddm_actor.highest_held_title_tier >= tier_empire } multiply = 0.25 }
+    else_if = { limit = { scope:ddm_actor.highest_held_title_tier >= tier_kingdom } multiply = 0.20 }
+    else = { multiply = 0.15 }
+    if = {
+        limit = { scope:ddm_actor.var:ddm_power_policy = 1 }
+        multiply = 0.75
+    }
+    if = {
+        limit = { scope:ddm_actor.var:ddm_power_policy = 3 }
+        multiply = 1.35
+    }
+}
+
+
+ddm_inverse_dynastic_value = {
+    value = ddm_dynastic_value
+    multiply = -1
+}
+
+
+# ---------- v1.2 military and construction values ----------
+
+ddm_available_construction_gold = {
+    value = gold
+    if = {
+        limit = { has_variable = ddm_build_reserve }
+        add = { value = var:ddm_build_reserve multiply = -1 }
+    }
+}
+
+ddm_maa_ranged_score = {
+    value = 0
+    add = culture_ai_weight_archers
+    add = culture_ai_weight_skirmishers
+    if = { limit = { number_maa_regiments_of_base_type = { type = archers value > 0 } } add = 20 }
+    if = { limit = { number_maa_regiments_of_base_type = { type = skirmishers value > 0 } } add = 14 }
+    if = { limit = { has_variable = ddm_maa_ranged_buildings } add = { value = var:ddm_maa_ranged_buildings multiply = 18 } }
+    if = { limit = { has_variable = ddm_maa_ranged_stationed } add = { value = var:ddm_maa_ranged_stationed multiply = 24 } }
+}
+
+ddm_maa_heavy_foot_score = {
+    value = 0
+    add = culture_ai_weight_heavy_infantry
+    add = culture_ai_weight_pikemen
+    if = { limit = { number_maa_regiments_of_base_type = { type = heavy_infantry value > 0 } } add = 22 }
+    if = { limit = { number_maa_regiments_of_base_type = { type = pikemen value > 0 } } add = 18 }
+    if = { limit = { has_variable = ddm_maa_heavy_foot_buildings } add = { value = var:ddm_maa_heavy_foot_buildings multiply = 18 } }
+    if = { limit = { has_variable = ddm_maa_heavy_foot_stationed } add = { value = var:ddm_maa_heavy_foot_stationed multiply = 24 } }
+}
+
+ddm_maa_cavalry_score = {
+    value = 0
+    add = culture_ai_weight_light_cavalry
+    add = culture_ai_weight_heavy_cavalry
+    if = { limit = { number_maa_regiments_of_base_type = { type = light_cavalry value > 0 } } add = 18 }
+    if = { limit = { number_maa_regiments_of_base_type = { type = heavy_cavalry value > 0 } } add = 24 }
+    if = { limit = { number_maa_regiments_of_base_type = { type = archer_cavalry value > 0 } } add = 18 }
+    if = { limit = { has_variable = ddm_maa_cavalry_buildings } add = { value = var:ddm_maa_cavalry_buildings multiply = 18 } }
+    if = { limit = { has_variable = ddm_maa_cavalry_stationed } add = { value = var:ddm_maa_cavalry_stationed multiply = 24 } }
+}
+
+ddm_maa_regional_score = {
+    value = 0
+    add = culture_ai_weight_camels
+    add = culture_ai_weight_elephants
+    if = { limit = { number_maa_regiments_of_base_type = { type = camel_cavalry value > 0 } } add = 24 }
+    if = { limit = { number_maa_regiments_of_base_type = { type = elephant_cavalry value > 0 } } add = 35 }
+    if = { limit = { has_variable = ddm_maa_regional_buildings } add = { value = var:ddm_maa_regional_buildings multiply = 20 } }
+    if = { limit = { has_variable = ddm_maa_regional_stationed } add = { value = var:ddm_maa_regional_stationed multiply = 28 } }
+}
+
+# ---------------------------------------------------------------------------
+# 1.1 holding-list organization
+# ---------------------------------------------------------------------------
+# CK3's ordered variable-list API sorts by numeric script values. These values
+# therefore provide stable useful organization without changing title state.
+
+# De-jure hierarchy register order. CK3 exposes numeric values rather than
+# localized strings to ordered_in_list, so the generated vanilla county A-Z
+# index supplies stable alphabetical ranks and the live de-jure parents provide
+# Empire -> Kingdom -> Duchy grouping. Earlier alphabetical groups receive the
+# larger score because ordered_in_list is best-first.
+ddm_title_sort_hierarchy_value = {
+    value = 0
+    if = {
+        limit = {
+            title_province.county = {
+                exists = de_jure_liege
+                de_jure_liege = { exists = de_jure_liege de_jure_liege = { exists = de_jure_liege de_jure_liege = { has_variable = ddm_sort_group_alpha_score } } }
+            }
+        }
+        add = { value = title_province.county.de_jure_liege.de_jure_liege.de_jure_liege.var:ddm_sort_group_alpha_score multiply = 125000000000 }
+    }
+    if = {
+        limit = { title_province.county = { exists = de_jure_liege de_jure_liege = { exists = de_jure_liege de_jure_liege = { has_variable = ddm_sort_group_alpha_score } } } }
+        add = { value = title_province.county.de_jure_liege.de_jure_liege.var:ddm_sort_group_alpha_score multiply = 25000000 }
+    }
+    if = {
+        limit = { title_province.county = { exists = de_jure_liege de_jure_liege = { has_variable = ddm_sort_group_alpha_score } } }
+        add = { value = title_province.county.de_jure_liege.var:ddm_sort_group_alpha_score multiply = 5000 }
+    }
+    if = { limit = { title_province.county = { has_variable = ddm_sort_alpha_score } } add = title_province.county.var:ddm_sort_alpha_score }
+    if = { limit = { tier = tier_county } add = 0.5 }
+}
+
+ddm_title_sort_development_value = {
+    value = title_province.county.development_level
+}
+
+ddm_title_sort_faith_value = {
+    value = title_province.county.development_level
+    if = { limit = { title_province = { faith = scope:ddm_actor.faith } } add = 100000 }
+}
+
+ddm_title_sort_culture_value = {
+    value = title_province.county.development_level
+    if = { limit = { title_province = { culture = scope:ddm_actor.culture } } add = 100000 }
+}
+
+# ---------------------------------------------------------------------------
+# Rightful-ruler ranking (v1.9.8)
+# ---------------------------------------------------------------------------
+# "how many people get anything at all is based on the average gross opinion of
+#  all other dynasty members to this person, weighted against their traits and
+#  personality (of which of course personality that leads to subservient vassals
+#  being preferred, though not necessarily the case if they are well liked, with
+#  high quality traits and stats)"
+#
+# ddm_family_regard is normalized to an average when the observer pass runs.
+# ddm_family_regard_count remains diagnostic only. Earlier builds accidentally
+# divided the already-normalized value a second time, muting legitimacy.
+ddm_dynasty_regard_average = {
+    # ddm_refresh_one_subject_regard_effect already stores the arithmetic mean
+    # in ddm_family_regard. Do not divide by observer count a second time.
+    value = 0
+    if = { limit = { has_variable = ddm_family_regard } add = var:ddm_family_regard }
+}
+
+# The ranking metric. Opinion is the primary axis, since the question being
+# asked is who the dynasty itself considers a rightful ruler. Traits and stats
+# weight it. Subservience is a preference, never a veto: at 0.5 weight it can
+# reorder similar candidates but cannot hold down someone who is well liked and
+# genuinely capable. Nobody is excluded by personality - only demoted.
+ddm_rightful_ruler_value = {
+    # Social legitimacy comes first: how the configured family observer circle
+    # perceives this dynast. Capability and inherited quality then inform whether
+    # that legitimacy is credible in office.
+    value = ddm_dynasty_regard_average
+    multiply = 3
+    add = { value = ddm_quality_trait_value multiply = 0.75 }
+    add = { value = ddm_governance_merit_value multiply = 0.65 }
+    add = { value = ddm_loyalty_value multiply = 0.75 }
+    if = { limit = { is_landed = yes } add = { value = highest_held_title_tier multiply = 18 } }
+
+    # The family-scope control is a preference, never an exclusion.
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            house = scope:ddm_actor.house
+            scope:ddm_actor.var:ddm_family_scope_mode = 1
+        }
+        add = 90
+    }
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            house = scope:ddm_actor.house
+            scope:ddm_actor.var:ddm_family_scope_mode = 3
+        }
+        add = 35
+    }
+}
+
+# Rank wrappers retained for compatibility/debug display.
+ddm_inverse_rank_value = {
+    value = 0
+    if = { limit = { has_variable = ddm_rank } subtract = var:ddm_rank }
+}
+
+ddm_rank_value = {
+    value = 0
+    if = { limit = { has_variable = ddm_rank } add = var:ddm_rank }
+}
+
+# 1.1 generalized ruler score. Dynasts retain the full dynastic legitimacy model;
+# non-dynastic candidates are judged by the dynasty's regard for them, capability,
+# loyalty, established rank, and modest cultural/religious familiarity.
+ddm_general_ruler_value = {
+    value = 0
+    if = {
+        limit = { exists = dynasty dynasty = scope:ddm_actor.dynasty }
+        add = ddm_rightful_ruler_value
+    }
+    else = {
+        add = { value = ddm_dynasty_regard_average multiply = 2 }
+        add = { value = ddm_quality_trait_value multiply = 0.75 }
+        add = { value = ddm_governance_merit_value multiply = 0.65 }
+        add = { value = ddm_loyalty_value multiply = 0.85 }
+        if = { limit = { is_landed = yes } add = { value = highest_held_title_tier multiply = 18 } }
+        if = { limit = { faith = scope:ddm_actor.faith } add = 35 }
+        if = { limit = { culture = scope:ddm_actor.culture } add = 25 }
+    }
+}
+
+# Title-by-title rightfulness. This is deliberately NOT an equal split: each
+# holding asks which active recipient has the strongest political and territorial
+# case at the instant the title is placed.
+ddm_rightful_title_recipient_value = {
+    value = ddm_general_ruler_value
+
+    if = { limit = { has_character_flag = ddm_favored_for_land } add = 220 }
+    # Player-selected non-dynastic candidates receive first-pass priority for
+    # one legal grant while titles remain. After the first grant, the ordinary
+    # live scoring model takes over.
+    if = {
+        limit = {
+            has_variable = ddm_outsider_favored_for_land
+            exists = scope:ddm_title
+            scope:ddm_title = { tier = tier_county }
+            NOT = { has_variable = ddm_batch_land_grants }
+        }
+        add = 10000
+    }
+
+    # Claims and established de-jure relationships are the strongest local
+    # legitimacy signals. Holding another county in the duchy encourages coherent
+    # territorial blocs without making them mandatory.
+    if = { limit = { exists = scope:ddm_title has_claim_on = scope:ddm_title } add = 190 }
+    if = {
+        limit = {
+            exists = scope:ddm_title
+            exists = scope:ddm_title.de_jure_liege
+            scope:ddm_title.de_jure_liege.holder = this
+        }
+        add = 300
+    }
+    if = { limit = { ddm_holds_land_in_title_duchy_trigger = yes } add = 175 }
+
+    # Continuous anti-concentration. No token-title quota.
+    if = { limit = { is_landed = no } add = 55 }
+    if = { limit = { is_landed = yes } add = { value = domain_size multiply = -55 } }
+    if = { limit = { has_variable = ddm_batch_land_grants } add = { value = var:ddm_batch_land_grants multiply = -70 } }
+    # military concentration is a strong penalty, not a hard rejection.
+    # This preserves the anti-megavassal intent while guaranteeing that a
+    # sufficiently large conquest can still be fully distributed.
+    if = { limit = { current_military_strength > ddm_safe_strength_cap } add = -325 }
+    # Preview does not actually change domain_size, so mirror the missing live
+    # domain-growth penalty with its projected-grant counter. Execution never has
+    # this variable and therefore does not double-count.
+    if = { limit = { has_variable = ddm_preview_projected_grants } add = { value = var:ddm_preview_projected_grants multiply = -55 } }
+
+    # Succession is only a legitimacy modifier. Policy 1 is neutral.
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            scope:ddm_actor.var:ddm_succession_policy = 2
+            exists = scope:ddm_title
+            exists = scope:ddm_title.current_heir
+            scope:ddm_title.current_heir = this
+        }
+        add = 100
+    }
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            scope:ddm_actor.var:ddm_succession_policy = 3
+            has_character_flag = ddm_partition_settlement_pool
+            NOT = { is_primary_heir_of = scope:ddm_actor }
+        }
+        add = 35
+    }
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            scope:ddm_actor.var:ddm_succession_policy = 3
+            is_primary_heir_of = scope:ddm_actor
+            NOT = { has_character_flag = ddm_favored_for_land }
+        }
+        add = -110
+    }
+
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            scope:ddm_actor.var:ddm_gender_alignment = 1
+            is_male = yes
+            OR = {
+                scope:ddm_actor = { has_realm_law = male_preference_law }
+                scope:ddm_actor.primary_title = { has_title_law = male_preference_law }
+            }
+        }
+        add = 25
+    }
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            scope:ddm_actor.var:ddm_gender_alignment = 1
+            is_female = yes
+            OR = {
+                scope:ddm_actor = { has_realm_law = female_preference_law }
+                scope:ddm_actor.primary_title = { has_title_law = female_preference_law }
+            }
+        }
+        add = 25
+    }
+
+    if = {
+        limit = {
+            exists = scope:ddm_actor
+            scope:ddm_actor.var:ddm_realm_integrity = 1
+            exists = primary_heir
+            primary_heir = { is_landed = yes NOT = { ddm_is_in_actor_realm_trigger = yes } }
+        }
+        add = -180
+    }
+}
+
+# Higher titles are offices in the hierarchy. Actual local control dominates,
+# then dynastic perception decides among plausible rulers.
+# score used only to decide which one-rank-lower titles the player
+# personally retains. The effect precomputes average military strength per
+# de-jure county currently held inside the player's realm.
+ddm_top_rank_retention_value = {
+    value = 0
+    if = { limit = { has_variable = ddm_top_rank_military_density } add = var:ddm_top_rank_military_density }
+}
+
+ddm_hier_duchy_rightful_value = {
+    value = ddm_general_ruler_value
+    if = { limit = { has_variable = ddm_hier_held } add = { value = var:ddm_hier_held multiply = 320 } }
+    if = { limit = { exists = scope:ddm_hier_title has_claim_on = scope:ddm_hier_title } add = 180 }
+    if = { limit = { is_landed = yes highest_held_title_tier = tier_county } add = 90 }
+    if = { limit = { is_landed = yes highest_held_title_tier >= tier_duchy } add = -140 }
+    if = { limit = { is_landed = yes } add = { value = domain_size multiply = -25 } }
+}
+
+ddm_hier_kingdom_rightful_value = {
+    value = ddm_general_ruler_value
+    if = { limit = { has_variable = ddm_hier_held } add = { value = var:ddm_hier_held multiply = 380 } }
+    if = { limit = { exists = scope:ddm_hier_title has_claim_on = scope:ddm_hier_title } add = 220 }
+    if = { limit = { is_landed = yes highest_held_title_tier = tier_duchy } add = 130 }
+    if = { limit = { is_landed = yes highest_held_title_tier >= tier_kingdom } add = -220 }
+    if = { limit = { is_landed = yes } add = { value = domain_size multiply = -20 } }
+}
