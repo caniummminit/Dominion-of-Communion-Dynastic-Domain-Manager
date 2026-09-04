@@ -1,4 +1,4 @@
-version="1.0"
+version="1.2"
 tags={
 	"Character Interactions"
 	"Events"
@@ -7,4 +7,5 @@ tags={
 }
 name="Dominion of Communion"
 supported_version="1.19.*"
-path="C:/Users/Creators Cumdumpster/Documents/Paradox Interactive/Crusader Kings III/mod/dominion_of_communion"
+path="mod/dominion_of_communion"
+remote_file_id="3794282206"

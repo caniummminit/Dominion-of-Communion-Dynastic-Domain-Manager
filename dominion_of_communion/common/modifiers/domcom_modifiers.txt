@@ -1,21 +1,8 @@
-﻿# 0.9.9 — every <scheme>_scheme_power_add key was removed. CK3 1.19 does not
-# define them and rejected each as an unexpected token, which is a parse
-# failure rather than a silent skip, so the rest of each block was at risk
-# too. The scheme penalties these were meant to apply have never functioned.
-# Replaced below by attraction_opinion and dread, which are real keys.
-domcom_cucked_modifier = {
-    icon = love_negative
-
-    # Public stigma. Fellow Cucked characters receive a relationship-specific
-    # +15 offset elsewhere, leaving the stigma aimed at everyone else.
-    general_opinion = -15
-    attraction_opinion = -25
-
-    # CK3 1.19 exposes per-scheme speed modifiers rather than the obsolete
-    # <scheme>_scheme_power_add family that older builds attempted to use.
-    seduce_speed_mult = -0.15
-    romance_speed_mult = -0.15
-    elope_speed_mult = -0.15
+﻿domcom_cucked_modifier = {
+    # Compatibility shell only. New registrations do not apply this modifier. prestige_negative is a
+    # vanilla modifier icon, preventing a ? placeholder if an old save/external script temporarily
+    # re-applies it before cleanup.
+    icon = prestige_negative
 }
 
 domcom_owned_modifier = {
@@ -60,7 +47,6 @@ domcom_household_dominion_modifier = {
     monthly_prestige_gain_mult = -0.10
 }
 
-# 0.4.0 — Imperial Tribute
 domcom_imperial_gold_tribute_modifier = {
     icon = gold_positive
     vassal_tax_contribution_add = 0.20
@@ -82,7 +68,6 @@ domcom_imperial_defiant_modifier = {
     diplomacy = -2
 }
 
-# 0.4.2 — reward for clearing an entire Alpha Gauntlet without failure.
 domcom_dominion_unchallenged_modifier = {
     icon = intrigue_positive
     attraction_opinion = 100
@@ -90,7 +75,6 @@ domcom_dominion_unchallenged_modifier = {
     intrigue = 5
     monthly_prestige_gain_mult = 0.15
 
-    # Modern 1.19 personal-scheme modifiers.
     owned_personal_scheme_success_chance_add = 35
     owned_personal_scheme_success_chance_growth_add = 10
     seduce_speed_mult = 0.20
@@ -101,7 +85,6 @@ domcom_dominion_unchallenged_modifier = {
 }
 
 
-# 0.5.0 — terminal Dominion, general Alpha, and endowment
 domcom_final_submission_modifier = {
     icon = prestige_negative
     diplomacy_mult = -0.35
@@ -109,29 +92,19 @@ domcom_final_submission_modifier = {
     attraction_opinion = -25
 }
 
-# 1.0.0-rc4.4 — the AI values are what the character sheet's two-word
-# personality summary is computed from, so shifting them here is what turns a
-# Blackguard into something servile. The summary is only a readout; there is no
-# label to set.
-#
-# The profile is a useful servant, not a ruined one. Skills and rationality are
-# preserved or raised, because the entire point of taking a collapsed character
-# into court instead of killing him is that he keeps working and keeps breeding.
-# What changes is what he wants, not what he can do:
-#
-#   boldness     floored - he cannot bring himself to act against a superior.
-#                This is the single biggest factor in whether a character joins
-#                a faction, so it is what actually stops the rebelling.
-#   vengefulness floored - he keeps no grievance, so nothing accumulates.
-#   honor        raised  - he keeps his word once given, including to you.
-#   rationality  raised  - he does what is objectively best, and rebelling
-#                against the man who broke him never is.
-#   energy       raised  - he stays industrious. A lackey who will not work is
-#                no use as a councillor.
-#   greed, zeal  lowered - the two motives that most often override loyalty.
-#
-# Sociability is left alone deliberately. He should still function at court and
-# in a marriage; withdrawing him would defeat the purpose.
+domcom_bound_ruler_modifier = {
+    icon = crown_negative
+    monthly_prestige_gain_mult = -0.10
+    powerful_vassal_opinion = -10
+
+    ai_boldness = -85
+    ai_vengefulness = -85
+    ai_honor = 70
+    ai_rationality = 55
+    ai_greed = -40
+    ai_zeal = -45
+}
+
 domcom_absolute_devotion_modifier = {
     icon = love_positive
     diplomacy = 2
@@ -146,8 +119,8 @@ domcom_absolute_devotion_modifier = {
     ai_zeal = -60
 }
 
-# Household collapse breaks two people at once, and each props the other up, so
-# the shift is real but shallower than an individual collapse.
+# Household collapse breaks two people at once, and each props the other up, so the shift is real but
+# shallower than an individual collapse.
 domcom_household_final_modifier = {
     icon = intrigue_negative
     diplomacy_mult = -0.20
@@ -167,10 +140,6 @@ domcom_dominated_modifier = {
     diplomacy_mult = -0.10
 }
 
-# Reverse Alpha reputation is intentionally relationship-scheme focused.
-# A larger social upset adds the supplementary modifiers below; these stack
-# with the base modifier, so defeating someone vastly above your station is
-# materially more valuable than a one-tier upset.
 domcom_reverse_alpha_victory_modifier = {
     icon = prestige_positive
     diplomacy = 2
@@ -217,14 +186,12 @@ domcom_endowment_legendary_modifier = {
 
 # Replaces the older Gauntlet reward values while keeping the same modifier key.
 
-# 0.5.2 — Owned characters accept the Patron's non-exclusive Communion.
 domcom_accepts_communion_modifier = {
     icon = love_positive
     stress_gain_mult = -0.50
 }
 
 
-# 0.5.3 — public cuck reputation, biological-child stigma, and taunt-duel outcomes.
 domcom_spawn_of_cuck_modifier = {
     icon = prestige_negative
     diplomacy = -2
@@ -254,8 +221,6 @@ domcom_cuck_duel_honor_modifier = {
     monthly_prestige_gain_mult = 0.10
 }
 
-# 0.6.2 — Tantalize / Obedience progression. Stage modifiers are deliberately
-# light; the meaningful mechanical jump happens only at 1000 when Pet is created.
 domcom_obedience_interested_modifier = {
     icon = love_positive
 }
@@ -278,8 +243,6 @@ domcom_pet_modifier = {
 }
 
 
-# 0.9.0 — Invite to Bed experience. Temporary by design so the monthly
-# interaction cannot be farmed into permanent Martial/Intrigue inflation.
 domcom_intimacy_discreet_modifier = {
     icon = intrigue_positive
     intrigue = 2
@@ -309,7 +272,6 @@ domcom_intimacy_cornered_modifier = {
     prowess = -2
 }
 
-# 0.9.0 — temporary reward for the spouse who catches and overcomes the pair.
 domcom_intimacy_enforcer_modifier = {
     martial = 2
     intrigue = 2
@@ -318,12 +280,67 @@ domcom_intimacy_enforcer_modifier = {
 }
 
 
-# 1.0.0-rc4.2 — applied only while an AI Patron prosecutes the special Blood
-# Succession War created when a player refuses the personal duel.
 domcom_blood_succession_war_buff = {
     icon = martial_positive
     army_damage_mult = 0.35
     army_toughness_mult = 0.35
     army_screen_mult = 0.35
     movement_speed = 0.20
+}
+
+
+domcom_obedience_interested_hard_modifier = {
+    icon = love_positive
+    stress_gain_mult = 0.05
+}
+
+domcom_obedience_tempted_hard_modifier = {
+    icon = love_positive
+    stress_gain_mult = 0.10
+    monthly_prestige = -0.25
+}
+
+domcom_obedience_attached_hard_modifier = {
+    icon = love_positive
+    stress_gain_mult = 0.15
+    monthly_prestige = -0.5
+    intrigue = 1
+}
+
+domcom_obedience_submissive_hard_modifier = {
+    icon = love_positive
+    stress_gain_mult = 0.25
+    monthly_prestige = -1
+    vassal_opinion = -10
+    intrigue = 1
+}
+
+# Carried by a subject at jealousy 6. She is not merely hurt; she is dangerous.
+domcom_jealousy_hostile_modifier = {
+    icon = stress_negative
+    stress_gain_mult = 0.20
+    intrigue = 2
+    monthly_prestige = -0.5
+}
+
+
+domcom_owned_benefit_tier_1_modifier = {
+    icon = prestige_positive
+    monthly_prestige = 25
+    monthly_piety = 25
+    monthly_dynasty_prestige = 25
+}
+
+domcom_owned_benefit_tier_2_modifier = {
+    icon = prestige_positive
+    monthly_prestige = 50
+    monthly_piety = 50
+    monthly_dynasty_prestige = 50
+}
+
+domcom_owned_benefit_tier_3_modifier = {
+    icon = prestige_positive
+    monthly_prestige = 100
+    monthly_piety = 100
+    monthly_dynasty_prestige = 100
 }

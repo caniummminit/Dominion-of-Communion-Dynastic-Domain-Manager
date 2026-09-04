@@ -54,7 +54,6 @@ domcom_forced_to_cover_tribute_opinion = {
 }
 
 
-# 0.5.0
 domcom_dominated_by_opinion = {
     opinion = 75
     years = 5
@@ -64,26 +63,31 @@ domcom_final_devotion_opinion = {
     decaying = no
     obedient = yes
 }
+
+# Permanent pair-facing loyalty for a ruler allowed to retain his lands after Final Collapse. The global
+# character modifier handles AI temperament; this keeps his relationship with the Patron aligned with the
+# chosen outcome.
+domcom_bound_ruler_opinion = {
+    opinion = 300
+    decaying = no
+    obedient = yes
+}
 domcom_reverse_alpha_shock_opinion = {
     opinion = 200
     years = 10
 }
 
-# 0.5.2 — relationship-specific reinforcement for Communion members.
 domcom_communion_acceptance_opinion = {
     opinion = 500
     decaying = no
 }
 
-# Public Cucked stigma is -15 General Opinion. Cucked observers receive this
-# permanent +15 toward other Cucked characters, cancelling only that stigma.
 domcom_fellow_cucked_offset_opinion = {
     opinion = 15
-    decaying = no
+    years = 10
 }
 
 
-# 0.6.2 — Alpha no longer grants obedience before cuck evidence exists.
 domcom_pet_obedience_opinion = {
     opinion = 500
     decaying = no
@@ -95,13 +99,11 @@ domcom_rebuffed_tantalize_opinion = {
     years = 2
 }
 
-# 0.8.8 — the intimacy cycle.
 domcom_intimacy_shared_opinion = { opinion = 20 years = 5 }
 domcom_intimacy_discovered_partner_opinion = { opinion = -40 years = 10 }
 domcom_intimacy_discovered_court_opinion = { opinion = -25 years = 5 }
 
 
-# 1.0.0-rc4 — Crowned Union consequences.
 domcom_crowned_union_betrayed_opinion = {
     opinion = -150
     years = 15
@@ -119,7 +121,6 @@ domcom_crowned_union_rejected_opinion = {
     years = 5
     stacking = no
 }
-# 1.0.0-rc4 — displaced-heir consequences after public acknowledgment.
 domcom_blood_heir_repudiated_opinion = {
     opinion = -80
     years = 20
@@ -132,3 +133,8 @@ domcom_blood_heir_persecuted_opinion = {
     stacking = no
 }
 
+
+domcom_jealousy_pleased_opinion = { opinion = 15 years = 10 }
+domcom_jealousy_stung_opinion = { opinion = -15 years = 10 }
+domcom_jealousy_resentful_opinion = { opinion = -35 years = 20 }
+domcom_jealousy_hostile_opinion = { opinion = -60 years = 40 }

@@ -1,0 +1,401 @@
+
+# Run on a child. Stores a simple numeric focus family used by the candidate score: 1 Diplomacy, 2
+# Martial, 3 Stewardship, 4 Intrigue, 5 Learning.
+ddm_prepare_child_education_focus_effect = {
+    remove_variable = ddm_education_focus_mode
+
+    if = { limit = { has_focus = education_diplomacy } set_variable = { name = ddm_education_focus_mode value = 1 } }
+    else_if = { limit = { has_focus = education_martial } set_variable = { name = ddm_education_focus_mode value = 2 } }
+    else_if = { limit = { has_focus = education_stewardship } set_variable = { name = ddm_education_focus_mode value = 3 } }
+    else_if = { limit = { has_focus = education_intrigue } set_variable = { name = ddm_education_focus_mode value = 4 } }
+    else_if = { limit = { has_focus = education_learning } set_variable = { name = ddm_education_focus_mode value = 5 } }
+
+    # Before a focus has been explicitly selected, use the normal childhood-trait affinity so the office
+    # can still make a sensible recommendation.
+    else_if = { limit = { has_trait = curious } set_variable = { name = ddm_education_focus_mode value = 1 } }
+    else_if = { limit = { has_trait = rowdy } set_variable = { name = ddm_education_focus_mode value = 2 } }
+    else_if = { limit = { has_trait = bossy } set_variable = { name = ddm_education_focus_mode value = 3 } }
+    else_if = { limit = { has_trait = charming } set_variable = { name = ddm_education_focus_mode value = 4 } }
+    else = { set_variable = { name = ddm_education_focus_mode value = 5 } }
+}
+
+# Run on a prospective guardian while scope:ddm_actor exists. The transient flag prevents the Realm and
+# Dynasty builders from adding the same person twice.
+ddm_try_add_educator_candidate_effect = {
+    if = {
+        limit = {
+            ddm_can_be_guardian_trigger = yes
+            NOT = { has_character_flag = ddm_educator_listed_this_pass }
+        }
+        add_character_flag = ddm_educator_listed_this_pass
+        save_temporary_scope_as = ddm_educator_candidate
+        scope:ddm_actor = {
+            add_to_variable_list = { name = ddm_educator_candidates target = scope:ddm_educator_candidate }
+            change_variable = { name = ddm_education_candidate_total add = 1 }
+        }
+    }
+}
+
+# Run on a child while scope:ddm_actor exists. The list is deliberately not court-limited: the Domain
+# Office is responsible for the ruler's own children, unattended children at court, and children of the
+# ruler's house/dynasty.
+ddm_try_add_education_child_effect = {
+    if = {
+        limit = {
+            ddm_needs_guardian_trigger = yes
+            NOT = { has_character_flag = ddm_education_child_listed_this_pass }
+        }
+        add_character_flag = ddm_education_child_listed_this_pass
+        ddm_prepare_child_education_focus_effect = yes
+        save_temporary_scope_as = ddm_education_child
+        scope:ddm_actor = {
+            add_to_variable_list = { name = ddm_education_children target = scope:ddm_education_child }
+            change_variable = { name = ddm_education_child_total add = 1 }
+        }
+    }
+}
+
+# Build the available educator pool once for the selected scope. 0 Court, 1 Realm, 2 Dynasty, 3
+# Diplomatic Range (default).
+ddm_build_educator_candidate_pool_effect = {
+    save_scope_as = ddm_actor
+
+    # Clean transient marks from the prior pool before discarding it.
+    if = {
+        limit = { has_variable_list = ddm_educator_candidates }
+        every_in_list = { variable = ddm_educator_candidates remove_character_flag = ddm_educator_listed_this_pass }
+    }
+    clear_variable_list = ddm_educator_candidates
+    set_variable = { name = ddm_education_candidate_total value = 0 }
+
+    if = {
+        limit = { var:ddm_educator_scope_mode = 0 }
+        every_courtier_or_guest = { ddm_try_add_educator_candidate_effect = yes }
+        ddm_try_add_educator_candidate_effect = yes
+    }
+    else_if = {
+        limit = { var:ddm_educator_scope_mode = 1 }
+        # Player's court and ruler.
+        every_courtier_or_guest = { ddm_try_add_educator_candidate_effect = yes }
+        ddm_try_add_educator_candidate_effect = yes
+
+        # Every ruler below the player plus members of those courts. This avoids a world scan for the
+        # Realm setting and still reaches unlanded talent.
+        every_vassal_or_below = {
+            ddm_try_add_educator_candidate_effect = yes
+            every_courtier_or_guest = { ddm_try_add_educator_candidate_effect = yes }
+        }
+    }
+    else_if = {
+        limit = { var:ddm_educator_scope_mode = 2 }
+        if = {
+            limit = { exists = dynasty }
+            dynasty = { every_dynasty_member = { ddm_try_add_educator_candidate_effect = yes } }
+        }
+    }
+    else = {
+        # Diplomatic Range is intentionally the only mode that needs a global character iterator, and it
+        # runs only on an explicit page refresh.
+        every_living_character = {
+            limit = { in_diplomatic_range = scope:ddm_actor }
+            ddm_try_add_educator_candidate_effect = yes
+        }
+    }
+
+    # The flags are needed only during construction; leaving none behind makes save migration and
+    # interrupted UI sessions harmless.
+    if = {
+        limit = { has_variable_list = ddm_educator_candidates }
+        every_in_list = { variable = ddm_educator_candidates remove_character_flag = ddm_educator_listed_this_pass }
+    }
+}
+
+ddm_build_education_children_effect = {
+    save_scope_as = ddm_actor
+
+    if = {
+        limit = { has_variable_list = ddm_education_children }
+        every_in_list = {
+            variable = ddm_education_children
+            remove_character_flag = ddm_education_child_listed_this_pass
+            remove_variable = ddm_recommended_guardian
+            remove_variable = ddm_edu_best_score
+            remove_variable = ddm_edu_best_relevant
+            remove_variable = ddm_edu_best_learning
+            remove_variable = ddm_edu_best_intellect
+        }
+    }
+    clear_variable_list = ddm_education_children
+    set_variable = { name = ddm_education_child_total value = 0 }
+
+    # Direct children, wherever they currently live.
+    every_child = { ddm_try_add_education_child_effect = yes }
+
+    # Any unattended child physically present in the ruler's court, including non-dynastic
+    # wards/courtiers the player may otherwise receive no alert for.
+    every_courtier_or_guest = { ddm_try_add_education_child_effect = yes }
+
+    # House and dynasty coverage catches cadet branches and children born away from the capital. House is
+    # intentionally explicit even though it normally overlaps Dynasty; the dedupe flag keeps the
+    # resulting list unique.
+    house ?= { every_house_member = { ddm_try_add_education_child_effect = yes } }
+    dynasty ?= { every_dynasty_member = { ddm_try_add_education_child_effect = yes } }
+
+    if = {
+        limit = { has_variable_list = ddm_education_children }
+        every_in_list = { variable = ddm_education_children remove_character_flag = ddm_education_child_listed_this_pass }
+    }
+}
+
+# Run on the player. The child is scope:ddm_edu_child. Stores the current best recommendation on the
+# child for cheap GUI display.
+ddm_recommend_guardian_for_child_effect = {
+    if = {
+        limit = { exists = scope:ddm_edu_child }
+        save_scope_as = ddm_actor
+        scope:ddm_edu_child = {
+            remove_variable = ddm_recommended_guardian
+            set_variable = { name = ddm_edu_best_score value = 0 }
+            set_variable = { name = ddm_edu_best_relevant value = 0 }
+            set_variable = { name = ddm_edu_best_learning value = 0 }
+            set_variable = { name = ddm_edu_best_intellect value = 0 }
+        }
+
+        if = {
+            limit = { has_variable_list = ddm_educator_candidates }
+            ordered_in_list = {
+                variable = ddm_educator_candidates
+                limit = { ddm_can_be_guardian_trigger = yes }
+                order_by = ddm_educator_score_value
+                max = 1
+                check_range_bounds = no
+                save_temporary_scope_as = ddm_edu_guardian
+            }
+        }
+
+        if = {
+            limit = { exists = scope:ddm_edu_guardian }
+            scope:ddm_edu_child = {
+                set_variable = { name = ddm_recommended_guardian value = scope:ddm_edu_guardian }
+                set_variable = { name = ddm_edu_best_score value = scope:ddm_edu_guardian.ddm_educator_score_value }
+                set_variable = { name = ddm_edu_best_relevant value = scope:ddm_edu_guardian.ddm_educator_relevant_skill_value }
+                set_variable = { name = ddm_edu_best_learning value = scope:ddm_edu_guardian.learning }
+                set_variable = { name = ddm_edu_best_intellect value = scope:ddm_edu_guardian.ddm_educator_intellect_bonus_value }
+            }
+        }
+    }
+}
+
+# Full Education-page refresh. Expensive diplomatic-range discovery happens here rather than every frame
+# and the GUI only reads cached character variables.
+ddm_prepare_education_office_effect = {
+    ddm_initialize_settings_effect = yes
+    if = { limit = { NOT = { has_variable = ddm_educator_scope_mode } } set_variable = { name = ddm_educator_scope_mode value = 3 } }
+    save_scope_as = ddm_actor
+
+    ddm_build_education_children_effect = yes
+    ddm_build_educator_candidate_pool_effect = yes
+
+    if = {
+        limit = { has_variable_list = ddm_education_children }
+        every_in_list = {
+            variable = ddm_education_children
+            save_temporary_scope_as = ddm_edu_child
+            scope:ddm_actor = { ddm_recommend_guardian_for_child_effect = yes }
+        }
+    }
+}
+
+# Assign one child using the CURRENT pool. Called from the player. This is recalculated after each
+# assignment so two-ward capacity and ward-load tie breaks remain current rather than blindly using stale
+# recommendations.
+ddm_assign_one_guardian_effect = {
+    if = {
+        limit = { exists = scope:ddm_edu_child }
+        save_scope_as = ddm_edu_owner
+
+        if = {
+            limit = { has_variable_list = ddm_educator_candidates }
+            ordered_in_list = {
+                variable = ddm_educator_candidates
+                limit = { ddm_can_be_guardian_trigger = yes }
+                order_by = ddm_educator_score_value
+                max = 1
+                check_range_bounds = no
+                save_temporary_scope_as = ddm_edu_guardian
+            }
+        }
+
+        if = {
+            limit = { exists = scope:ddm_edu_guardian }
+            scope:ddm_edu_child = {
+                add_character_flag = { flag = ddm_guardian_recently_assigned days = 14 }
+                set_relation_guardian = scope:ddm_edu_guardian
+            }
+            change_variable = { name = ddm_educator_assigned add = 1 }
+        }
+        else = { change_variable = { name = ddm_educator_skipped add = 1 } }
+    }
+}
+
+# One-button assignment from the Education page.
+ddm_auto_assign_guardians_effect = {
+    set_variable = { name = ddm_educator_assigned value = 0 }
+    set_variable = { name = ddm_educator_skipped value = 0 }
+    save_scope_as = ddm_actor
+
+    # Refresh once so the button never depends on an old court/diplomatic pool.
+    ddm_prepare_education_office_effect = yes
+
+    if = {
+        limit = { has_variable_list = ddm_education_children }
+        every_in_list = {
+            variable = ddm_education_children
+            limit = { ddm_needs_guardian_trigger = yes }
+            save_temporary_scope_as = ddm_edu_child
+            scope:ddm_actor = { ddm_assign_one_guardian_effect = yes }
+        }
+    }
+
+    # Rebuild the register immediately so successful wards disappear and any remaining child receives a
+    # recommendation based on updated capacity.
+    ddm_prepare_education_office_effect = yes
+}
+
+# Reports what happened. Silence after pressing a button invites double-clicks.
+ddm_report_guardian_assignment_effect = {
+    if = {
+        limit = { var:ddm_educator_assigned > 0 }
+        send_interface_toast = { type = event_toast_effect_good title = DDM_EDUCATOR_TOAST_DONE left_icon = root }
+    }
+    else_if = {
+        limit = { var:ddm_educator_skipped > 0 }
+        send_interface_toast = { type = event_toast_effect_neutral title = DDM_EDUCATOR_TOAST_NO_TEACHER left_icon = root }
+    }
+    else = {
+        send_interface_toast = { type = event_toast_effect_neutral title = DDM_EDUCATOR_TOAST_NOBODY left_icon = root }
+    }
+}
+
+
+# Run on a prospective guardian while scope:ddm_actor exists. Separate from the GUI candidate list so a
+# background pulse cannot corrupt an open Education page.
+ddm_try_add_auto_educator_candidate_effect = {
+    if = {
+        limit = {
+            ddm_can_be_guardian_trigger = yes
+            NOT = { has_character_flag = ddm_auto_educator_listed_this_pass }
+        }
+        add_character_flag = ddm_auto_educator_listed_this_pass
+        save_temporary_scope_as = ddm_auto_educator_candidate
+        scope:ddm_actor = {
+            add_to_variable_list = { name = ddm_auto_educator_candidates target = scope:ddm_auto_educator_candidate }
+            change_variable = { name = ddm_auto_education_candidate_total add = 1 }
+        }
+    }
+}
+
+# Build the automatic candidate pool. Automatic education always means "best valid person within MY
+# diplomatic range", regardless of the manual Education Office's currently selected search tab.
+ddm_build_auto_educator_candidate_pool_effect = {
+    save_scope_as = ddm_actor
+
+    if = {
+        limit = { has_variable_list = ddm_auto_educator_candidates }
+        every_in_list = { variable = ddm_auto_educator_candidates remove_character_flag = ddm_auto_educator_listed_this_pass }
+    }
+    clear_variable_list = ddm_auto_educator_candidates
+    set_variable = { name = ddm_auto_education_candidate_total value = 0 }
+
+    every_living_character = {
+        limit = { in_diplomatic_range = scope:ddm_actor }
+        ddm_try_add_auto_educator_candidate_effect = yes
+    }
+
+    if = {
+        limit = { has_variable_list = ddm_auto_educator_candidates }
+        every_in_list = { variable = ddm_auto_educator_candidates remove_character_flag = ddm_auto_educator_listed_this_pass }
+    }
+}
+
+# Assign one child from the automatic pool. Candidate ranking is the same child-specific
+# relevant-skill/Learning/intelligence model used by the GUI.
+ddm_assign_one_auto_guardian_effect = {
+    if = {
+        limit = { exists = scope:ddm_edu_child }
+
+        if = {
+            limit = { has_variable_list = ddm_auto_educator_candidates }
+            ordered_in_list = {
+                variable = ddm_auto_educator_candidates
+                limit = { ddm_can_be_guardian_trigger = yes }
+                order_by = ddm_educator_score_value
+                max = 1
+                check_range_bounds = no
+                save_temporary_scope_as = ddm_edu_guardian
+            }
+        }
+
+        if = {
+            limit = { exists = scope:ddm_edu_guardian }
+            scope:ddm_edu_child = {
+                add_character_flag = { flag = ddm_guardian_recently_assigned days = 14 }
+                set_relation_guardian = scope:ddm_edu_guardian
+            }
+            change_variable = { name = ddm_auto_educator_assigned add = 1 }
+        }
+        else = { change_variable = { name = ddm_auto_educator_skipped add = 1 } }
+    }
+}
+
+# Monthly background pass. The first phase is deliberately cheap: it scans only the ruler's direct
+# children, court, house and dynasty for unattended children. If that list is empty, the effect ends
+# without a world-character search.
+ddm_auto_education_monthly_effect = {
+    ddm_initialize_settings_effect = yes
+
+    if = {
+        limit = {
+            var:ddm_auto_education_enabled = 1
+            is_alive = yes
+            is_ai = no
+        }
+
+        save_scope_as = ddm_actor
+        set_variable = { name = ddm_auto_educator_assigned value = 0 }
+        set_variable = { name = ddm_auto_educator_skipped value = 0 }
+
+        ddm_build_education_children_effect = yes
+
+        if = {
+            limit = { var:ddm_education_child_total > 0 }
+            ddm_build_auto_educator_candidate_pool_effect = yes
+
+            if = {
+                limit = { has_variable_list = ddm_education_children }
+                every_in_list = {
+                    variable = ddm_education_children
+                    limit = { ddm_needs_guardian_trigger = yes }
+                    save_temporary_scope_as = ddm_edu_child
+                    scope:ddm_actor = { ddm_assign_one_auto_guardian_effect = yes }
+                }
+            }
+
+            # Leave the office's child register truthful after the background pass, then discard the
+            # potentially large background candidate list so it never becomes permanent save bloat.
+            ddm_build_education_children_effect = yes
+            clear_variable_list = ddm_auto_educator_candidates
+            set_variable = { name = ddm_auto_education_candidate_total value = 0 }
+
+            if = {
+                limit = { var:ddm_auto_educator_assigned > 0 }
+                send_interface_toast = {
+                    type = event_toast_effect_good
+                    title = DDM_AUTO_EDUCATION_TOAST
+                    left_icon = root
+                }
+            }
+        }
+    }
+}
+

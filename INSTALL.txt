@@ -1,0 +1,19 @@
+DOMINION OF COMMUNION 1.0.1 + CARNALITAS COMPATIBILITY 1.0.1
+
+Copy the .mod files AND the matching folders into:
+  Windows  Documents\Paradox Interactive\Crusader Kings III\mod\
+  Linux    ~/.local/share/Paradox Interactive/Crusader Kings III/mod/
+  Mac      ~/Documents/Paradox Interactive/Crusader Kings III/mod/
+
+Both the .mod file and the folder are needed for each mod.
+
+LOAD ORDER
+  Carnalitas
+  Dominion of Communion
+  Dominion of Communion - Carnalitas Compatibility
+
+The compatibility module ships path-identical overrides of Dominion's hook files
+and only takes effect if it loads last. Do not install it without Carnalitas -
+it calls Carnalitas' effects directly and will error on load without it.
+
+Save-safe from 1.0. Overwrite the folders and carry on with your campaign.

@@ -1,18 +1,16 @@
-DOMINION OF COMMUNION - CARNALITAS COMPATIBILITY 1.0.1
-========================================================
+﻿DOMINION OF COMMUNION — CARNALITAS COMPATIBILITY — CHANGELOG
+Requires Dominion of Communion and Carnalitas.
+Compatibility target: Crusader Kings III 1.19.*
 
-ENDOWMENT STABILITY HOTFIX
---------------------------
-- Explicit Dominion Endowment traits selected in Ruler Designer now take precedence during pre-seeding and are honored before any Carnalitas tier.
-- Carnalitas dick traits remain valid Ruler Designer seeds for human players only; AI/world distribution remains owned by Dominion.
-- Designed Endowment choices therefore follow the same permanent measurement lock used by Dominion 1.0.2.
+1.2 — CURRENT RELEASE
+---------------------
+- Dominion is the visible authority for Endowment traits and measurements.
+- Carnalitas size traits remain synchronized and inactive while the compatibility module is loaded.
+- Futanari characters can display Dominion Endowment traits under Carnalitas-compatible rules.
+- Ruler Designer Carnalitas size choices seed matching Dominion measurements.
 
-DOMINION OF COMMUNION - CARNALITAS COMPATIBILITY 1.0.0
-=======================================================
-
-FIRST PUBLIC RELEASE
---------------------
-- Synchronizes Dominion Endowment state with compatible Carnalitas size traits.
-- Supports public Carnalitas relationship/sex hooks used by Dominion systems.
-- Preserves Dominion as the authoritative source for its own stored measurements.
-- No Carnalitas source files or artwork are overwritten by this patch.
+1.0.0 — FIRST RELEASE
+---------------------
+- Added Carnalitas detection and Endowment synchronization.
+- Added compatible measurement display hooks.
+- Added Carnalitas betrayal evidence for Dominion checks.

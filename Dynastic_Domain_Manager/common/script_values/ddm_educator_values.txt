@@ -1,0 +1,55 @@
+
+# Evaluated on the prospective guardian. scope:ddm_edu_child must exist and the child carries
+# ddm_education_focus_mode: 1 Dip, 2 Mar, 3 Ste, 4 Int, 5 Lea.
+ddm_educator_relevant_skill_value = {
+    value = 0
+    if = { limit = { scope:ddm_edu_child.var:ddm_education_focus_mode = 1 } add = diplomacy }
+    else_if = { limit = { scope:ddm_edu_child.var:ddm_education_focus_mode = 2 } add = martial }
+    else_if = { limit = { scope:ddm_edu_child.var:ddm_education_focus_mode = 3 } add = stewardship }
+    else_if = { limit = { scope:ddm_edu_child.var:ddm_education_focus_mode = 4 } add = intrigue }
+    else = { add = learning }
+}
+
+# Intelligence is a real education-quality factor in vanilla. These numbers are on DDM's doubled skill
+# scale, so +30/+20/+10 preserve a useful but not absurd advantage over raw skill. Shrewd receives the
+# small positive tier.
+ddm_educator_intellect_bonus_value = {
+    value = 0
+    if = { limit = { has_trait = intellect_good_3 } add = 30 }
+    else_if = { limit = { has_trait = intellect_good_2 } add = 20 }
+    else_if = { limit = { has_trait = intellect_good_1 } add = 10 }
+    if = { limit = { has_trait = shrewd } add = 10 }
+
+    if = { limit = { has_trait = intellect_bad_3 } add = -30 }
+    else_if = { limit = { has_trait = intellect_bad_2 } add = -20 }
+    else_if = { limit = { has_trait = intellect_bad_1 } add = -10 }
+    if = { limit = { has_trait = dull } add = -10 }
+}
+
+# Personality is intentionally only a tiebreak. It can affect what a ward may learn socially, but it must
+# never overpower the vanilla-relevant skill term.
+ddm_educator_temperament_tiebreak_value = {
+    value = 0
+    if = { limit = { has_trait = diligent } add = 4 }
+    if = { limit = { has_trait = patient } add = 3 }
+    if = { limit = { has_trait = just } add = 2 }
+    if = { limit = { has_trait = temperate } add = 2 }
+    if = { limit = { has_trait = honest } add = 1 }
+
+    if = { limit = { has_trait = lazy } add = -4 }
+    if = { limit = { has_trait = impatient } add = -3 }
+    if = { limit = { has_trait = drunkard } add = -3 }
+    if = { limit = { has_trait = sadistic } add = -2 }
+
+    # One existing ward is legal but loses a close tiebreak to an equally good idle teacher. Two wards
+    # are excluded by ddm_can_be_guardian_trigger.
+    if = { limit = { num_of_relation_ward = 1 } add = -3 }
+}
+
+ddm_educator_score_value = {
+    value = ddm_educator_relevant_skill_value
+    multiply = 2
+    add = learning
+    add = ddm_educator_intellect_bonus_value
+    add = ddm_educator_temperament_tiebreak_value
+}

@@ -1,86 +1,66 @@
-DOMINION OF COMMUNION
+﻿DOMINION OF COMMUNION
 =====================
 
-Version: 1.0
+Version: 1.2
 Supported CK3 branch: 1.19.*
 
-Dominion of Communion is a standalone relationship, rivalry, influence and
-control system for Crusader Kings III. Its major tracks are independent but
-interconnected: Alpha dominance, Cuck Experience, Tantalize/Obedience, Pets,
-Owned subjects, Household Intrigue, tribute, intelligence, bloodline politics
-and succession pressure.
+Standalone relationship, rivalry, influence and control system for Crusader Kings III.
 
 CORE SYSTEMS
 ------------
 ALPHA CHECK
-- A same-sex peer/rival dominance contest.
-- Attraction and Endowment do not determine Alpha eligibility or chance.
-- A win can create leverage; qualifying relationship history can allow deeper
-  Dominion to develop.
+- Same-sex peer/rival dominance contest.
+- Uses Cuck Experience, rank, fame, dread, skills, military strength and temperament.
+- Endowment affects attraction, not Alpha eligibility.
 
 TANTALIZE & OBEDIENCE
-- Sexual/romantic influence based on mutual orientation and individualized
-  attraction preferences.
-- Success builds Obedience from 0 to 1000. At 1000 the target becomes a Pet.
-- Endowment compatibility affects attraction rather than Alpha dominance.
+- Attraction-based influence for compatible adult characters.
+- Obedience progresses to Pet status at 1000.
+- Optional stage consequences add stress, prestige and relationship effects.
 
 CUCK EXPERIENCE
-- Persistent humiliation progression from Humiliated through Final Collapse.
-- Later interactions can react to the character's accumulated history instead of
-  treating every scandal as an isolated event.
+- Persistent humiliation progression through Final Collapse.
+- Final Collapse can seize titles, leave a Bound Ruler in place, or allow the despair outcome.
 
 OWNED DOMINION
-- Owned subjects can provide tribute and intelligence.
-- Household Dominion can form when both spouses are independently Owned by the
-  same Patron.
-- Public humiliation, blood acknowledgement, submission and succession pressure
-  can deepen control.
+- Owned subjects provide tribute, intelligence and tiered passive ruler benefits.
+- Household Dominion applies when both spouses are Owned by the same Patron.
 
 HOUSEHOLD INTRIGUE
-- Relationship networks can be used for rumors, court influence, courtier
-  poaching and bloodline political pressure.
-- Stronger relationship and obedience states unlock more consequential actions.
+- Relationship networks support rumors, court influence, courtier poaching and bloodline pressure.
 
 BLOOD SUCCESSION
-- Publicly acknowledged hidden children can become part of succession conflict.
-- Abdication pressure, resistance, duels and dedicated succession wars create
-  contested outcomes rather than silent realm transfers.
+- Acknowledged hidden children can create abdication pressure, duels and succession wars.
 
-CROWNED UNION
-- Eligible nearby reigning Queens and Empresses can enter a Crowned Union when
-  the relationship and CK3 legality requirements are met.
+LOVERS MANAGEMENT
+- The Ledger lists current Lovers and Soulmates.
+- Individual and bulk breakup controls prevent automatic restoration of intentionally ended relationships.
 
 COMMUNION LEDGER
-- Central interface for Cucked subjects, World Cucks, Owned subjects, Prospects,
-  Children of Communion, tribute/intelligence, campaign statistics and odds.
+- Central interface for Cucked subjects, World Cucks, Owned subjects, Lovers, Prospects, Children of Communion, tribute, intelligence and campaign records.
+- Long registers use 20-row paging for late-game performance.
 - The game pauses while the Ledger is open.
 
 ENDOWMENT
-- Six visible Endowment tiers with exact stored length/girth measurements.
-- Measurements remain fixed once assigned and display in trait tooltips when
-  available.
+- Six visible tiers with persistent stored length/girth measurements.
 - Ruler Designer selection is supported.
-- Individual preference profiles affect attraction rather than Alpha contests.
+- Individual preferences affect attraction but not Alpha contests.
 
 AI PARTICIPATION
-- AI characters can create their own relationship states and scandals.
-- World Cucks and related registers allow the system to exist beyond the player.
+- AI rulers can participate under the configured game rules.
+- World Cucks tracks non-player outcomes without rendering the full detailed list at once.
 
 CONTENT NOTICE
 --------------
-Dominion contains mature relationship and sexual themes. Dominion-created
-sexual/romantic participation is restricted to characters age 18 or older.
+Mature relationship and sexual themes. Mod-authored sexual/romantic participation is restricted to characters age 18 or older.
 
 COMPATIBILITY
 -------------
-Dominion of Communion is standalone and has no required gameplay-mod dependency.
-Optional Carnalitas integration is supported. A separate compatibility package
-is provided for players who want the two systems synchronized more closely.
+Standalone. Optional Carnalitas compatibility is provided as a separate module.
 
-INSTALLATION (MANUAL)
----------------------
-Place both of the following directly in:
-Documents/Paradox Interactive/Crusader Kings III/mod/
+INSTALLATION
+------------
+Place these in Documents/Paradox Interactive/Crusader Kings III/mod/:
 
   Dominion of Communion.mod
   dominion_of_communion/

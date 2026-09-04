@@ -8,11 +8,6 @@
     selection_tooltip = domcom_open_communion_decision_tooltip
     confirm_text = domcom_open_communion_decision_confirm
 
-    # 0.7.9 — the decision stays visible from CK3's age of majority so a young
-    # ruler can see the mod is installed and working, but it is not valid until
-    # 18. Previously it opened at 16 onto a Ledger where every roster was empty
-    # and every button inert, because all the mechanics behind it gate at 18.
-    # That read as a broken mod rather than a gated one.
     is_shown = {
         is_playable_character = yes
         is_adult = yes
@@ -28,8 +23,6 @@
 
     effect = {
         hidden_effect = {
-            # rc4.7 — repair/backfill intimate state before building the Ledger,
-            # so the first frame already shows restored Lovers and household links.
             domcom_enforce_communion_for_patron_effect = yes
             domcom_prepare_ui_effect = yes
             set_variable = { name = domcom_ui_page value = flag:overview }
@@ -60,8 +53,6 @@ domcom_summon_imperial_tribute_decision = {
     ai_will_do = { base = 5 }
 }
 
-# 0.7.7 — rebuild tools. Hidden unless the "Dominion: Rebuild Tools" game rule
-# is On, so they never appear in a normal playthrough.
 domcom_rebuild_display_decision = {
     picture = { reference = "gfx/interface/illustrations/decisions/decision_dynasty_house.dds" }
     decision_group_type = major

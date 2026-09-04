@@ -1,7 +1,4 @@
-﻿# Dominion of Communion 1.0.0-rc4.2 — scripted Blood Succession War.
-# It is started only after an AI Patron wins the abdication pressure roll and
-# the human subject refuses the personal duel.
-
+﻿
 domcom_blood_succession_war = {
     group = event
     target_titles = none

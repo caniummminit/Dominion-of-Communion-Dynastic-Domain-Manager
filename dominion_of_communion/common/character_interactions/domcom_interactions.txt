@@ -1,8 +1,45 @@
-﻿domcom_alpha_check_interaction = {
+﻿domcom_break_things_off_interaction = {
+    icon = lover
+    category = interaction_category_friendly
+    common_interaction = yes
+    use_diplomatic_range = no
+    interface_priority = 65
+    desc = domcom_break_things_off_interaction_desc
+
+    is_shown = {
+        scope:recipient != scope:actor
+        scope:actor = { is_alive = yes }
+        scope:recipient = {
+            is_alive = yes
+            OR = {
+                has_relation_lover = scope:actor
+                has_relation_soulmate = scope:actor
+            }
+        }
+    }
+
+    on_accept = {
+        scope:actor = { save_scope_as = domcom_breakup_patron }
+        scope:recipient = { domcom_break_up_with_lover_effect = yes }
+        scope:actor = {
+            send_interface_toast = {
+                type = event_toast_effect_neutral
+                title = DOMCOM_BREAKUP_TOAST
+                left_icon = scope:actor
+                right_icon = scope:recipient
+            }
+        }
+    }
+
+    auto_accept = yes
+    ai_accept = { base = 100 }
+    ai_frequency = 0
+}
+
+domcom_alpha_check_interaction = {
     icon = wrathful
     category = interaction_category_hostile
     common_interaction = yes
-    # 0.9.6 — respect CK3 diplomatic range; right-click can no longer bypass geography.
     use_diplomatic_range = yes
     interface_priority = 57
     desc = domcom_alpha_check_interaction_desc
@@ -17,8 +54,6 @@
     is_valid_showing_failures_only = {
         scope:actor = {
             is_imprisoned = no
-            # 0.9.9 — the per-quarter allowance. The Alpha Gauntlet is exempt and
-            # is not gated by this.
             custom_tooltip = {
                 text = domcom_alpha_budget_spent_tt
                 domcom_alpha_budget_available_trigger = yes
@@ -36,9 +71,6 @@
                     }
                 }
             }
-            # 0.9.8 — these three used to hide the interaction outright. Shown
-            # as greyed-out reasons instead, so a rival who cannot be challenged
-            # says so rather than vanishing from the menu.
             custom_tooltip = {
                 text = domcom_alpha_collapse_resolved_tt
                 NOT = { has_character_flag = domcom_collapse_resolved }
@@ -79,23 +111,8 @@
     }
 
     on_accept = {
-        # 0.8.4 — the outcome branches are gated on domcom_alpha_check_succeeded,
-        # a flag that does not exist while CK3 is building the tooltip, so the
-        # old version rendered "97% chance of:" followed by nothing at all. The
-        # opinion penalty rendered as certain for the same reason. Scopes are
-        # saved before the tooltip so the chance is computed from the real
-        # numbers rather than from a missing patron.
         scope:actor = { save_scope_as = domcom_owner }
 
-        # Let CK3 render the percentage itself. A tooltip-only random block
-        # produces the same native "X% chance of:" presentation used by
-        # vanilla interactions instead of relying on localization scope parsing.
-        # 0.9.7 — a bare random prints one "X% chance of:" header and then lists
-        # everything under it, which is why success and failure both appeared to
-        # sit inside the 18%. A random_list prints a percentage against each
-        # branch instead, which is the presentation Send An Insult uses.
-        # Base weight 0 plus a modifier is the reliable way to weight a
-        # random_list by a script value.
         show_as_tooltip = {
             scope:recipient = {
                 random_list = {
@@ -138,9 +155,9 @@
             scope:actor = { domcom_dominion_success_stress_effect = yes }
 
             if = {
-                # After cuck evidence exists, Alpha victory no longer creates the
-                # pre-cuck Outclassed state. It registers/owns the cuck if needed
-                # and directly pushes their Cuck XP toward terminal submission.
+                # After cuck evidence exists, Alpha victory no longer creates the pre-cuck Outclassed
+                # state. It registers/owns the cuck if needed and directly pushes their Cuck XP toward
+                # terminal submission.
                 limit = { scope:recipient = { domcom_is_cuck_target_of_actor_trigger = yes } }
                 scope:recipient = {
                     if = {
@@ -168,12 +185,11 @@
                 }
             }
             else = {
-                # Before any cuck evidence exists, victory grants leverage/access
-                # only. It does NOT create obedience, ownership, or a loyalty hook.
+                # Before any cuck evidence exists, victory grants leverage/access only. It does NOT
+                # create obedience, ownership, or a loyalty hook.
                 scope:recipient = { domcom_apply_dominated_effect = yes }
             }
 
-            # Reverse Alpha: personal dominance over someone above your landed status.
             if = {
                 limit = {
                     OR = {
@@ -202,9 +218,6 @@
         }
         else = {
             scope:actor = { domcom_dominion_rejection_stress_effect = yes }
-            # Before cuck evidence, failure simply means the rival resisted you.
-            # After cuck evidence, a failed reassertion restores some resistance
-            # instead of perversely increasing their Cuck XP as older builds did.
             if = {
                 limit = { scope:recipient = { domcom_is_cuck_target_of_actor_trigger = yes } }
                 scope:recipient = {
@@ -237,13 +250,10 @@
     ai_frequency = 0
 }
 
-# 0.6.2 — attraction/sexual influence is now its own progression track.
-# Repeated successes build 0-1000 Obedience; only 1000 creates a full Pet.
 domcom_tantalize_interaction = {
     icon = lover
     category = interaction_category_friendly
     common_interaction = yes
-    # 0.9.6 — respect CK3 diplomatic range; right-click can no longer bypass geography.
     use_diplomatic_range = yes
     interface_priority = 56
     desc = domcom_tantalize_interaction_desc
@@ -261,26 +271,13 @@ domcom_tantalize_interaction = {
     }
 
     on_accept = {
-        # 0.7.3 — the tooltip is now written explicitly instead of being dry-run
-        # from the logic. CK3 builds an interaction tooltip by evaluating the
-        # effect block before anything has happened, so the old version showed
-        # "31% chance of:" with nothing under it (the success branch is gated on
-        # a character flag that does not exist yet, and add_character_flag has no
-        # tooltip form), and then rendered the else branch's opinion penalty as
-        # though it were certain. show_as_tooltip states the real outcomes and
-        # hidden_effect runs the real logic.
-        # The chance value reads scope:domcom_tantalize_patron, which the old
-        # code only saved inside the branch below. At tooltip time that scope
-        # did not exist, so the patron's diplomacy, intrigue, prestige and dread
-        # contributions all evaluated as nothing and the displayed percentage
-        # was computed from the base alone. Saving it up front fixes the number.
         scope:actor = {
             save_scope_as = domcom_tantalize_patron
             save_scope_as = domcom_compatibility_target
         }
 
-        # Use CK3's native random-effect tooltip so the actual calculated
-        # percentage is rendered as "X% chance of:" instead of a blank %.
+        # Use CK3's native random-effect tooltip so the actual calculated percentage is rendered as "X%
+        # chance of:" instead of a blank %.
         show_as_tooltip = {
             scope:recipient = {
                 random_list = {
@@ -393,7 +390,6 @@ domcom_tantalize_interaction = {
     ai_frequency = 0
 }
 
-# 0.6.2 — read-only visibility for the separate Tantalize/Obedience track.
 domcom_inspect_obedience_interaction = {
     icon = lover
     category = interaction_category_friendly
@@ -409,9 +405,6 @@ domcom_inspect_obedience_interaction = {
             has_variable = domcom_obedience
         }
     }
-    # 0.9.8 — was on_accept = { }, so the confirmation popup resolved to
-    # nothing. The hover is the point of this interaction, but a click has to
-    # land somewhere: it opens the ledger on the roster this person is in.
     on_accept = {
         scope:actor = {
             domcom_prepare_ui_effect = yes
@@ -437,8 +430,6 @@ domcom_inspect_dominion_interaction = {
             OR = { has_character_flag = domcom_cucked has_character_flag = domcom_owned_cuck }
         }
     }
-    # 0.9.8 — same dead-click fix. Owned subjects open on the Owned roster,
-    # everyone else on the Cucked roster.
     on_accept = {
         scope:actor = {
             domcom_prepare_ui_effect = yes
@@ -630,10 +621,6 @@ domcom_demand_abdication_for_blood_interaction = {
 }
 
 
-
-# 1.0.0-rc4 — a Pet-level Queen/Empress can be pressed to turn personal
-# submission into a dynastic union. Proximity is custom (five county borders),
-# so vanilla diplomatic range is intentionally not used.
 domcom_claim_crowned_union_interaction = {
     icon = lover
     category = interaction_category_friendly
@@ -705,8 +692,6 @@ domcom_claim_crowned_union_interaction = {
 }
 
 
-# 0.5.3 — pre-Dominion humiliation route. The victim may accept an honor duel
-# or publicly back down. No Alpha/Owned state is required.
 domcom_taunt_cuck_interaction = {
     icon = wrathful
     category = interaction_category_hostile
@@ -746,9 +731,6 @@ domcom_taunt_cuck_interaction = {
     ai_frequency = 0
 }
 
-# 0.8.8 — the ongoing half of Tantalize. Winning someone over is a one-off;
-# this is what the patron does with them afterwards, and it is monthly by
-# design so it stays an occasion rather than something to spam.
 domcom_invite_to_bed_interaction = {
     icon = lover
     category = interaction_category_friendly

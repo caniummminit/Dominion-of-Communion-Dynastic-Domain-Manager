@@ -1,0 +1,26 @@
+
+# Vanilla education-related actions can become relevant before age six. DDM starts at age three so
+# children who are already eligible in the normal game do not leave the office button permanently greyed
+# out.
+ddm_needs_guardian_trigger = {
+    is_alive = yes
+    is_adult = no
+    age >= 3
+    is_hostage = no
+    num_of_relation_guardian = 0
+    NOT = { has_character_flag = ddm_guardian_recently_assigned }
+    NOT = { has_character_flag = ddm_never_educate }
+}
+
+# Somebody fit and still legally available to teach. CK3 normally caps a guardian at two wards, so
+# capacity is a hard gate instead of a score penalty.
+ddm_can_be_guardian_trigger = {
+    is_alive = yes
+    is_adult = yes
+    is_incapable = no
+    is_hostage = no
+    is_imprisoned = no
+    num_of_relation_ward < 2
+    NOT = { this = scope:ddm_edu_child }
+    NOT = { has_character_flag = ddm_never_educate }
+}

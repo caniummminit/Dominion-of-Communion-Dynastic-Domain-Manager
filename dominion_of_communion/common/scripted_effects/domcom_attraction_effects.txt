@@ -1,8 +1,4 @@
-﻿# Dominion of Communion 0.6.3 — persistent individual attraction preferences.
-# These preferences are generated lazily only when a character becomes relevant
-# to Tantalize, household attraction, or spouse compatibility. This keeps Dominion
-# standalone and avoids adding a large startup pass.
-
+﻿
 domcom_assign_attraction_preferences_effect = {
     if = {
         limit = { age >= 18 NOT = { has_variable = domcom_pref_body } }
@@ -114,16 +110,15 @@ domcom_assign_attraction_preferences_effect = {
     }
 }
 
-# Full sexual-attraction profile. Physical data remains managed by the original
-# profile code; the new preference categories are deliberately lazy.
+# Full sexual-attraction profile. Physical data remains managed by the original profile code; the new
+# preference categories are deliberately lazy.
 domcom_initialize_attraction_profile_effect = {
     domcom_initialize_profile_effect = yes
     domcom_assign_attraction_preferences_effect = yes
 }
 
-# Add a full Carnalitas sex-evidence patron to this potential cuck and mirror the
-# target onto the patron so AI patrons can later act on the evidence without a
-# world scan. Requires scope:domcom_sex_patron.
+# Add a full Carnalitas sex-evidence patron to this potential cuck and mirror the target onto the patron
+# so AI patrons can later act on the evidence without a world scan. Requires scope:domcom_sex_patron.
 domcom_record_full_sex_evidence_effect = {
     save_scope_as = domcom_sex_cuck_target
     if = {
@@ -152,9 +147,8 @@ domcom_record_full_sex_evidence_effect = {
     }
 }
 
-# Ordinary-lover betrayal is remembered but is intentionally weaker than spouse,
-# concubine/consort, or soulmate evidence. It can help an Alpha Check but does not
-# by itself create the public Cucked state.
+# Ordinary-lover betrayal is remembered but is intentionally weaker than spouse, concubine/consort, or
+# soulmate evidence. It can help an Alpha Check but does not by itself create the public Cucked state.
 domcom_record_lover_betrayal_evidence_effect = {
     if = {
         limit = {
@@ -169,10 +163,6 @@ domcom_record_lover_betrayal_evidence_effect = {
     }
 }
 
-# 0.9.2 — standalone Dominion sex-evidence bridge. Run from one participant
-# with scope:domcom_direct_sex_patron saved as the other participant. Full
-# spouse/consort/soulmate betrayal registers the Cuck immediately; an ordinary
-# lover remains weaker betrayal evidence.
 domcom_record_direct_dominion_sex_effect = {
     save_scope_as = domcom_direct_sex_partner
     scope:domcom_direct_sex_patron = { save_scope_as = domcom_sex_patron }
@@ -206,8 +196,8 @@ domcom_record_direct_dominion_sex_effect = {
     }
 }
 
-# Soft Carnalitas hook. This effect is called only when Carnalitas fires
-# carn_on_sex_v2. Dominion itself never requires Carnalitas to exist.
+# Soft Carnalitas hook. This effect is called only when Carnalitas fires carn_on_sex_v2. Dominion itself
+# never requires Carnalitas to exist.
 domcom_record_carnalitas_sex_effect = {
     if = {
         limit = {
@@ -265,10 +255,6 @@ domcom_record_carnalitas_sex_effect = {
     }
 }
 
-# Once per yearly playable pulse, only existing spouses are evaluated. Extreme
-# negative compatibility creates an unhappy-marriage state; malicious AI spouses
-# can convert that aversion into an actual murder scheme. Positive obsession
-# remains desire, not obedience, and therefore does not make a Pet by itself.
 domcom_marital_preference_yearly_effect = {
     save_scope_as = domcom_compatibility_target
     every_spouse = {

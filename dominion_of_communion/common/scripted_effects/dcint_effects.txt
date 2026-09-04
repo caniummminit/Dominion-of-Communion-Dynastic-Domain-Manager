@@ -1,12 +1,7 @@
-﻿# Household Intrigue — Dominion network subsystem.
-#
-# Dominion builds the relationship network. This subsystem spends that network.
-# A Crush is useful for quiet information; Lovers and Attached/Submissive/Pet
-# partners can perform progressively more consequential household actions.
-
-# Build one candidate pool from current Crush/Lover/Soulmate relations. Dominion
-# Pets are also recovered from the Patron's Pet registry if CK3 has since removed
-# the relation that originally made them visible here.
+﻿
+# Build one candidate pool from current Crush/Lover/Soulmate relations. Dominion Pets are also recovered
+# from the Patron's Pet registry if CK3 has since removed the relation that originally made them visible
+# here.
 dcint_run_monthly_intrigue_effect = {
     save_scope_as = dcint_patron
 
@@ -18,8 +13,8 @@ dcint_run_monthly_intrigue_effect = {
         add_to_temporary_list = dcint_intrigue_candidates
     }
 
-    # Relationless Pets still belong to the Patron. Add only those not already
-    # represented by one of the three relation types above, avoiding duplicates.
+    # Relationless Pets still belong to the Patron. Add only those not already represented by one of the
+    # three relation types above, avoiding duplicates.
     if = {
         limit = { has_variable_list = domcom_pet_registry }
         every_in_list = {
@@ -44,9 +39,9 @@ dcint_run_monthly_intrigue_effect = {
     }
 }
 
-# The available action now reflects Dominion depth instead of treating every
-# useful person as simply a Lover. Early links tend toward whispers. Attached,
-# Submissive and Pet partners are increasingly likely to offer material actions.
+# The available action now reflects Dominion depth instead of treating every useful person as simply a
+# Lover. Early links tend toward whispers. Attached, Submissive and Pet partners are increasingly likely
+# to offer material actions.
 dcint_pick_approach_effect = {
     random_list = {
         60 = {
@@ -77,12 +72,10 @@ dcint_pick_approach_effect = {
     }
 }
 
-############################################################################
 # Outcomes
-############################################################################
 
-# Rumour. The same event scales with the Dominion bond: an Attached/Submissive
-# partner can make the story bite harder, and a Pet can do so without hesitation.
+# Rumour. The same event scales with the Dominion bond: an Attached/Submissive partner can make the story
+# bite harder, and a Pet can do so without hesitation.
 dcint_whisper_effect = {
     scope:dcint_partner = {
         if = {
@@ -128,9 +121,8 @@ dcint_whisper_effect = {
     }
 }
 
-# A courtier changes hands. Lovers can do this through intimacy; Attached and
-# higher Dominion partners can do it through obedience even if the affair itself
-# has cooled.
+# A courtier changes hands. Lovers can do this through intimacy; Attached and higher Dominion partners
+# can do it through obedience even if the affair itself has cooled.
 dcint_poach_courtier_effect = {
     scope:dcint_partner = {
         random_courtier = {
@@ -160,9 +152,9 @@ dcint_poach_courtier_effect = {
     }
 }
 
-# The blood action now works for the common Dominion case: an unlanded partner
-# married to a landed ruler. Prefer the child's publicly assumed landed parent as
-# title source; otherwise use the partner, then the partner's landed spouse.
+# The blood action now works for the common Dominion case: an unlanded partner married to a landed ruler.
+# Prefer the child's publicly assumed landed parent as title source; otherwise use the partner, then the
+# partner's landed spouse.
 dcint_press_claim_effect = {
     scope:dcint_partner = {
         random_child = {
@@ -185,8 +177,8 @@ dcint_press_claim_effect = {
     if = {
         limit = { exists = scope:dcint_claimant }
 
-        # Hidden-paternity case: the claimant's public father is often the ruler
-        # whose household the Patron penetrated. Use him first when appropriate.
+        # Hidden-paternity case: the claimant's public father is often the ruler whose household the
+        # Patron penetrated. Use him first when appropriate.
         scope:dcint_claimant = {
             if = {
                 limit = {

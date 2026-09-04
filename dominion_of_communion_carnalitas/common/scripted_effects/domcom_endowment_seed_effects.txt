@@ -1,36 +1,12 @@
-# Dominion of Communion - Carnalitas Compatibility
-#
-# Path-identical override of Dominion's preseed hook.
-#
-# a Carnalitas dick trait chosen in the ruler designer is honoured
-# again. rc4.5 emptied this effect so that Dominion's own roll always won, but
-# that also threw away the one case where the trait is not a random assignment:
-# a character the player built by hand. The designer offers Carnalitas' dick
-# traits, the player picks one, and until now Dominion rolled over the top of it.
-#
-# So: read the Carnalitas trait, roll length and girth inside the band that
-# produces the matching Dominion tier, and let the ordinary lock make them
-# permanent. Dominion still owns the exact numbers and the six visible tiers,
-# and the outward sync still runs Dominion -> Carnalitas, never the reverse.
-#
-# Carnalitas tiers are still read only for human players, preserving Dominion's
-# own AI/world distribution. Dominion's own Endowment traits are stronger evidence
-# because they are never random-created or vanilla-inherited, so an explicit
-# Dominion choice is honored first.
-#
-# Carnalitas represents "average" as the absence of a dick trait, so an absent
-# trait cannot be told apart from an unmade choice. In that case nothing is
-# seeded and Dominion rolls normally. A player who wants to fix average
-# explicitly can pick Dominion's own Average Endowment trait instead, which the
-# fallback below reads.
+# Compatibility override point; keep this path stable.
 
 domcom_preseed_endowment_effect = {
     if = {
         limit = { is_male = yes age >= 18 }
 
-        # A Dominion tier can only be explicitly selected/added (never random-
-        # created or vanilla-inherited), so it is the strongest evidence of a
-        # Ruler Designer choice and wins even during startup ordering.
+        # A Dominion tier can only be explicitly selected/added (never random- created or
+        # vanilla-inherited), so it is the strongest evidence of a Ruler Designer choice and wins even
+        # during startup ordering.
         if = {
             limit = {
                 OR = {

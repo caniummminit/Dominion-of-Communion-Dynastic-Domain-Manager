@@ -1,14 +1,4 @@
-﻿# Dominion is authoritative for exact length/girth AND the six visible Dominion
-# Endowment tiers. This compatibility layer maps that immutable Dominion
-# category outward to Carnalitas once. It does NOT continuously remove/re-add
-# Carnalitas traits on generic character-initialization pulses.
-#
-# stable synchronization. The domcom_carn_synced_<tier> flags
-# are now the persistence lock they were originally intended to be. Once a
-# character has been reconciled to their locked Dominion category, repeated
-# birthdays, court moves, title gains, ledger refreshes, etc. are true no-ops.
-# The flags are cleared only by Dominion's explicit rebuild/reroll tools.
-
+﻿
 domcom_carn_clear_sync_flags_effect = {
     remove_character_flag = domcom_carn_synced_micro
     remove_character_flag = domcom_carn_synced_small
@@ -19,114 +9,11 @@ domcom_carn_clear_sync_flags_effect = {
 }
 
 domcom_carn_sync_endowment_effect = {
-    if = {
-        limit = {
-            is_male = yes
-            age >= 18
-            has_game_rule = carn_dt_enabled
-            has_variable = domcom_endowment_category
-        }
-
-        if = {
-            limit = {
-                var:domcom_endowment_category = flag:micro
-                NOT = { has_character_flag = domcom_carn_synced_micro }
-            }
-            # Only touch the visible Carnalitas trait if it is actually wrong.
-            if = {
-                limit = { NOR = { has_trait = dick_small_good_3 has_trait = dick_small_bad_3 } }
-                carn_remove_dick_trait_effect = yes
-                carn_add_dick_small_3_effect = yes
-            }
-            domcom_carn_clear_sync_flags_effect = yes
-            add_character_flag = domcom_carn_synced_micro
-        }
-        else_if = {
-            limit = {
-                var:domcom_endowment_category = flag:small
-                NOT = { has_character_flag = domcom_carn_synced_small }
-            }
-            if = {
-                limit = { NOR = { has_trait = dick_small_good_1 has_trait = dick_small_bad_1 } }
-                carn_remove_dick_trait_effect = yes
-                carn_add_dick_small_1_effect = yes
-            }
-            domcom_carn_clear_sync_flags_effect = yes
-            add_character_flag = domcom_carn_synced_small
-        }
-        else_if = {
-            limit = {
-                var:domcom_endowment_category = flag:average
-                NOT = { has_character_flag = domcom_carn_synced_average }
-            }
-            # Average is represented by no Carnalitas dick-size trait.
-            if = {
-                limit = {
-                    OR = {
-                        has_trait = dick_small_good_1
-                        has_trait = dick_small_bad_1
-                        has_trait = dick_small_good_2
-                        has_trait = dick_small_bad_2
-                        has_trait = dick_small_good_3
-                        has_trait = dick_small_bad_3
-                        has_trait = dick_big_good_1
-                        has_trait = dick_big_bad_1
-                        has_trait = dick_big_good_2
-                        has_trait = dick_big_bad_2
-                        has_trait = dick_big_good_3
-                        has_trait = dick_big_bad_3
-                    }
-                }
-                carn_remove_dick_trait_effect = yes
-            }
-            domcom_carn_clear_sync_flags_effect = yes
-            add_character_flag = domcom_carn_synced_average
-        }
-        else_if = {
-            limit = {
-                var:domcom_endowment_category = flag:big
-                NOT = { has_character_flag = domcom_carn_synced_big }
-            }
-            if = {
-                limit = { NOR = { has_trait = dick_big_good_1 has_trait = dick_big_bad_1 } }
-                carn_remove_dick_trait_effect = yes
-                carn_add_dick_big_1_effect = yes
-            }
-            domcom_carn_clear_sync_flags_effect = yes
-            add_character_flag = domcom_carn_synced_big
-        }
-        else_if = {
-            limit = {
-                var:domcom_endowment_category = flag:hung
-                NOT = { has_character_flag = domcom_carn_synced_hung }
-            }
-            if = {
-                limit = { NOR = { has_trait = dick_big_good_2 has_trait = dick_big_bad_2 } }
-                carn_remove_dick_trait_effect = yes
-                carn_add_dick_big_2_effect = yes
-            }
-            domcom_carn_clear_sync_flags_effect = yes
-            add_character_flag = domcom_carn_synced_hung
-        }
-        else_if = {
-            limit = {
-                var:domcom_endowment_category = flag:massive
-                NOT = { has_character_flag = domcom_carn_synced_massive }
-            }
-            if = {
-                limit = { NOR = { has_trait = dick_big_good_3 has_trait = dick_big_bad_3 } }
-                carn_remove_dick_trait_effect = yes
-                carn_add_dick_big_3_effect = yes
-            }
-            domcom_carn_clear_sync_flags_effect = yes
-            add_character_flag = domcom_carn_synced_massive
-        }
-    }
+    domcom_carn_suppress_dt_traits_effect = yes
 }
 
-# A Dominion Pet is not Carnalitas slavery. If both characters are mutually
-# attracted and Carnalitas allows the BDSM relation, the Pet is additionally
-# recognized as submissive and the Patron as dominant.
+# A Dominion Pet is not Carnalitas slavery. If both characters are mutually attracted and Carnalitas
+# allows the BDSM relation, the Pet is additionally recognized as submissive and the Patron as dominant.
 domcom_carn_sync_pet_relation_effect = {
     if = {
         limit = {

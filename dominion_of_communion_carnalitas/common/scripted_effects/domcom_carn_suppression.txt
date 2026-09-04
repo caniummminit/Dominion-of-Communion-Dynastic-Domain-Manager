@@ -1,0 +1,19 @@
+# Compatibility override point; keep this path stable.
+
+domcom_carn_suppress_dt_traits_effect = {
+    if = {
+        limit = { has_game_rule = carn_dt_enabled }
+    if = { limit = { has_trait = dick_small_good_1 } make_trait_inactive = dick_small_good_1 }
+    if = { limit = { has_trait = dick_small_good_2 } make_trait_inactive = dick_small_good_2 }
+    if = { limit = { has_trait = dick_small_good_3 } make_trait_inactive = dick_small_good_3 }
+    if = { limit = { has_trait = dick_small_bad_1 } make_trait_inactive = dick_small_bad_1 }
+    if = { limit = { has_trait = dick_small_bad_2 } make_trait_inactive = dick_small_bad_2 }
+    if = { limit = { has_trait = dick_small_bad_3 } make_trait_inactive = dick_small_bad_3 }
+    if = { limit = { has_trait = dick_big_good_1 } make_trait_inactive = dick_big_good_1 }
+    if = { limit = { has_trait = dick_big_good_2 } make_trait_inactive = dick_big_good_2 }
+    if = { limit = { has_trait = dick_big_good_3 } make_trait_inactive = dick_big_good_3 }
+    if = { limit = { has_trait = dick_big_bad_1 } make_trait_inactive = dick_big_bad_1 }
+    if = { limit = { has_trait = dick_big_bad_2 } make_trait_inactive = dick_big_bad_2 }
+    if = { limit = { has_trait = dick_big_bad_3 } make_trait_inactive = dick_big_bad_3 }
+    }
+}

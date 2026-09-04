@@ -24,20 +24,31 @@ domcom_monthly_tribute_value = {
         limit = { has_character_flag = domcom_household_dominion }
         add = { value = monthly_character_income multiply = 0.08 }
     }
+    if = {
+        limit = { has_character_flag = domcom_bound_ruler }
+        add = { value = monthly_character_income multiply = 0.13 }
+    }
     min = 0
     max = gold
 }
 
-# Root/this is the interaction recipient. scope:actor and scope:recipient are supplied
-# by the character interaction. The result is a percentage, capped at 5-95.
+domcom_bound_ruler_treasury_surrender_value = {
+    value = gold
+    multiply = 0.50
+    min = 0
+    max = gold
+}
+
+# Root/this is the interaction recipient. scope:actor and scope:recipient are supplied by the character
+# interaction. The result is a percentage, capped at 5-95.
 domcom_alpha_check_chance_value = {
     value = 18
     if = {
         limit = { scope:recipient = { has_variable = domcom_cuck_xp } }
         add = { value = scope:recipient.var:domcom_cuck_xp multiply = 0.05 }
     }
-    # A previous pre-cuck Alpha victory gives a modest edge once the same rival
-    # returns for a post-cuck reassertion.
+    # A previous pre-cuck Alpha victory gives a modest edge once the same rival returns for a post-cuck
+    # reassertion.
     if = {
         limit = {
             scope:recipient = {
@@ -51,6 +62,10 @@ domcom_alpha_check_chance_value = {
     if = {
         limit = { scope:recipient = { domcom_has_lover_betrayal_from_actor_trigger = yes } }
         add = 8
+    }
+    if = {
+        limit = { scope:recipient = { domcom_spouse_taken_by_actor_trigger = yes } }
+        add = 14
     }
     add = { value = scope:actor.diplomacy multiply = 0.70 }
     subtract = { value = scope:recipient.diplomacy multiply = 0.65 }
@@ -94,9 +109,9 @@ domcom_alpha_check_chance_value = {
     round = yes
 }
 
-# Sexual influence is intentionally separate from Alpha. This chance uses mutual
-# orientation, social skill, personality, existing intimacy, Obedience momentum,
-# and male Endowment compatibility only when the recipient is attracted to men.
+# Sexual influence is intentionally separate from Alpha. This chance uses mutual orientation, social
+# skill, personality, existing intimacy, Obedience momentum, and male Endowment compatibility only when
+# the recipient is attracted to men.
 domcom_tantalize_chance_value = {
     value = 22
     if = {
@@ -130,6 +145,10 @@ domcom_tantalize_chance_value = {
             }
         }
         add = 15
+    }
+    if = {
+        limit = { scope:recipient = { domcom_spouse_dominated_by_actor_trigger = yes } }
+        add = 12
     }
 
     # Endowment is sexual compatibility, so it belongs here rather than in Alpha.
@@ -243,10 +262,6 @@ domcom_family_attraction_chance_value = {
     round = yes
 }
 
-# Current scope is an Owned ruler. The preferred successor is the child stored
-# in var:domcom_blood_successor when acknowledgment displaced a former vanilla
-# primary heir; otherwise the current primary_heir is used. Minor successors are
-# intentionally harder to impose, especially very young children.
 domcom_abdication_chance_value = {
     value = 40
     if = { limit = { has_variable = domcom_cuck_xp } add = { value = var:domcom_cuck_xp multiply = 0.06 } }
@@ -364,9 +379,6 @@ domcom_ui_abdication_chance_value = {
     value = domcom_abdication_chance_value
 }
 
-# ---------------------------------------------------------------------------
-# 0.4.2 — Ledger consolidation / sorting / tribute controls
-# ---------------------------------------------------------------------------
 domcom_annual_tribute_due_value = {
     value = monthly_character_income
     multiply = 2.64 # 22% x 12 months
@@ -405,8 +417,6 @@ domcom_sort_tribute_value = {
 }
 
 
-
-# 0.5.0 — hidden endowment measurements are stored in tenths of an inch.
 domcom_length_inches_value = {
     value = 0
     if = {
@@ -431,13 +441,6 @@ domcom_endowment_sort_value = {
     }
 }
 
-# 1.0.0-rc4.4 — length-led, was girth-led.
-#
-# The old weighting was 0.4 length / 0.6 girth, which produced results players
-# read as simply wrong: 5.0 x 6.0 and 6.5 x 5.0 both index 56, so a five-inch
-# one sat in the same band as a six-and-a-half-inch one. Girth deserves real
-# weight, but not more than length, because length is the dimension a player
-# reads first and judges the tier against.
 domcom_endowment_index_value = {
     value = 0
     if = {
@@ -449,8 +452,6 @@ domcom_endowment_index_value = {
 }
 
 
-# 0.5.3 — chance that the Patron wins a Taunt the Cuck honor duel.
-# Current scope is the Cucked victim; scope:domcom_taunt_patron is saved.
 domcom_taunt_patron_duel_win_chance_value = {
     value = 50
     add = { value = scope:domcom_taunt_patron.prowess multiply = 2.5 }
@@ -469,7 +470,6 @@ domcom_taunt_patron_duel_win_chance_value = {
     round = yes
 }
 
-# 0.8.6 — plain sum of the six skills. The obvious ranking that was missing.
 domcom_sort_total_value = {
     value = diplomacy
     add = martial
@@ -480,10 +480,6 @@ domcom_sort_total_value = {
     add = domcom_sort_tiebreak_value
 }
 
-# 0.8.6 — composite worth: skills, congenital quality, and personality traits
-# that make a subject genuinely valuable rather than merely capable. Prowess is
-# halved because it is on a different scale to the council skills and otherwise
-# dominates the sum for any warrior.
 domcom_sort_prize_value = {
     value = diplomacy
     add = martial
@@ -536,10 +532,6 @@ domcom_sort_prize_value = {
 }
 
 
-
-# 0.9.0 — Gauntlet difficulty. The Patron starts at 90% of the normal Alpha
-# chance and the multiplier falls another 3 percentage points after each win.
-# Current scope is the Gauntlet target; the patron scope/variable are saved by GUI.
 domcom_gauntlet_alpha_chance_value = {
     value = var:domcom_ui_alpha_chance
     multiply = scope:domcom_gauntlet_patron.var:domcom_gauntlet_multiplier
@@ -548,9 +540,6 @@ domcom_gauntlet_alpha_chance_value = {
     round = yes
 }
 
-# 0.9.0 — if an Invite to Bed is discovered, this is the Patron's chance to
-# stare down / evade the spouse rather than be cornered. Current scope is the
-# cuckold; scope:domcom_intimacy_patron is the acting Patron.
 domcom_intimacy_escape_chance_value = {
     value = 50
     add = { value = scope:domcom_intimacy_patron.intrigue multiply = 1.35 }
@@ -566,9 +555,6 @@ domcom_intimacy_escape_chance_value = {
     round = yes
 }
 
-# 1.0.0-rc4 — chance that an AI Owned subject retaliates when public
-# acknowledgment reveals that the child who had been their heir is the Patron's
-# blood. Deep submission reduces retaliation; vindictive personalities raise it.
 domcom_blood_heir_retaliation_chance_value = {
     value = 20
     if = { limit = { has_variable = domcom_cuck_xp } add = { value = var:domcom_cuck_xp multiply = -0.025 } }
@@ -589,8 +575,6 @@ domcom_blood_heir_retaliation_chance_value = {
     round = yes
 }
 
-# 0.9.7 — complements of the two chance values, so a random_list can weight
-# success against failure and let CK3 print a percentage beside each outcome.
 domcom_alpha_check_failure_weight_value = {
     value = 100
     add = { value = domcom_alpha_check_chance_value multiply = -1 }
@@ -602,16 +586,12 @@ domcom_tantalize_failure_weight_value = {
 }
 
 
-
-# 1.0.0-rc4 — complement used by the interaction tooltip.
 domcom_abdication_failure_weight_value = {
     value = 100
     add = { value = domcom_abdication_chance_value multiply = -1 }
 }
 
 
-# 1.0.0-rc4 — annual chance that an otherwise eligible nearby AI Queen/Empress
-# actually acts on strong attraction and proposes a Crowned Union.
 domcom_crowned_heart_offer_chance_value = {
     value = 4
     if = { limit = { has_relation_crush = scope:domcom_crowned_partner } add = 6 }
@@ -635,20 +615,6 @@ domcom_crowned_heart_offer_chance_value = {
     round = yes
 }
 
-# 1.0.0-rc4.3 — heredity seeds.
-#
-# A son starts from his sire's figure pulled 40% of the way back toward the
-# population mean, then takes a symmetric random step in domcom_assign_endowment_effect.
-# Without the regression term a single outlier ancestor would pin an entire
-# dynasty to the top or bottom tier forever; with it, a line drifts toward an
-# extreme over generations and can drift back out again.
-#
-# The divide/round/multiply tail snaps the result to a multiple of 5, matching
-# the granularity of the flat population tables so sired and unsired characters
-# occupy the same value space.
-#
-# Both values fall back to the population mean, so they are safe to evaluate on
-# a character with no sire on record even though nothing currently does.
 domcom_sire_length_seed_value = {
     value = 0
     if = {
@@ -679,18 +645,6 @@ domcom_sire_girth_seed_value = {
     multiply = 5
 }
 
-# 1.0.0-rc4.4 — stress became personality-dependent.
-#
-# Every Dominion stress change was previously a flat number, which encoded one
-# mentality: a man who finds all of this shameful and is worn down by it. That
-# is a real character, but it is not the only one, and forcing it on every
-# playthrough made the patron read as someone who does not want what he is
-# doing. These values let the same act steady one character and cost another.
-#
-# Traits that pull toward relief are the ones for whom this is self-expression;
-# traits that pull toward cost are the ones for whom it is transgression. A
-# chaste, humble patron still pays for success - that is the point, his
-# conscience is the obstacle. A lustful or deviant one is genuinely eased by it.
 domcom_dominion_success_stress_value = {
     value = -5
     if = { limit = { has_trait = lustful } subtract = 8 }
@@ -706,8 +660,8 @@ domcom_dominion_success_stress_value = {
     if = { limit = { has_trait = shy } add = 3 }
 }
 
-# Rejection floors at zero rather than going negative: a shameless patron is
-# unbothered by a refusal, but nobody is actively relieved by one.
+# Rejection floors at zero rather than going negative: a shameless patron is unbothered by a refusal, but
+# nobody is actively relieved by one.
 domcom_dominion_rejection_stress_value = {
     value = 15
     if = { limit = { has_trait = lustful } subtract = 5 }
@@ -739,8 +693,6 @@ domcom_intimacy_discovered_stress_value = {
     min = 0
 }
 
-# 0.9.7 — Tantalized ordering (issue 5). Obedience is the natural default; the
-# shared sort buttons fall through to skills so the page behaves like the others.
 domcom_sort_tantalized_value = {
     value = 0
     if = {
@@ -761,7 +713,6 @@ domcom_sort_tantalized_value = {
     }
 }
 
-# 0.9.9 — Alpha Check budget cap, read from the game rule.
 domcom_alpha_budget_cap_value = {
     value = 0
     if = { limit = { has_game_rule = domcom_alpha_budget_4 } add = 4 }
@@ -777,12 +728,72 @@ domcom_alpha_budget_left_value = {
     min = 0
 }
 
-# 0.9.11 — deterministic tiebreak for every roster sort.
-# domcom_sort_prize_value can differ by 0.5 (prowess is halved), so the tiebreak
-# is capped at 0.0099 - large enough to order equals consistently, far too small
-# to reorder genuinely different scores.
 domcom_sort_tiebreak_value = {
     value = 0
     if = { limit = { has_variable = domcom_sort_seed } add = var:domcom_sort_seed }
     divide = 100000
+}
+
+
+# ROOT                            the existing partner, doing the judging
+# scope:domcom_jealousy_patron    the Patron
+# scope:domcom_jealousy_rival     the person he has just taken
+domcom_jealousy_tier_value = {
+    value = 3
+
+    # --- how much she likes the Patron -------------------------------------
+    if = { limit = { opinion = { target = scope:domcom_jealousy_patron value >= 80 } } add = -1.5 }
+    else_if = { limit = { opinion = { target = scope:domcom_jealousy_patron value >= 50 } } add = -1 }
+    else_if = { limit = { opinion = { target = scope:domcom_jealousy_patron value >= 20 } } add = -0.5 }
+    else_if = { limit = { opinion = { target = scope:domcom_jealousy_patron value <= -50 } } add = 1.5 }
+    else_if = { limit = { opinion = { target = scope:domcom_jealousy_patron value <= -20 } } add = 1 }
+
+    # --- how much she likes the newcomer -----------------------------------
+    if = { limit = { opinion = { target = scope:domcom_jealousy_rival value >= 50 } } add = -1 }
+    else_if = { limit = { opinion = { target = scope:domcom_jealousy_rival value >= 20 } } add = -0.5 }
+    else_if = { limit = { opinion = { target = scope:domcom_jealousy_rival value <= -50 } } add = 1.25 }
+    else_if = { limit = { opinion = { target = scope:domcom_jealousy_rival value <= -20 } } add = 0.75 }
+
+    # --- Obedience, the heaviest term --------------------------------------
+    if = {
+        limit = {
+            has_variable = domcom_obedience_patron
+            var:domcom_obedience_patron = scope:domcom_jealousy_patron
+            has_variable = domcom_obedience
+        }
+        if = { limit = { var:domcom_obedience >= 750 } add = -2 }
+        else_if = { limit = { var:domcom_obedience >= 500 } add = -1.25 }
+        else_if = { limit = { var:domcom_obedience >= 250 } add = -0.5 }
+        else = { add = 0.5 }
+    }
+    else = { add = 0.5 }
+
+    # scope:domcom_compatibility_target for each and a script value cannot swap
+    if = { limit = { var:domcom_jealousy_attr_patron >= 40 } add = 0.75 }
+    else_if = { limit = { var:domcom_jealousy_attr_patron >= 20 } add = 0.4 }
+
+    # --- her attraction to the newcomer: she sees the appeal too ------------
+    if = { limit = { var:domcom_jealousy_attr_rival >= 40 } add = -1.25 }
+    else_if = { limit = { var:domcom_jealousy_attr_rival >= 20 } add = -0.6 }
+    else_if = { limit = { var:domcom_jealousy_attr_rival <= -20 } add = 0.5 }
+
+    # --- temperament -------------------------------------------------------
+    if = { limit = { has_trait = lustful } add = -0.5 }
+    if = { limit = { has_trait = forgiving } add = -0.5 }
+    if = { limit = { has_trait = deceitful } add = -0.25 }
+    if = { limit = { has_trait = content } add = -0.25 }
+    if = { limit = { has_trait = vengeful } add = 0.75 }
+    if = { limit = { has_trait = wrathful } add = 0.75 }
+    if = { limit = { has_trait = arrogant } add = 0.5 }
+    if = { limit = { has_trait = paranoid } add = 0.5 }
+    if = { limit = { has_trait = chaste } add = 0.5 }
+    if = { limit = { has_trait = just } add = 0.25 }
+
+    # A spouse who is watching her own husband's Patron collect another is a different case from a
+    # courtier, and takes it harder.
+    if = { limit = { is_married = yes NOT = { is_spouse_of = scope:domcom_jealousy_patron } } add = 0.25 }
+
+    min = 0
+    max = 6
+    round = yes
 }

@@ -1,5 +1,5 @@
-﻿# Stable vanilla-county alphabet index used by the Domain Office holding register.
-# Only counties currently marked by a DDM list rebuild receive transient scores.
+﻿# Stable vanilla-county alphabet index used by the Domain Office holding register. Only counties
+# currently marked by a DDM list rebuild receive transient scores.
 ddm_assign_county_alphabet_scores_effect = {
     title:c_aachen = { if = { limit = { has_variable = ddm_sort_candidate_county } set_variable = { name = ddm_sort_alpha_score value = 3442 } } }
     title:c_aalborg = { if = { limit = { has_variable = ddm_sort_candidate_county } set_variable = { name = ddm_sort_alpha_score value = 3441 } } }

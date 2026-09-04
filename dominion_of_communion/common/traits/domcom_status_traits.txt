@@ -1,0 +1,27 @@
+﻿# Trait-based Cucked status avoids per-character opinion records.
+
+domcom_cucked_trait = {
+    index = 3001
+
+    category = fame
+    # Use CK3's vanilla Disputed Heritage trait artwork. Trait icon= expects the filename from
+    # gfx/interface/icons/traits, not a full gfx path.
+    icon = disputed_heritage.dds
+
+    shown_in_ruler_designer = no
+    random_creation = 0
+    birth = 0
+    inherit_chance = 0
+    both_parent_has_trait_inherit_chance = 0
+    can_have_children = yes
+
+    # Public stigma, aimed at everyone who is not in the same position.
+    general_opinion = -15
+    attraction_opinion = -25
+
+    same_opinion = 15
+
+    seduce_speed_mult = -0.15
+    romance_speed_mult = -0.15
+    elope_speed_mult = -0.15
+}

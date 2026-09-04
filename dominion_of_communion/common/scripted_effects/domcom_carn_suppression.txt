@@ -1,0 +1,3 @@
+# Compatibility override point; keep this path stable.
+
+domcom_carn_suppress_dt_traits_effect = { }

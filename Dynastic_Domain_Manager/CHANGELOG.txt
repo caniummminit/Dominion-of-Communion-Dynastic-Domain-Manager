@@ -1,21 +1,35 @@
-DYNASTIC DOMAIN MANAGER 1.0.0
-=============================
-
-FIRST PUBLIC RELEASE
---------------------
-- Unified paused Domain Office.
-- Crown Estate protection, recommendations and organized holding registers.
-- Dynasty-first title distribution with optional selected/all eligible outsider recipients.
-- Eligible unlanded courtiers can receive a first landed grant.
-- Right-click title reservations for specific candidates.
-- De-jure, claim, territorial-fit, capability, safety, regard and fairness scoring.
-- Separate Domain Limit and Vassal Limit management.
-- Distribute to Proper Lieges realm-hierarchy cleanup.
-- Selective outsider protection and reclamation.
-- Religious-title fallback for untransferable head-of-faith titles.
-- War-aware queued settlement.
-- Succession influence and dynastic alliance policy.
-- Men-at-Arms adviser and bulk military construction tools.
-- Settlement Ledger and blocker diagnostics.
-
+﻿DYNASTIC DOMAIN MANAGER — CHANGELOG
 Compatibility target: Crusader Kings III 1.19.*
+
+1.2 — CURRENT RELEASE
+---------------------
+DOMAIN OFFICE
+- Consolidated routine management into Overview, Crown Estate, Settlement, Dynasty, Realm Office and Ledger.
+- Added native Education, Dynasty Review, Military/Construction and Administrative Policy pages.
+- Added paged Recipient, Outsider Holdings and Dynasty Review registers.
+- Added clearer distribution score breakdowns.
+
+EDUCATION
+- Added Court, Realm, Dynasty and Diplomatic Range educator searches.
+- Guardian scoring weights the child's relevant skill twice as strongly as Learning, with smaller intelligence and temperament adjustments.
+- Excludes guardians at the two-ward limit.
+- Added monthly automatic guardian assignment, enabled by default.
+- Checks the ruler's children, court children, House children and Dynasty children.
+- Skips adults, hostages, existing wards and Never Educate entries.
+- Runs diplomatic-range guardian searches only when an eligible child needs one.
+- Adds an immediate scan after entering a save.
+
+1.1.0 — EDUCATION TOOL
+----------------------
+- Added one-click guardian assignment for unattended court children.
+- Re-ranks available guardians after each assignment.
+- Updated launcher compatibility to CK3 1.19.*.
+
+1.0.0 — FIRST PUBLIC RELEASE
+----------------------------
+- Added the paused Domain Office.
+- Added Crown Estate planning and protected holdings.
+- Added dynasty-first title distribution and optional outsider recipients.
+- Added title reservations, de-jure hierarchy cleanup and outsider reclamation.
+- Added war-aware settlement, succession influence and alliance policy.
+- Added Men-at-Arms advice, construction tools and settlement diagnostics.

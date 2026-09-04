@@ -1,11 +1,3 @@
-# Dominion of Communion - Carnalitas compatibility display hook.
-#
-# Path-identical to Dominion's display hook so load order is deterministic. It
-# applies Dominion's own Endowment trait; the trait definitions and icon files
-# are NOT overridden by this module.
-#
-# kept byte-identical in behaviour to the base mod's copy, including
-# the tier pruning added there.
 
 domcom_apply_native_endowment_trait_effect = {
     if = {

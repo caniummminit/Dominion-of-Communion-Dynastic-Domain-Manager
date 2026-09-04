@@ -1,5 +1,4 @@
-﻿# Dominion of Communion 0.6.3 — evidence created by optional Carnalitas sex hooks.
-
+﻿
 domcom_has_full_sex_evidence_from_actor_trigger = {
     any_in_list = {
         variable = domcom_sex_evidence_patrons

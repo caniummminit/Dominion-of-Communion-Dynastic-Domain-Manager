@@ -1,18 +1,9 @@
-﻿# Dominion of Communion — Carnalitas compatibility OVERRIDE.
-# Path-identical to the base mod's copy, so this replaces it.
-#
-# A rebuild must also release this module's per-tier sync locks, or the
-# Carnalitas trait would stay on whatever tier it was last set to and the
-# rebuilt category would have nothing to apply to.
+﻿# Compatibility override point; keep this path stable.
 
 domcom_rebuild_clear_sync_flags_effect = {
     domcom_carn_clear_sync_flags_effect = yes
 }
 
-# A destructive reroll must drop the Carnalitas dick trait too, otherwise
-# domcom_preseed_endowment_effect reads it back on the very next line and seeds
-# the character from their previous tier rather than rolling fresh. The sync
-# re-applies the correct Carnalitas trait once the new category is computed.
 domcom_rebuild_clear_external_traits_effect = {
     if = {
         limit = {

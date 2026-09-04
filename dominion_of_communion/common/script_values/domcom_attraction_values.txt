@@ -1,12 +1,9 @@
-﻿# Dominion of Communion 0.6.3 — individual attraction / compatibility engine.
-# Current scope = the person evaluating attraction.
-# scope:domcom_compatibility_target = the person being evaluated.
-
+﻿
 domcom_pair_compatibility_value = {
     value = 0
 
-    # Body build from CK3's current_weight. Approximate bands deliberately avoid
-    # pretending weight is a literal real-world measurement.
+    # Body build from CK3's current_weight. Approximate bands deliberately avoid pretending weight is a
+    # literal real-world measurement.
     if = { limit = { OR = { var:domcom_pref_body = flag:lean_mild var:domcom_pref_body = flag:lean_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight <= -20 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_body = flag:lean_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight <= -20 } } add = 6 } else = { add = -4 } }
     if = { limit = { OR = { var:domcom_pref_body = flag:average_mild var:domcom_pref_body = flag:average_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight > -20 current_weight < 20 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_body = flag:average_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight > -20 current_weight < 20 } } add = 6 } else = { add = -4 } }
     if = { limit = { OR = { var:domcom_pref_body = flag:heavy_mild var:domcom_pref_body = flag:heavy_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight >= 20 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_body = flag:heavy_strong } } if = { limit = { scope:domcom_compatibility_target = { current_weight >= 20 } } add = 6 } else = { add = -4 } }
@@ -16,8 +13,8 @@ domcom_pair_compatibility_value = {
     if = { limit = { OR = { var:domcom_pref_age = flag:prime_mild var:domcom_pref_age = flag:prime_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 28 age < 45 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_age = flag:prime_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 28 age < 45 } } add = 6 } else = { add = -4 } }
     if = { limit = { OR = { var:domcom_pref_age = flag:mature_mild var:domcom_pref_age = flag:mature_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 45 } } add = 6 } else = { add = -4 } if = { limit = { var:domcom_pref_age = flag:mature_strong } } if = { limit = { scope:domcom_compatibility_target = { age >= 45 } } add = 6 } else = { add = -4 } }
 
-    # Culture and heritage are separate preferences: culture equality is exact,
-    # while heritage groups related cultures without pretending culture is race.
+    # Culture and heritage are separate preferences: culture equality is exact, while heritage groups
+    # related cultures without pretending culture is race.
     if = { limit = { OR = { var:domcom_pref_culture = flag:same_mild var:domcom_pref_culture = flag:same_strong } } if = { limit = { culture = scope:domcom_compatibility_target.culture } add = 5 } else = { add = -5 } if = { limit = { var:domcom_pref_culture = flag:same_strong } } if = { limit = { culture = scope:domcom_compatibility_target.culture } add = 5 } else = { add = -5 } }
     if = { limit = { OR = { var:domcom_pref_culture = flag:different_mild var:domcom_pref_culture = flag:different_strong } } if = { limit = { NOT = { culture = scope:domcom_compatibility_target.culture } } add = 5 } else = { add = -5 } if = { limit = { var:domcom_pref_culture = flag:different_strong } } if = { limit = { NOT = { culture = scope:domcom_compatibility_target.culture } } add = 5 } else = { add = -5 } }
     if = { limit = { OR = { var:domcom_pref_heritage = flag:same_mild var:domcom_pref_heritage = flag:same_strong } } if = { limit = { culture = { has_same_culture_heritage = scope:domcom_compatibility_target.culture } } add = 4 } else = { add = -4 } if = { limit = { var:domcom_pref_heritage = flag:same_strong } } if = { limit = { culture = { has_same_culture_heritage = scope:domcom_compatibility_target.culture } } add = 4 } else = { add = -4 } }
@@ -70,8 +67,8 @@ domcom_pair_compatibility_value = {
     round = yes
 }
 
-# Compatibility-adjusted Tantalize chance. Attraction changes receptiveness but
-# remains separate from the 0-1000 Obedience track.
+# Compatibility-adjusted Tantalize chance. Attraction changes receptiveness but remains separate from the
+# 0-1000 Obedience track.
 domcom_tantalize_chance_v063_value = {
     value = 22
     if = { limit = { has_variable = domcom_obedience } add = { value = var:domcom_obedience multiply = 0.02 } }
@@ -98,8 +95,8 @@ domcom_tantalize_chance_v063_value = {
     round = yes
 }
 
-# Obedience gained by a successful Tantalize. Even obsession does not itself
-# create obedience; it merely makes successful influence more productive.
+# Obedience gained by a successful Tantalize. Even obsession does not itself create obedience; it merely
+# makes successful influence more productive.
 domcom_tantalize_obedience_gain_value = {
     value = 100
     if = { limit = { var:domcom_last_compatibility >= 90 } add = 125 }

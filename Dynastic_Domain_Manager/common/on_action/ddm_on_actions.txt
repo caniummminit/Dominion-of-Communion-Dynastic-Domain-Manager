@@ -1,0 +1,36 @@
+﻿
+quarterly_playable_pulse = {
+    on_actions = {
+        ddm_auto_education_monthly_pulse
+        delay = { months = 1 }
+        ddm_auto_education_monthly_pulse
+        delay = { months = 2 }
+        ddm_auto_education_monthly_pulse
+    }
+}
+
+# Run once after loading/starting so an old save does not have to wait for its next quarterly anchor
+# before unattended dynasty children are discovered.
+on_game_start_after_lobby = {
+    on_actions = { ddm_auto_education_initial_scan }
+}
+
+ddm_auto_education_monthly_pulse = {
+    trigger = {
+        is_alive = yes
+        is_ai = no
+    }
+    effect = {
+        ddm_auto_education_monthly_effect = yes
+    }
+}
+
+# on_game_start_after_lobby has no root scope, so iterate only actual players.
+ddm_auto_education_initial_scan = {
+    effect = {
+        every_player = {
+            limit = { is_alive = yes is_ai = no }
+            ddm_auto_education_monthly_effect = yes
+        }
+    }
+}

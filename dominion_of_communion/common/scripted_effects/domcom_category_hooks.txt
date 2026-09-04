@@ -1,9 +1,3 @@
-﻿# Dominion of Communion — post-category override point. Keep this path stable.
-#
-# Called every time Dominion computes domcom_endowment_category for a character.
-# Standalone it does nothing. The Carnalitas compatibility module replaces this
-# file so its trait sync runs from the same place, guaranteeing the Carnalitas
-# trait is derived from the current category no matter what triggered the
-# measurement.
+﻿# Compatibility override point; keep this path stable.
 
 domcom_post_category_effect = { }

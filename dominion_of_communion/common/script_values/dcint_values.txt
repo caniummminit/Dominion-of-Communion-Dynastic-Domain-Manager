@@ -1,6 +1,5 @@
-﻿# How many approaches the patron can field in a month. Scales with the roster so
-# a large network feels like a network, but flattens quickly so it never becomes
-# popup flooding in large relationship networks.
+﻿# How many approaches the patron can field in a month. Scales with the roster so a large network feels
+# like a network, but flattens quickly so it never becomes popup flooding in large relationship networks.
 dcint_monthly_approach_budget = {
     value = 1
     if = { limit = { any_relation = { type = lover count >= 4 } } add = 1 }

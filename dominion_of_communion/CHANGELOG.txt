@@ -1,38 +1,59 @@
-DOMINION OF COMMUNION 1.0 — ENDOWMENT STABILITY TEST
-=====================================================
-
-ENDOWMENT ROOT-CAUSE FIX
-------------------------
-- Endowment tier is now locked separately from length and girth. Normal profile refreshes restore the permanent tier instead of recalculating it, so Alpha Check and Tantalize cannot reclassify a character.
-- Ruler Designer initialization is protected from pre-lobby title/court hooks. A custom ruler can no longer receive a random profile during game setup before Dominion has honored the selected tier.
-- Exact dimensions use the previously working dynamic trait description again.
-- Rebuild Endowment Display deliberately clears only the derived tier lock and recomputes from the existing permanent measurements. Reroll All Endowments remains the only operation that intentionally replaces the measurements themselves.
-
-DOMINION OF COMMUNION 1.0.1
-===========================
-
-HOTFIX
-------
-- Endowment tiers are now mutually exclusive in Ruler Designer. Selecting one penis-size tier prevents selecting any of the other five, avoiding invalid multi-tier custom rulers and the resulting startup crash.
-- No gameplay systems, Carnalitas hooks, measurements, preferences, interactions, or Ledger behavior were otherwise changed.
-
-DOMINION OF COMMUNION 1.0.0
-===========================
-
-FIRST PUBLIC RELEASE
---------------------
-- Unified paused Communion Ledger.
-- Alpha dominance and Cuck Experience progression.
-- Tantalize, Obedience and Pet progression.
-- Owned subjects, Household Dominion, tribute and intelligence.
-- Household Intrigue actions.
-- Endowment traits with exact persistent measurements and individualized preferences.
-- Endowment tooltips display stored dimensions when available.
-- World Cuck tracking, blood acknowledgement and succession pressure.
-- Blood Succession resistance, duel and war paths.
-- Crowned Union mechanics.
-- AI participation and save-state repair/rebuild tools.
-- Mature sexual/romantic participation restricted to characters age 18 or older.
-- Optional Carnalitas integration and separate compatibility package support.
-
+﻿DOMINION OF COMMUNION — CHANGELOG
 Compatibility target: Crusader Kings III 1.19.*
+
+1.2 — CURRENT RELEASE
+-----------------------
+FINAL COLLAPSE
+- Added a middle outcome that lets a collapsed landed ruler keep current titles under Dominion.
+- Bound Rulers surrender part of their wealth and pay increased tribute.
+- Existing seizure and despair outcomes remain available.
+
+LOVERS MANAGEMENT
+- Added a paged Lovers & Soulmates register.
+- Added individual and bulk Break Things Off actions.
+- Pair-specific breakup exceptions prevent Dominion upkeep from recreating intentionally ended relationships.
+
+LEDGER & PERFORMANCE
+- Added 20-row paging to long roster pages while keeping full row details and sorting.
+- World Cucks keeps the full lightweight roster and builds detailed rows only for the current page.
+- Removed the old 500-row presentation limit.
+- Added CK3 skill icons to roster stat displays.
+- Removed obsolete explanatory footer text.
+
+OWNED & TRIBUTE
+- Added tiered passive Prestige, Piety, Renown and quarterly Legitimacy from living Owned subjects.
+- Clarified automatic tribute/intelligence and manual yearly collection.
+
+OBEDIENCE & JEALOUSY
+- Added configurable Obedience stage consequences.
+- Added partner reactions when the Patron takes a new partner.
+- Attached-or-higher Obedience protects established relationships from jealousy breakups.
+
+ALPHA & TANTALIZE
+- Spousal humiliation now affects related Alpha/Tantalize pressure.
+- Alpha Gauntlet now resolves the full roster and scores the overall result.
+
+REPAIRS
+- Fixed Enforce Dominion gating and paused-game lockout.
+- Improved Endowment trait expression and save cleanup.
+- Reworked Cucked stigma storage to avoid large permanent per-character opinion records.
+- Cucked status uses a vanilla trait icon instead of a missing-texture question mark.
+
+CARNALITAS
+- Dominion measurements remain authoritative with the compatibility module loaded.
+- Carnalitas inheritance data remains synchronized without duplicate visible size traits.
+
+1.0.1 — HOTFIX
+----------------
+- Made Endowment tiers mutually exclusive in Ruler Designer.
+- Prevented invalid multi-tier custom rulers and related startup crashes.
+
+1.0.0 — FIRST PUBLIC RELEASE
+----------------------------
+- Added the Communion Ledger.
+- Added Alpha dominance, Cuck Experience, Tantalize, Obedience and Pet progression.
+- Added Owned subjects, Household Dominion, tribute and intelligence.
+- Added Household Intrigue, blood acknowledgement and succession pressure.
+- Added persistent Endowment measurements and individual preferences.
+- Added World Cuck tracking, Crowned Union and AI participation.
+- Added optional Carnalitas compatibility.

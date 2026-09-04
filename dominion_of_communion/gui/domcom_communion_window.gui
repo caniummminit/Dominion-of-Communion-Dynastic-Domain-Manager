@@ -1,4 +1,4 @@
-﻿window = {
+window = {
   name = "domcom_communion_window"
   layer = top
   parentanchor = center
@@ -9,10 +9,6 @@
   using = Window_Background
   using = Window_Decoration
 
-  # 1.0.1 — The Communion is a management surface. Pause once whenever the
-  # window opens while time is running; an already-paused game is left alone.
-  # Actions that intentionally schedule a future event close the Ledger and
-  # resume time themselves so their event can actually fire.
   widget = {
     name = "domcom_communion_autopause"
     size = { 0 0 }
@@ -29,9 +25,7 @@
     layoutpolicy_vertical = expanding
     margin = { 26 22 }
 
-    ############################################################
     # HEADER
-    ############################################################
     hbox = {
       layoutpolicy_horizontal = expanding
       margin_bottom = 10
@@ -58,9 +52,7 @@
       layoutpolicy_horizontal = expanding
       layoutpolicy_vertical = expanding
 
-      ##########################################################
       # SIDEBAR
-      ##########################################################
       vbox = {
         margin = { 6 10 }
         layoutpolicy_vertical = expanding
@@ -69,6 +61,7 @@
         button_standard_small = { text = DOMCOM_UI_PAGE_CUCKED size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_cucked').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
         button_standard_small = { text = DOMCOM_UI_PAGE_WORLD_CUCKS size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_world_cucks').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
         button_standard_small = { text = DOMCOM_UI_PAGE_OWNED size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_owned').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
+        button_standard_small = { text = DOMCOM_UI_PAGE_LOVERS size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_lovers').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
         button_standard_small = { text = DOMCOM_UI_PAGE_PROSPECTS size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_prospects').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
         button_standard_small = { text = DOMCOM_UI_PAGE_BLOOD size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_blood').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
         button_standard_small = { text = DOMCOM_UI_PAGE_TANTALIZED size = { 154 32 } onclick = "[GetScriptedGui('domcom_ui_set_page_tantalized').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]" }
@@ -84,18 +77,14 @@
 
       divider = { layoutpolicy_vertical = expanding }
 
-      ##########################################################
       # PAGE AREA
-      ##########################################################
       vbox = {
         name = "domcom_page_content"
         layoutpolicy_horizontal = expanding
         layoutpolicy_vertical = expanding
         margin_left = 8
 
-        ########################################################
         # OVERVIEW
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_overview').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -104,9 +93,9 @@
 
           text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_OVERVIEW_TITLE fontsize = 22 min_height = 30 align = left }
 
-          # The Overview is short enough to live directly in the page. Keeping it
-          # inside a scrollbox let CK3 center the intrinsic-width content, which
-          # pushed the opening flavor text rightward and clipped its last words.
+          # The Overview is short enough to live directly in the page. Keeping it inside a scrollbox let
+          # CK3 center the intrinsic-width content, which pushed the opening flavor text rightward and
+          # clipped its last words.
           vbox = {
             layoutpolicy_horizontal = expanding
             spacing = 10
@@ -145,9 +134,7 @@
           }
         }
 
-        ########################################################
         # CUCKED
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_cucked').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -202,6 +189,7 @@
           }
 
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_VISIBLE_COUNT default_format = "#weak" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_RANGE default_format = "#weak" }
           divider = { layoutpolicy_horizontal = expanding }
 
           scrollbox = {
@@ -212,7 +200,7 @@
             blockoverride "scrollbox_content" {
               vbox = {
                 layoutpolicy_horizontal = expanding
-                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_cucked_subjects')]"
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_cucked_page_list')]"
                 spacing = 4
                 item = {
                   hbox = {
@@ -271,12 +259,35 @@
             }
           }
 
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_cucked_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_cucked_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_cucked_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_cucked_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_CUCKED_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_cucked_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_cucked_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_CUCKED_RIGHTCLICK_NOTE default_format = "#weak" }
         }
 
-        ########################################################
         # WORLD CUCKS — AI / OTHER PATRONS
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_world_cucks').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -286,6 +297,7 @@
           text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_TITLE fontsize = 22 min_height = 30 align = left }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_FLAVOR default_format = "#weak" }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_COUNT default_format = "#high" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCK_RANGE default_format = "#weak" }
           hbox = {
             layoutpolicy_horizontal = expanding
             spacing = 4
@@ -314,7 +326,7 @@
             blockoverride "scrollbox_content" {
               vbox = {
                 layoutpolicy_horizontal = expanding
-                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_world_cucks')]"
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_world_page_list')]"
                 spacing = 4
                 item = {
                   hbox = {
@@ -357,12 +369,34 @@
               }
             }
           }
-          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_WORLD_CUCKS_NOTE default_format = "#P" }
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_WORLD_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_world_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_world_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_WORLD_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_world_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_world_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_WORLD_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_WORLD_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_world_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_world_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
         }
 
-        ########################################################
         # OWNED
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_owned').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -372,6 +406,7 @@
           text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_TITLE fontsize = 22 min_height = 30 align = left }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_FLAVOR default_format = "#weak" }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_COUNTS default_format = "#high" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_BENEFITS default_format = "#high" }
 
           hbox = {
             layoutpolicy_horizontal = expanding
@@ -422,6 +457,7 @@
             }
           }
 
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_RANGE default_format = "#weak" }
           divider = { layoutpolicy_horizontal = expanding }
 
           scrollbox = {
@@ -432,7 +468,7 @@
             blockoverride "scrollbox_content" {
               vbox = {
                 layoutpolicy_horizontal = expanding
-                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_owned_subjects')]"
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_owned_page_list')]"
                 spacing = 4
                 item = {
                   vbox = {
@@ -494,12 +530,133 @@
             }
           }
 
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_owned_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_owned_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_owned_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_owned_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_OWNED_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_owned_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_owned_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_RIGHTCLICK_NOTE default_format = "#weak" }
         }
 
-        ########################################################
+        # LOVERS & SOULMATES
+        vbox = {
+          visible = "[GetScriptedGui('domcom_ui_is_page_lovers').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+          layoutpolicy_horizontal = expanding
+          layoutpolicy_vertical = expanding
+          spacing = 8
+
+          text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_LOVERS_TITLE fontsize = 22 min_height = 30 align = left }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LOVERS_FLAVOR default_format = "#weak" }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 8
+            text_multi = { autoresize = yes max_width = 540 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LOVERS_COUNT default_format = "#high" }
+            button_primary = {
+              text = DOMCOM_UI_BREAK_ALL_LOVERS
+              size = { 245 32 }
+              tooltip = DOMCOM_UI_BREAK_ALL_LOVERS_TT
+              enabled = "[GetScriptedGui('domcom_ui_break_up_all_lovers').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_break_up_all_lovers').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LOVERS_RANGE default_format = "#weak" }
+          divider = { layoutpolicy_horizontal = expanding }
+
+          scrollbox = {
+            name = "domcom_lovers_scroll"
+            layoutpolicy_horizontal = expanding
+            layoutpolicy_vertical = expanding
+            min_height = 240
+            blockoverride "scrollbox_content" {
+              vbox = {
+                layoutpolicy_horizontal = expanding
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_lovers_page_list')]"
+                spacing = 4
+                item = {
+                  hbox = {
+                    layoutpolicy_horizontal = expanding
+                    datacontext = "[Scope.GetCharacter]"
+                    spacing = 7
+                    min_height = 122
+
+                    portrait_head_small = {}
+
+                    vbox = {
+                      min_width = 485 max_width = 485
+                      spacing = 1
+                      text_single = { layoutpolicy_horizontal = expanding text = "[Character.GetShortUINameNoTooltip]" max_width = 485 align = left }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_lover_is_soulmate').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" text = DOMCOM_UI_LOVER_SOULMATE align = left default_format = "#P" }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_lover_is_lover').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" text = DOMCOM_UI_LOVER_LOVER align = left default_format = "#high" }
+                      text_single = { layoutpolicy_horizontal = expanding visible = "[GetScriptedGui('domcom_ui_lover_is_dominion_bound').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]" text = DOMCOM_UI_LOVER_BOUND align = left default_format = "#weak" }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_SKILLS align = left }
+                      text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_ROW_VITALS align = left default_format = "#weak" }
+                    }
+
+                    expand = {}
+
+                    button_standard = {
+                      text = DOMCOM_UI_BREAK_LOVER
+                      size = { 160 34 }
+                      tooltip = DOMCOM_UI_BREAK_LOVER_TT
+                      enabled = "[GetScriptedGui('domcom_ui_break_up_lover').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]"
+                      onclick = "[GetScriptedGui('domcom_ui_break_up_lover').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).AddScope('target', Character.MakeScope).End)]"
+                    }
+                  }
+                }
+              }
+            }
+          }
+
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_lovers_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_lovers_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_lovers_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_lovers_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_LOVERS_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_lovers_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_lovers_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_LOVERS_NOTE default_format = "#weak" }
+        }
+
         # DYNASTIC PROSPECTS
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_prospects').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -520,6 +677,7 @@
               onclick = "[OnPause]"
             }
           }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_PROSPECTS_RANGE default_format = "#weak" }
 
           hbox = {
             layoutpolicy_horizontal = expanding
@@ -549,7 +707,7 @@
             blockoverride "scrollbox_content" {
               vbox = {
                 layoutpolicy_horizontal = expanding
-                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_prospects')]"
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_prospects_page_list')]"
                 spacing = 4
                 item = {
                   hbox = {
@@ -591,12 +749,35 @@
             }
           }
 
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_prospects_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_prospects_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_prospects_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_prospects_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_PROSPECTS_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_prospects_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_prospects_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_PROSPECTS_ORIENTATION_NOTE default_format = "#P" }
         }
 
-        ########################################################
         # CHILDREN OF COMMUNION
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_blood').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -617,6 +798,7 @@
               onclick = "[OnPause]"
             }
           }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_BLOOD_RANGE default_format = "#weak" }
 
           hbox = {
             layoutpolicy_horizontal = expanding
@@ -646,7 +828,7 @@
             blockoverride "scrollbox_content" {
               vbox = {
                 layoutpolicy_horizontal = expanding
-                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_blood_children')]"
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_blood_page_list')]"
                 spacing = 4
                 item = {
                   hbox = {
@@ -688,12 +870,35 @@
             }
           }
 
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_blood_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_blood_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_blood_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_blood_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_BLOOD_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_blood_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_blood_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_BLOOD_WARNING default_format = "#N" }
         }
 
-        ########################################################
         # TANTALIZED — OBEDIENCE TRACK (any gender)
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_tantalized').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -703,6 +908,7 @@
           text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_TITLE fontsize = 22 min_height = 30 align = left }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_FLAVOR default_format = "#weak" }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_COUNT default_format = "#high" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_RANGE default_format = "#weak" }
 
           hbox = {
             layoutpolicy_horizontal = expanding
@@ -741,7 +947,7 @@
             blockoverride "scrollbox_content" {
               vbox = {
                 layoutpolicy_horizontal = expanding
-                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_tantalized')]"
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_tantalized_page_list')]"
                 spacing = 4
                 item = {
                   hbox = {
@@ -784,12 +990,35 @@
             }
           }
 
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_tantalized_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_tantalized_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_tantalized_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_tantalized_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_TANTALIZED_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_tantalized_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_tantalized_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_TANTALIZED_NOTE default_format = "#P" }
         }
 
-        ########################################################
         # SECRETS & TRIBUTE
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_secrets').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -798,6 +1027,7 @@
 
           text_single = { layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_TITLE fontsize = 22 min_height = 30 align = left }
           text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_FLAVOR default_format = "#weak" }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_OWNED_BENEFITS default_format = "#high" }
 
           hbox = {
             layoutpolicy_horizontal = expanding
@@ -829,6 +1059,7 @@
             expand = {}
           }
 
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_RANGE default_format = "#weak" }
           divider = { layoutpolicy_horizontal = expanding }
 
           scrollbox = {
@@ -839,7 +1070,7 @@
             blockoverride "scrollbox_content" {
               vbox = {
                 layoutpolicy_horizontal = expanding
-                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_owned_subjects')]"
+                datamodel = "[GetPlayer.MakeScope.GetList('domcom_ui_secrets_page_list')]"
                 spacing = 4
                 item = {
                   vbox = {
@@ -886,12 +1117,35 @@
             }
           }
 
-          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_NOTE default_format = "#P" }
+          hbox = {
+            layoutpolicy_horizontal = expanding
+            spacing = 6
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_FIRST
+              size = { 90 30 }
+              enabled = "[GetScriptedGui('domcom_ui_secrets_first').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_secrets_first').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_PREV
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_secrets_prev').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_secrets_prev').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+            expand = {}
+            text_single = { text = DOMCOM_UI_SECRETS_PAGE_OF align = center|vcenter }
+            expand = {}
+            button_standard_small = {
+              text = DOMCOM_UI_PAGE_NEXT
+              size = { 110 30 }
+              enabled = "[GetScriptedGui('domcom_ui_secrets_next').IsValid(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+              onclick = "[GetScriptedGui('domcom_ui_secrets_next').Execute(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
+            }
+          }
+          text_multi = { autoresize = yes max_width = 828 layoutpolicy_horizontal = expanding text = DOMCOM_UI_SECRETS_NOTE default_format = "#weak" }
         }
 
-        ########################################################
         # IMPERIAL TRIBUTE
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_imperial').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -950,9 +1204,7 @@
           }
         }
 
-        ########################################################
         # LEDGER
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_ledger').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding
@@ -1019,9 +1271,7 @@
           }
         }
 
-        ########################################################
         # HOW TO USE
-        ########################################################
         vbox = {
           visible = "[GetScriptedGui('domcom_ui_is_page_help').IsShown(GuiScope.SetRoot(GetPlayer.MakeScope).End)]"
           layoutpolicy_horizontal = expanding

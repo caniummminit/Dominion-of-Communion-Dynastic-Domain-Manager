@@ -1,13 +1,4 @@
-﻿# Dominion ↔ Carnalitas optional interoperability.
-# Load after both Dominion of Communion and Carnalitas.
-#
-# do NOT subscribe a second time to
-# carn_character_initialization_pulse. Dominion already bridges that pulse and
-# emits domcom_profile_initialized after assigning/restoring the locked profile.
-# Listening directly here caused duplicate reconciliation paths on birthdays,
-# court joins, title gains, births, and startup. The stable per-tier sync lock
-# below makes repeated profile hooks harmless as well.
-
+﻿
 domcom_profile_initialized = {
     on_actions = { domcom_carn_sync_profile }
 }

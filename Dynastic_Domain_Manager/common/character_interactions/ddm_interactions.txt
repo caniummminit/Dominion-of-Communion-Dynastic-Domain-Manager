@@ -143,9 +143,6 @@ ddm_clear_land_preference_interaction = {
     ai_frequency = 0
 }
 
-# v1.7 manual protected-domain picker. These are self-interactions with a title
-# target, so the player can right-click their own portrait and choose a specific
-# personally held county/barony to lock or unlock.
 ddm_protect_holding_interaction = {
     category = interaction_category_friendly
     common_interaction = yes
@@ -226,9 +223,6 @@ ddm_unprotect_holding_interaction = {
 }
 
 
-# v1.7 explicit sacrifice picker. Same title-picker route as the protection
-# interaction, but it pushes the selected holding to the front of the surplus
-# queue rather than merely leaving it unlocked.
 ddm_prioritize_holding_for_distribution_interaction = {
     category = interaction_category_friendly
     common_interaction = yes
@@ -303,10 +297,6 @@ ddm_clear_holding_distribution_priority_interaction = {
     ai_frequency = 0
 }
 
-# Direct title reservations. Right-click a legal candidate, then bind one of the
-# actor's subordinate titles to that person. Crown Estate protection and vanilla
-# grant legality remain hard boundaries; otherwise the reservation is processed
-# before ordinary scored allocation.
 ddm_reserve_title_for_recipient_interaction = {
     category = interaction_category_friendly
     common_interaction = yes

@@ -1,13 +1,4 @@
-﻿# ============================================================
-# Dynastic merit model
-# ============================================================
-# CK3 does not expose one official "dynastic worth" number. For congenital
-# traits, this mod therefore uses Paradox's own Ruler Designer point costs as
-# the canonical weighting wherever vanilla defines one. Those point costs are
-# Values mirror vanilla Ruler Designer point costs. Fame traits hidden from Ruler Designer are kept
-# deliberately small and are weighted by their actual vanilla opinion effect,
-# rather than being treated as superior genetics.
-
+﻿
 ddm_quality_trait_value = {
     value = 0
 
@@ -43,8 +34,8 @@ ddm_quality_trait_value = {
     if = { limit = { has_trait = beauty_bad_2 } add = -20 }
     if = { limit = { has_trait = beauty_bad_3 } add = -30 }
 
-    # Other physical/genetic traits with non-zero vanilla RD values. Zero-cost
-    # traits (Albino, Scaly, Dwarf, Club-footed, Infertile) intentionally add 0.
+    # Other physical/genetic traits with non-zero vanilla RD values. Zero-cost traits (Albino, Scaly,
+    # Dwarf, Club-footed, Infertile) intentionally add 0.
     if = { limit = { has_trait = giant } add = 20 }
     if = { limit = { has_trait = dull } add = -20 }
     if = { limit = { has_trait = hunchbacked } add = -10 }
@@ -56,20 +47,20 @@ ddm_quality_trait_value = {
     if = { limit = { has_trait = inbred } add = -30 }
     if = { limit = { has_trait = weak } add = -10 }
 
-    # The heritable health variants are separate internal traits in vanilla and
-    # have their own Ruler Designer values. Event-acquired non-genetic variants
-    # are not treated as inherited bloodline quality.
+    # The heritable health variants are separate internal traits in vanilla and have their own Ruler
+    # Designer values. Event-acquired non-genetic variants are not treated as inherited bloodline
+    # quality.
     if = { limit = { has_trait = depressed_genetic } add = -20 }
     if = { limit = { has_trait = lunatic_genetic } add = -15 }
     if = { limit = { has_trait = possessed_genetic } add = -20 }
 
-    # Infertile, Albino, Scaly, Dwarf and Club-footed have vanilla RD cost 0 and
-    # therefore receive no invented hereditary score. Their practical effects can
-    # still influence skills, opinion, succession, fertility or political safety.
+    # Infertile, Albino, Scaly, Dwarf and Club-footed have vanilla RD cost 0 and therefore receive no
+    # invented hereditary score. Their practical effects can still influence skills, opinion, succession,
+    # fertility or political safety.
 
-    # Consecrated/Divine Blood are fame traits, not genetic quality tiers.
-    # Vanilla hides them from Ruler Designer. Their score mirrors their modest
-    # opinion effect instead of the huge arbitrary bonuses used by earlier builds.
+    # Consecrated/Divine Blood are fame traits, not genetic quality tiers. Vanilla hides them from Ruler
+    # Designer. Their score mirrors their modest opinion effect instead of the huge arbitrary bonuses
+    # used by earlier builds.
     if = { limit = { has_trait = consecrated_blood } add = 10 }
     if = { limit = { has_trait = divine_blood } add = 5 }
 }
@@ -79,12 +70,6 @@ ddm_hereditary_trait_value = {
     value = ddm_quality_trait_value
 }
 
-# Formal education is a trait too, and unlike a generic "merit" score it has
-# an official comparable Ruler Designer scale. The current CK3 trait table
-# prices education tiers at 0 / 20 / 40 / 80 / 150, independent of discipline.
-# We copy those values 1:1. Prowess-only education is not priced in Ruler
-# Designer and is therefore left to demonstrated prowess below rather than
-# inventing an "official" value for it.
 ddm_education_trait_value = {
     value = 0
 
@@ -139,11 +124,6 @@ ddm_education_trait_value = {
     # Tier 1 is intentionally 0: that is its vanilla Ruler Designer cost.
 }
 
-# Current governing competence. CK3 does not publish one universal "good ruler"
-# formula, so the raw-skill component is deliberately modest and transparent
-# rather than being presented as official. The official education-trait cost
-# above carries the strongest formal-merit signal. Stewardship gets a small
-# practical premium because this office is chiefly choosing landholders.
 ddm_governance_merit_value = {
     value = ddm_education_trait_value
     if = {
@@ -156,11 +136,6 @@ ddm_governance_merit_value = {
         add = { value = prowess multiply = 0.25 }
     }
     else = {
-        # Children cannot fairly be judged by unfinished adult skills. They get
-        # a developmental baseline plus parental-potential signals; their own
-        # congenital traits are still scored at the full vanilla RD values by
-        # ddm_quality_trait_value. This keeps "all ages" reviewable without
-        # pretending a newborn's 0–2 skills are failed adult performance.
         add = 65
         if = { limit = { father ?= { has_trait = intellect_good_1 } } add = 10 }
         if = { limit = { father ?= { has_trait = intellect_good_2 } } add = 20 }
@@ -177,8 +152,8 @@ ddm_governance_merit_value = {
     }
 }
 
-# Overall review score: canonical congenital weighting + actual competence + a
-# deliberately modest social-consensus component. No single trait is a gate.
+# Overall review score: canonical congenital weighting + actual competence + a deliberately modest
+# social-consensus component. No single trait is a gate.
 ddm_dynastic_value = {
     value = ddm_quality_trait_value
     add = ddm_governance_merit_value
@@ -188,10 +163,6 @@ ddm_dynastic_value = {
     }
 }
 
-# Character temperament / political safety. Rather than manually declaring
-# "Content = +20" etc., this reads CK3's own AI personality axes, which vanilla
-# traits themselves modify. The conversion into one DDM safety score is a policy
-# heuristic, but the underlying temperament values are Paradox's.
 ddm_loyalty_value = {
     value = 50
     add = { value = ai_honor multiply = 0.35 }
@@ -210,8 +181,8 @@ ddm_loyalty_value = {
     }
 }
 
-# The threshold is a DDM policy dial; the ingredients above are the important
-# part. Stage III (Balanced) is the default and is viable from a 867/1066 start.
+# The threshold is a DDM policy dial; the ingredients above are the important part. Stage III (Balanced)
+# is the default and is viable from a 867/1066 start.
 ddm_current_purge_threshold = {
     value = 0
     if = { limit = { var:ddm_purge_stage = 1 } add = 40 }
@@ -223,25 +194,13 @@ ddm_current_purge_threshold = {
     else_if = { limit = { var:ddm_purge_stage = 7 } add = 360 }
 }
 
-# Title grants care about merit, political safety, succession, family regard,
-# and territorial coherence. Repeated grants in the same batch are penalized so
-# one excellent cousin does not consume the whole realm unless de-jure logic or
-# succession need clearly outweighs that fairness cost.
 ddm_land_recipient_score = {
-    # Compatibility wrapper. v1.10 uses one title-specific rightfulness model
-    # everywhere, including any older single-title effect that still references
-    # this legacy value name.
     value = ddm_rightful_title_recipient_value
 }
 
-# Stable fallback used only if the full recipient score cannot produce an
-# ordered candidate despite a known legal-heir pool. It deliberately avoids
-# title/de-jure/foreign-heir lookups while preserving the priorities the player
-# actually cares about: inheritable quality, education/competence, opinion,
-# family regard and fairness across repeated grants.
 ddm_land_recipient_failsafe_score = {
-    # Scope-light compatibility fallback: keep the same dynastic legitimacy
-    # philosophy without making succession the recipient universe.
+    # Scope-light compatibility fallback: keep the same dynastic legitimacy philosophy without making
+    # succession the recipient universe.
     value = ddm_rightful_ruler_value
     if = { limit = { has_character_flag = ddm_favored_for_land } add = 160 }
     if = { limit = { is_landed = no } add = 45 }
@@ -250,20 +209,10 @@ ddm_land_recipient_failsafe_score = {
 }
 
 
-# v1.8 grant score: intentionally scope-light. Previous versions mixed title,
-# succession, de-jure, foreign-heir and character lookups into one ordered
-# dynasty iterator. A single exotic lookup could make the iterator return no
-# character at all. This score keeps the priorities the player asked for while
-# using only character + actor data that is safe in ordered_in_list.
 ddm_v18_land_recipient_score = {
-    # Compatibility wrapper for v1.8-era previews/helpers. It now shares the
-    # v1.10 rightful-ruler calculation rather than an heir-first score.
     value = ddm_rightful_title_recipient_value
 }
 
-# One title-pool score for the v1.8 list-driven distributor. Explicit GIVE AWAY
-# orders come first; secondary baronies are shed before counties; among delegated
-# counties, the less valuable holdings go first.
 ddm_v18_title_shed_priority = {
     value = 100
     if = { limit = { tier = tier_barony } add = 25000 }
@@ -301,26 +250,22 @@ ddm_kingdom_recipient_score = {
 }
 
 
-# Stable display arithmetic for the review result. This avoids relying on a
-# second nested-scope counter, which could render fixed-point values incorrectly
-# in some builds.
+# Stable display arithmetic for the review result. This avoids relying on a second nested-scope counter,
+# which could render fixed-point values incorrectly in some builds.
 ddm_purge_unprocessed_value = {
     value = var:ddm_purge_candidate_count
     add = { value = var:ddm_last_purged multiply = -1 }
     min = 0
 }
 
-# Last zero-based index used by ordered_held_title when showing the top
-# domain_limit recommended holdings. Example: limit 4 -> max index 3.
+# Last zero-based index used by ordered_held_title when showing the top domain_limit recommended
+# holdings. Example: limit 4 -> max index 3.
 ddm_core_last_index = {
     value = scope:ddm_actor.domain_limit
     add = -1
     min = 0
 }
 
-# One comparable score for recommending the personal core. Highest score is
-# retained in previews; v1.7 no longer turns this recommendation into a hard
-# blocker unless the player explicitly locks those titles.
 ddm_holding_retention_priority = {
     value = 100
     add = { value = title_province.county.development_level multiply = 10 }
@@ -354,12 +299,12 @@ ddm_holding_retention_priority = {
 
 ddm_barony_give_priority = {
     value = 100
-    # A player-marked sacrifice is an explicit command: shed it before any
-    # merely inferred optimizer preference (unless it is also protected, in
-    # which case the hard-protection trigger keeps it out of this list).
+    # A player-marked sacrifice is an explicit command: shed it before any merely inferred optimizer
+    # preference (unless it is also protected, in which case the hard-protection trigger keeps it out of
+    # this list).
     if = { limit = { has_variable = ddm_manual_shed } add = 25000 }
-    # Highest score is shed first. Development and military infrastructure are
-    # therefore negative: better holdings are retained.
+    # Highest score is shed first. Development and military infrastructure are therefore negative: better
+    # holdings are retained.
     add = { value = title_province.county.development_level multiply = -8 }
     if = { limit = { title_province = { has_special_building = yes } } add = -5000 }
     if = { limit = { title_province = { has_stationed_regiment = yes } } add = -8000 }
@@ -381,11 +326,11 @@ ddm_barony_give_priority = {
 
 ddm_county_give_priority = {
     value = 100
-    # Explicit player sacrifice marker. This lets the ruler say not only what
-    # must survive, but which unlocked holding should be the first one out.
+    # Explicit player sacrifice marker. This lets the ruler say not only what must survive, but which
+    # unlocked holding should be the first one out.
     if = { limit = { has_variable = ddm_manual_shed } add = 25000 }
-    # Domain optimizer: preserve the capital, capital duchy, stationed MAA,
-    # special buildings, strong military infrastructure and development.
+    # Domain optimizer: preserve the capital, capital duchy, stationed MAA, special buildings, strong
+    # military infrastructure and development.
     if = { limit = { this = scope:ddm_actor.capital_county } add = -20000 }
     if = {
         limit = {
@@ -442,8 +387,6 @@ ddm_inverse_dynastic_value = {
 }
 
 
-# ---------- v1.2 military and construction values ----------
-
 ddm_available_construction_gold = {
     value = gold
     if = {
@@ -493,17 +436,7 @@ ddm_maa_regional_score = {
     if = { limit = { has_variable = ddm_maa_regional_stationed } add = { value = var:ddm_maa_regional_stationed multiply = 28 } }
 }
 
-# ---------------------------------------------------------------------------
-# 1.1 holding-list organization
-# ---------------------------------------------------------------------------
-# CK3's ordered variable-list API sorts by numeric script values. These values
-# therefore provide stable useful organization without changing title state.
 
-# De-jure hierarchy register order. CK3 exposes numeric values rather than
-# localized strings to ordered_in_list, so the generated vanilla county A-Z
-# index supplies stable alphabetical ranks and the live de-jure parents provide
-# Empire -> Kingdom -> Duchy grouping. Earlier alphabetical groups receive the
-# larger score because ordered_in_list is best-first.
 ddm_title_sort_hierarchy_value = {
     value = 0
     if = {
@@ -541,34 +474,16 @@ ddm_title_sort_culture_value = {
     if = { limit = { title_province = { culture = scope:ddm_actor.culture } } add = 100000 }
 }
 
-# ---------------------------------------------------------------------------
-# Rightful-ruler ranking (v1.9.8)
-# ---------------------------------------------------------------------------
-# "how many people get anything at all is based on the average gross opinion of
-#  all other dynasty members to this person, weighted against their traits and
-#  personality (of which of course personality that leads to subservient vassals
-#  being preferred, though not necessarily the case if they are well liked, with
-#  high quality traits and stats)"
-#
-# ddm_family_regard is normalized to an average when the observer pass runs.
-# ddm_family_regard_count remains diagnostic only. Earlier builds accidentally
-# divided the already-normalized value a second time, muting legitimacy.
 ddm_dynasty_regard_average = {
-    # ddm_refresh_one_subject_regard_effect already stores the arithmetic mean
-    # in ddm_family_regard. Do not divide by observer count a second time.
+    # ddm_refresh_one_subject_regard_effect already stores the arithmetic mean in ddm_family_regard. Do
+    # not divide by observer count a second time.
     value = 0
     if = { limit = { has_variable = ddm_family_regard } add = var:ddm_family_regard }
 }
 
-# The ranking metric. Opinion is the primary axis, since the question being
-# asked is who the dynasty itself considers a rightful ruler. Traits and stats
-# weight it. Subservience is a preference, never a veto: at 0.5 weight it can
-# reorder similar candidates but cannot hold down someone who is well liked and
-# genuinely capable. Nobody is excluded by personality - only demoted.
 ddm_rightful_ruler_value = {
-    # Social legitimacy comes first: how the configured family observer circle
-    # perceives this dynast. Capability and inherited quality then inform whether
-    # that legitimacy is credible in office.
+    # Social legitimacy comes first: how the configured family observer circle perceives this dynast.
+    # Capability and inherited quality then inform whether that legitimacy is credible in office.
     value = ddm_dynasty_regard_average
     multiply = 3
     add = { value = ddm_quality_trait_value multiply = 0.75 }
@@ -606,9 +521,6 @@ ddm_rank_value = {
     if = { limit = { has_variable = ddm_rank } add = var:ddm_rank }
 }
 
-# 1.1 generalized ruler score. Dynasts retain the full dynastic legitimacy model;
-# non-dynastic candidates are judged by the dynasty's regard for them, capability,
-# loyalty, established rank, and modest cultural/religious familiarity.
 ddm_general_ruler_value = {
     value = 0
     if = {
@@ -626,16 +538,14 @@ ddm_general_ruler_value = {
     }
 }
 
-# Title-by-title rightfulness. This is deliberately NOT an equal split: each
-# holding asks which active recipient has the strongest political and territorial
-# case at the instant the title is placed.
+# Title-by-title rightfulness. This is deliberately NOT an equal split: each holding asks which active
+# recipient has the strongest political and territorial case at the instant the title is placed.
 ddm_rightful_title_recipient_value = {
     value = ddm_general_ruler_value
 
     if = { limit = { has_character_flag = ddm_favored_for_land } add = 220 }
-    # Player-selected non-dynastic candidates receive first-pass priority for
-    # one legal grant while titles remain. After the first grant, the ordinary
-    # live scoring model takes over.
+    # Player-selected non-dynastic candidates receive first-pass priority for one legal grant while
+    # titles remain. After the first grant, the ordinary live scoring model takes over.
     if = {
         limit = {
             has_variable = ddm_outsider_favored_for_land
@@ -646,9 +556,8 @@ ddm_rightful_title_recipient_value = {
         add = 10000
     }
 
-    # Claims and established de-jure relationships are the strongest local
-    # legitimacy signals. Holding another county in the duchy encourages coherent
-    # territorial blocs without making them mandatory.
+    # Claims and established de-jure relationships are the strongest local legitimacy signals. Holding
+    # another county in the duchy encourages coherent territorial blocs without making them mandatory.
     if = { limit = { exists = scope:ddm_title has_claim_on = scope:ddm_title } add = 190 }
     if = {
         limit = {
@@ -664,13 +573,12 @@ ddm_rightful_title_recipient_value = {
     if = { limit = { is_landed = no } add = 55 }
     if = { limit = { is_landed = yes } add = { value = domain_size multiply = -55 } }
     if = { limit = { has_variable = ddm_batch_land_grants } add = { value = var:ddm_batch_land_grants multiply = -70 } }
-    # military concentration is a strong penalty, not a hard rejection.
-    # This preserves the anti-megavassal intent while guaranteeing that a
-    # sufficiently large conquest can still be fully distributed.
+    # military concentration is a strong penalty, not a hard rejection. This preserves the
+    # anti-megavassal intent while guaranteeing that a sufficiently large conquest can still be fully
+    # distributed.
     if = { limit = { current_military_strength > ddm_safe_strength_cap } add = -325 }
-    # Preview does not actually change domain_size, so mirror the missing live
-    # domain-growth penalty with its projected-grant counter. Execution never has
-    # this variable and therefore does not double-count.
+    # Preview does not actually change domain_size, so mirror the missing live domain-growth penalty with
+    # its projected-grant counter. Execution never has this variable and therefore does not double-count.
     if = { limit = { has_variable = ddm_preview_projected_grants } add = { value = var:ddm_preview_projected_grants multiply = -55 } }
 
     # Succession is only a legitimacy modifier. Policy 1 is neutral.
@@ -739,11 +647,6 @@ ddm_rightful_title_recipient_value = {
     }
 }
 
-# Higher titles are offices in the hierarchy. Actual local control dominates,
-# then dynastic perception decides among plausible rulers.
-# score used only to decide which one-rank-lower titles the player
-# personally retains. The effect precomputes average military strength per
-# de-jure county currently held inside the player's realm.
 ddm_top_rank_retention_value = {
     value = 0
     if = { limit = { has_variable = ddm_top_rank_military_density } add = var:ddm_top_rank_military_density }
@@ -765,4 +668,40 @@ ddm_hier_kingdom_rightful_value = {
     if = { limit = { is_landed = yes highest_held_title_tier = tier_duchy } add = 130 }
     if = { limit = { is_landed = yes highest_held_title_tier >= tier_kingdom } add = -220 }
     if = { limit = { is_landed = yes } add = { value = domain_size multiply = -20 } }
+}
+
+
+# Dynasty Review rows cache their expensive component values when the register is explicitly refreshed.
+# Sorting then reads cheap variables instead of recalculating the full scoring model every GUI frame.
+ddm_dynasty_review_sort_value = {
+    value = 0
+    if = {
+        limit = { scope:ddm_actor.var:ddm_review_sort_mode = 0 }
+        if = { limit = { has_variable = ddm_review_dynastic } add = { value = var:ddm_review_dynastic multiply = -1 } }
+    }
+    else_if = {
+        limit = { scope:ddm_actor.var:ddm_review_sort_mode = 1 }
+        if = { limit = { has_variable = ddm_review_quality } add = var:ddm_review_quality }
+    }
+    else_if = {
+        limit = { scope:ddm_actor.var:ddm_review_sort_mode = 2 }
+        if = { limit = { has_variable = ddm_review_merit } add = var:ddm_review_merit }
+    }
+    else_if = {
+        limit = { scope:ddm_actor.var:ddm_review_sort_mode = 3 }
+        if = { limit = { has_variable = ddm_review_safety } add = var:ddm_review_safety }
+    }
+    else_if = {
+        limit = { scope:ddm_actor.var:ddm_review_sort_mode = 4 }
+        if = { limit = { has_variable = ddm_review_family } add = var:ddm_review_family }
+    }
+    else_if = {
+        limit = { scope:ddm_actor.var:ddm_review_sort_mode = 5 }
+        if = { limit = { has_variable = ddm_review_land } add = var:ddm_review_land }
+    }
+    else = {
+        if = { limit = { has_variable = ddm_review_age } add = var:ddm_review_age }
+    }
+
+    if = { limit = { scope:ddm_actor.var:ddm_review_sort_direction < 0 } multiply = -1 }
 }

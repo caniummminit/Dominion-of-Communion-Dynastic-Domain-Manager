@@ -1,11 +1,10 @@
 ﻿DOMINION OF COMMUNION - CARNALITAS COMPATIBILITY
 ================================================
 
-Version: 1.0.0
+Version: 1.2
 Supported CK3 branch: 1.19.*
 
-This is an OPTIONAL compatibility patch. Dominion of Communion works without
-Carnalitas.
+Optional compatibility module. Dominion of Communion works without Carnalitas.
 
 REQUIRES
 --------
@@ -19,21 +18,18 @@ RECOMMENDED LOAD ORDER
 3. Dominion of Communion
 4. Dominion of Communion - Carnalitas Compatibility
 
-WHAT IT DOES
-------------
-- Keeps Dominion's exact length/girth measurements and six Endowment tiers
-  authoritative.
-- Synchronizes Carnalitas' compatible size tier to Dominion's stored profile.
-- Preserves Dominion's own Endowment trait definitions and icons.
-- Can register compatible Patron/Pet dominant-submissive state through public
-  Carnalitas hooks where supported.
-- Can use public Carnalitas sex hooks as Dominion betrayal evidence.
-- Does not overwrite Carnalitas source files or artwork.
+FUNCTIONS
+---------
+- Keeps Dominion length/girth measurements and Endowment tiers authoritative.
+- Synchronizes compatible Carnalitas size data to Dominion profiles.
+- Preserves Dominion Endowment traits and icons.
+- Supports compatible Patron/Pet hooks where available.
+- Uses public Carnalitas sex hooks as optional Dominion betrayal evidence.
+- Does not replace Carnalitas source files or artwork.
 
-INSTALLATION (MANUAL)
----------------------
-Place both of the following directly in:
-Documents/Paradox Interactive/Crusader Kings III/mod/
+INSTALLATION
+------------
+Place these in Documents/Paradox Interactive/Crusader Kings III/mod/:
 
   Dominion of Communion - Carnalitas Compatibility.mod
   dominion_of_communion_carnalitas/

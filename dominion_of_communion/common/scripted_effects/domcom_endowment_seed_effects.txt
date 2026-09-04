@@ -1,24 +1,4 @@
-# Dominion of Communion — endowment seeding override point.
-#
-# THIS FILE IS AN OVERRIDE POINT. Keep the path stable.
-#
-# domcom_preseed_endowment_effect runs immediately before Dominion rolls a
-# character's measurements, and only when that character has no measurements
-# and no lock at all. Whatever it sets simply wins, because the roll below it
-# is gated on NOT = { has_variable = domcom_length_tenths }.
-#
-# Standalone initialization honors a Ruler Designer choice. The six
-# Endowment traits are selectable in the designer, and a trait picked there
-# arrives with no numbers behind it. Seeding inside that tier's band gives the
-# character measurements that agree with the tier the player chose, and the
-# ordinary lock then makes them permanent like anyone else's.
-#
-# Restricted to player characters on purpose. The designer only ever produces
-# players, and deriving measurements from a pre-existing trait for every AI in
-# the world would hand Dominion's distribution to whatever assigned that trait.
-#
-# The Carnalitas compatibility module ships a file at this exact path which
-# replaces this one and reads a Carnalitas dick trait first.
+# Compatibility override point; keep this path stable.
 
 domcom_preseed_endowment_effect = {
     if = {

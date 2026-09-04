@@ -1,12 +1,7 @@
-﻿# Household Intrigue — Dominion-aware eligibility.
-#
-# Household Intrigue does not create relationships. Dominion
-# reads the relationship and obedience state Dominion has already built and
-# converts that access into household actions.
-
-# Any current Dominion/intimate link that makes the character plausibly willing
-# to work for the Patron. A Pet remains eligible even if CK3 later drops the
-# Crush/Lover relation that originally accompanied their progression.
+﻿
+# Any current Dominion/intimate link that makes the character plausibly willing to work for the Patron. A
+# Pet remains eligible even if CK3 later drops the Crush/Lover relation that originally accompanied their
+# progression.
 dcint_is_linked_to_patron_trigger = {
     OR = {
         has_relation_lover = scope:dcint_patron
@@ -41,8 +36,8 @@ dcint_is_linked_to_patron_trigger = {
     }
 }
 
-# Established intimacy. This is enough for normal household manipulation even
-# without a high Dominion obedience score.
+# Established intimacy. This is enough for normal household manipulation even without a high Dominion
+# obedience score.
 dcint_is_intimate_with_patron_trigger = {
     OR = {
         has_relation_lover = scope:dcint_patron
@@ -50,8 +45,8 @@ dcint_is_intimate_with_patron_trigger = {
     }
 }
 
-# 500+ is Dominion's Attached stage. From here the partner can be trusted with
-# actions that materially move people or resources rather than merely gossip.
+# 500+ is Dominion's Attached stage. From here the partner can be trusted with actions that materially
+# move people or resources rather than merely gossip.
 dcint_is_attached_to_patron_trigger = {
     OR = {
         AND = {
@@ -68,8 +63,6 @@ dcint_is_attached_to_patron_trigger = {
     }
 }
 
-# 750+ is Dominion's Submissive stage. Used to weight consequential actions more
-# heavily without inventing a second progression track in this subsystem.
 dcint_is_submissive_to_patron_trigger = {
     OR = {
         AND = {
@@ -92,9 +85,8 @@ dcint_is_pet_of_patron_trigger = {
     var:domcom_pet_patron = scope:dcint_patron
 }
 
-# An intrigue partner must actually be embedded somewhere other than the
-# Patron's own household. A spouse gives domestic access; a foreign liege gives
-# court access.
+# An intrigue partner must actually be embedded somewhere other than the Patron's own household. A spouse
+# gives domestic access; a foreign liege gives court access.
 dcint_is_intrigue_partner_trigger = {
     is_alive = yes
     age >= 18
@@ -111,8 +103,8 @@ dcint_is_intrigue_partner_trigger = {
     }
 }
 
-# One approach per person per month. The cooldown is on the partner, not the
-# Patron, so changing the monthly candidate does not repeatedly lean on one NPC.
+# One approach per person per month. The cooldown is on the partner, not the Patron, so changing the
+# monthly candidate does not repeatedly lean on one NPC.
 dcint_partner_available_trigger = {
     dcint_is_intrigue_partner_trigger = yes
     NOT = { has_character_flag = dcint_recently_used }
@@ -124,8 +116,8 @@ dcint_can_whisper_trigger = {
     OR = { exists = primary_spouse exists = liege }
 }
 
-# Moving a courtier is a larger betrayal. It requires either established
-# intimacy or at least Dominion's Attached (500+) obedience stage.
+# Moving a courtier is a larger betrayal. It requires either established intimacy or at least Dominion's
+# Attached (500+) obedience stage.
 dcint_can_poach_courtier_trigger = {
     dcint_is_intrigue_partner_trigger = yes
     OR = {
@@ -135,9 +127,9 @@ dcint_can_poach_courtier_trigger = {
     any_courtier = { is_alive = yes age >= 18 is_landed = no }
 }
 
-# Blood pressure remains the loudest action. The partner needs a biological child
-# of the Patron and either intimacy or serious obedience. A landed spouse gives
-# an unlanded partner a valid dynastic household to press against.
+# Blood pressure remains the loudest action. The partner needs a biological child of the Patron and
+# either intimacy or serious obedience. A landed spouse gives an unlanded partner a valid dynastic
+# household to press against.
 dcint_can_press_blood_claim_trigger = {
     dcint_is_intrigue_partner_trigger = yes
     OR = {

@@ -1,0 +1,5 @@
+
+domcom_cuckold = {
+	corresponding = domcom_cuckold_patron
+	hidden = no
+}

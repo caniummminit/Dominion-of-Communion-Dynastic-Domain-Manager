@@ -1,5 +1,5 @@
-﻿# Soft core = holdings the player strongly prefers to keep. In Best-Effort mode these
-# can still be granted if that is the only way to reach the actual domain limit.
+﻿# Soft core = holdings the player strongly prefers to keep. In Best-Effort mode these can still be
+# granted if that is the only way to reach the actual domain limit.
 ddm_title_is_protected_core_trigger = {
     OR = {
         this = scope:ddm_actor.capital_county
@@ -19,14 +19,9 @@ ddm_title_is_protected_core_trigger = {
     }
 }
 
-# The realm capital is always hard-protected. With Absolute Core protection, all
-# legacy protected counties are hard-protected. With Best-Effort protection,
-# they are preferences rather than blockers.
+# The realm capital is always hard-protected. With Absolute Core protection, all legacy protected
+# counties are hard-protected. With Best-Effort protection, they are preferences rather than blockers.
 ddm_title_is_hard_protected_core_trigger = {
-    # the hard core is explicit. The capital is always retained and every
-    # other hard lock comes from the player's Personal Domain Planner (or one of
-    # its visible quick-selection buttons). Old inferred "Absolute Core" rules
-    # no longer silently override the player's checkbox choices.
     OR = {
         this = scope:ddm_actor.capital_county
         has_variable = ddm_manual_core
@@ -40,9 +35,6 @@ ddm_county_can_be_distributed_trigger = {
     NOT = { ddm_title_is_hard_protected_core_trigger = yes }
 }
 
-# Domain size is holdings, not just counties. v1.0 ignored extra personally-held
-# baronies, so it could truthfully run out of counties while the UI still showed
-# the player above the domain limit.
 ddm_barony_can_be_distributed_trigger = {
     tier = tier_barony
     holder = scope:ddm_actor
@@ -50,9 +42,9 @@ ddm_barony_can_be_distributed_trigger = {
     NOT = { ddm_title_is_hard_protected_core_trigger = yes }
 }
 
-# a holding is "classified" only after the PLAYER has explicitly said
-# Keep, Give Away, or Let the Office Decide. Newly acquired holdings therefore
-# force the domain-planning wizard to ask before any automatic surplus grant.
+# a holding is "classified" only after the PLAYER has explicitly said Keep, Give Away, or Let the Office
+# Decide. Newly acquired holdings therefore force the domain-planning wizard to ask before any automatic
+# surplus grant.
 ddm_has_unclassified_domain_holding_trigger = {
     any_held_title = {
         OR = {
@@ -70,9 +62,6 @@ ddm_has_unclassified_domain_holding_trigger = {
     }
 }
 
-# If the ruler's domain limit changed since the last completed plan, the old
-# keep/shed map may no longer describe the number of holdings the player wants
-# to retain. Force a fresh full review rather than silently guessing a new core.
 ddm_domain_plan_limit_changed_trigger = {
     OR = {
         NOT = { has_variable = ddm_domain_plan_limit }
@@ -80,9 +69,9 @@ ddm_domain_plan_limit_changed_trigger = {
     }
 }
 
-# the player's checked Personal Domain is the actual stopping target.
-# The vanilla domain limit remains the maximum number the planner can protect,
-# but selecting fewer holdings deliberately tells DDM to shed down to that count.
+# the player's checked Personal Domain is the actual stopping target. The vanilla domain limit remains
+# the maximum number the planner can protect, but selecting fewer holdings deliberately tells DDM to shed
+# down to that count.
 ddm_above_protected_domain_target_trigger = {
     OR = {
         AND = {
@@ -121,10 +110,6 @@ ddm_is_eligible_land_recipient_trigger = {
     NOT = { has_trait = devoted }
     NOT = { has_trait = gallivanter }
 
-    # Ordinary cousins still use vanilla's broad Grant Titles recipient gate.
-    # Legal partition children use the dedicated trigger below, because vanilla
-    # restrictions on the primary heir were the reason the primary son could
-    # disappear from DDM's supposedly "balanced" pool.
     can_be_granted_titles_by = { RULER = scope:ddm_actor }
     NOT = { is_at_war_with = scope:ddm_actor }
     trigger_if = {
@@ -161,22 +146,10 @@ ddm_is_eligible_land_recipient_trigger = {
     }
     OR = { is_landed = no ddm_is_in_actor_realm_trigger = yes }
 
-    # all legally usable dynasts remain candidates. Family-scope
-    # settings now change House preference rather than hard-excluding branches.
+    # all legally usable dynasts remain candidates. Family-scope settings now change House preference
+    # rather than hard-excluding branches.
 }
 
-# A legal heir under partition may absorb a share of the surplus even when the
-# normal anti-megavassal cap would stop an ordinary cousin after one or two
-# counties. Fairness is enforced by the per-batch grant penalty in the score,
-# so two similarly suitable sons naturally alternate while a clearly superior
-# heir can receive a modestly larger share.
-# legal partition heirs are intentionally evaluated separately from the
-# ordinary Grant Titles interaction gate. This keeps the primary heir in the
-# Legacy partition-bypass pool, retained only for vanilla grant-gate compatibility.
-# Eligible non-dynasty candidate for optional 1.1 distribution. Candidates are
-# either members of the ruler's court awaiting their first landed grant or
-# existing vassals already inside the ruler's subrealm. The allocator never
-# reaches outside court/realm to manufacture foreign beneficiaries.
 ddm_is_eligible_outsider_recipient_trigger = {
     is_alive = yes
     this != scope:ddm_actor
@@ -222,9 +195,9 @@ ddm_is_eligible_outsider_recipient_trigger = {
     }
 }
 
-# Explicit title reservations may name either a legal dynast or a legal
-# non-dynastic court/realm candidate regardless of the broad recipient-scope
-# policy. The reservation itself is the player's one-title exception.
+# Explicit title reservations may name either a legal dynast or a legal non-dynastic court/realm
+# candidate regardless of the broad recipient-scope policy. The reservation itself is the player's
+# one-title exception.
 ddm_is_eligible_manual_reservation_recipient_trigger = {
     OR = {
         ddm_is_eligible_land_recipient_trigger = yes
@@ -232,8 +205,8 @@ ddm_is_eligible_manual_reservation_recipient_trigger = {
     }
 }
 
-# Active ordinary pool: dynasts are always eligible under the existing rules;
-# outsiders enter only under the player's explicit recipient-scope policy.
+# Active ordinary pool: dynasts are always eligible under the existing rules; outsiders enter only under
+# the player's explicit recipient-scope policy.
 ddm_is_eligible_active_recipient_trigger = {
     OR = {
         ddm_is_eligible_land_recipient_trigger = yes
@@ -298,9 +271,9 @@ ddm_safe_for_partition_settlement_trigger = {
 }
 
 ddm_safe_for_additional_county_trigger = {
-    # Safety is a ranking pressure, not an exhaustion gate. Any active legal
-    # recipient may receive another county; live power, domain size and same-
-    # batch grants are penalized in the title-specific rightfulness score.
+    # Safety is a ranking pressure, not an exhaustion gate. Any active legal recipient may receive
+    # another county; live power, domain size and same- batch grants are penalized in the title-specific
+    # rightfulness score.
     ddm_is_eligible_active_recipient_trigger = yes
 }
 
@@ -322,10 +295,6 @@ ddm_safe_for_kingdom_trigger = {
     OR = { is_landed = no current_military_strength < ddm_safe_strength_cap }
 }
 
-# pruning is now entirely score-band based. No trait is a pass/fail gate.
-# Genius, Robust, Beautiful, Pure-Blooded, good adult competence, family regard,
-# etc. all contribute according to their weights; fame traits do not magically
-# override the rest of the person.
 ddm_can_be_purged_base_trigger = {
     is_alive = yes
     this != scope:ddm_actor
@@ -393,23 +362,17 @@ ddm_dynasty_above_floor_trigger = {
 }
 
 
-# ---------- v1.2 succession helpers ----------
-
 ddm_actor_uses_partition_trigger = {
     # Vanilla uses this same helper when warning about grants to a primary heir.
     has_partition_succession_realm_law_trigger = yes
 }
 
-# ---------- v1.10 dynasty-wide rightfulness eligibility ----------
 ddm_safe_partition_candidate_trigger = {
-    # Same completion invariant as ordinary recipients: legal eligibility is a
-    # gate; concentration is handled by scoring, never by a finite title quota.
+    # Same completion invariant as ordinary recipients: legal eligibility is a gate; concentration is
+    # handled by scoring, never by a finite title quota.
     ddm_is_eligible_partition_recipient_trigger = yes
 }
 
-# v1.10 rightful-ruler universe. Succession no longer defines the ranked pool.
-# Every legally usable dynast is ranked, subject to safety, gender-law and the
-# player's explicit never-grant/protection rules.
 ddm_is_rankable_dynast_trigger = {
     OR = {
         ddm_is_eligible_land_recipient_trigger = yes
@@ -420,8 +383,8 @@ ddm_is_rankable_dynast_trigger = {
     }
 }
 
-# Compatibility name retained for old saves; the current model has no per-person quota.
-# Eligibility is recalculated after every grant from live domain/power state.
+# Compatibility name retained for old saves; the current model has no per-person quota. Eligibility is
+# recalculated after every grant from live domain/power state.
 ddm_rank_quota_remaining_trigger = {
     has_character_flag = ddm_rightful_pool
     OR = {
@@ -433,8 +396,8 @@ ddm_rank_quota_remaining_trigger = {
     }
 }
 
-# The player's religious head title is never distributable. Protected silently;
-# the preview reports that the protection is active.
+# The player's religious head title is never distributable. Protected silently; the preview reports that
+# the protection is active.
 ddm_title_not_faith_protected_trigger = {
     trigger_if = {
         limit = {
@@ -445,8 +408,6 @@ ddm_title_not_faith_protected_trigger = {
     }
 }
 
-# Does this candidate already hold land inside the de jure duchy of the title
-# currently being placed? Used to gather counties into whole duchies.
 ddm_holds_land_in_title_duchy_trigger = {
     exists = scope:ddm_title
     scope:ddm_title = { exists = de_jure_liege }
@@ -464,9 +425,6 @@ ddm_is_ranked_title_candidate_trigger = {
     ddm_is_in_actor_realm_trigger = yes
 }
 
-# Holds a strict majority of the de jure counties of the duchy currently being
-# placed. ddm_hier_held is counted per candidate by the hierarchy effect before
-# this is ever evaluated, and ddm_hier_half is half that duchy's de jure total.
 ddm_hier_holds_duchy_majority_trigger = {
     has_variable = ddm_hier_held
     exists = scope:ddm_actor
@@ -483,13 +441,7 @@ ddm_hier_holds_kingdom_majority_trigger = {
 }
 
 
-# 1.1 realm-hierarchy maintenance. Run on the potential new liege with
 # scope:ddm_actor, scope:ddm_transfer_vassal, and scope:ddm_proper_liege_candidate saved.
-# This mirrors the safety boundaries of vanilla Transfer Vassal closely enough
-# for a bulk office action: the recipient must be a direct landed vassal of the
-# actor, outrank the transferred ruler, have vassal capacity, and not be in a
-# conflicting war. Administrative / Japanese government combinations that
-# vanilla refuses are also left untouched.
 ddm_is_valid_proper_liege_target_trigger = {
     is_alive = yes
     is_landed = yes
@@ -504,8 +456,8 @@ ddm_is_valid_proper_liege_target_trigger = {
         NOT = { any_vassal_or_below = { is_at_war_with = scope:ddm_proper_liege_candidate } }
     }
 
-    # Vanilla refuses to hand an administrative vassal to a non-administrative
-    # subordinate when the top ruler is administrative.
+    # Vanilla refuses to hand an administrative vassal to a non-administrative subordinate when the top
+    # ruler is administrative.
     NAND = {
         scope:ddm_actor = { government_allows = administrative }
         NOT = { government_allows = administrative }
@@ -519,8 +471,8 @@ ddm_is_valid_proper_liege_target_trigger = {
         scope:ddm_transfer_vassal = { has_government = japan_feudal_government }
     }
 
-    # Noble-family titles are special administrative objects, not ordinary
-    # landed vassals to be shuffled by the Domain Office.
+    # Noble-family titles are special administrative objects, not ordinary landed vassals to be shuffled
+    # by the Domain Office.
     NAND = {
         scope:ddm_actor = { government_allows = administrative }
         scope:ddm_transfer_vassal = { any_held_title = { is_noble_family_title = yes } }

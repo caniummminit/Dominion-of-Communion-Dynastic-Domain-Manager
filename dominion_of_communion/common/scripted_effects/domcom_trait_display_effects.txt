@@ -1,17 +1,4 @@
-# Dominion of Communion 1.2.4 — native Endowment trait display.
-#
-# This file remains an override point for the optional Carnalitas bridge, but
-# both versions apply the same Dominion trait. With Carnalitas loaded, its
-# native DT trait is synchronized and appears beside this rose-based Dominion
-# trait rather than replacing it.
-#
-# 1.2.4 — each branch now prunes the other five tiers before checking whether
-# the correct one is already held. The old shape only cleared when it was about
-# to add, so a character who somehow carried two Endowment traits — a ruler
-# designer pick plus a rolled one, a console add, an interrupted rebuild — kept
-# both forever, because the branch for the tier he already had did nothing at
-# all. Pruning first makes exactly one Endowment trait an invariant, and the
-# effect stays a true no-op for the overwhelming majority who are already right.
+# Compatibility override point; keep this path stable.
 
 domcom_apply_native_endowment_trait_effect = {
     if = {

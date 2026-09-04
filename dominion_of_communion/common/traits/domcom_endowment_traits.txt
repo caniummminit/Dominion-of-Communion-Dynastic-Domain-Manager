@@ -1,19 +1,9 @@
-﻿# Dominion of Communion — Endowment traits.
-#
-# Endowment is assigned from persistent measurement variables. The visible trait
-# is a display/result layer: inheritance is handled by the measurement system so
-# the trait and the stored values always remain synchronized.
-#
-# Endowment traits are selectable in Ruler Designer. A selected tier is converted
-# into measurements inside that tier at game start and then locked normally.
-#
-# Trait descriptions use CK3's dynamic trait-desc scope so exact measurements are
-# evaluated against the character who actually carries the trait. Generic contexts
-# (including Ruler Designer before measurements exist) fall back cleanly.
-
+﻿
 domcom_endowment_micro = {
-    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
-    opposites = { domcom_endowment_small domcom_endowment_average domcom_endowment_big domcom_endowment_hung domcom_endowment_massive }
+    # One trait per group is enforced natively, which also gives the six tiers a ladder instead of thirty
+    # opposites pairs. Same pattern Carnalitas uses.
+    group = domcom_endowment
+    level = 1
 
     desc = {
         first_valid = {
@@ -53,8 +43,10 @@ domcom_endowment_micro = {
 }
 
 domcom_endowment_small = {
-    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
-    opposites = { domcom_endowment_micro domcom_endowment_average domcom_endowment_big domcom_endowment_hung domcom_endowment_massive }
+    # One trait per group is enforced natively, which also gives the six tiers a ladder instead of thirty
+    # opposites pairs. Same pattern Carnalitas uses.
+    group = domcom_endowment
+    level = 2
 
     desc = {
         first_valid = {
@@ -94,8 +86,10 @@ domcom_endowment_small = {
 }
 
 domcom_endowment_average = {
-    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
-    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_big domcom_endowment_hung domcom_endowment_massive }
+    # One trait per group is enforced natively, which also gives the six tiers a ladder instead of thirty
+    # opposites pairs. Same pattern Carnalitas uses.
+    group = domcom_endowment
+    level = 3
 
     desc = {
         first_valid = {
@@ -129,8 +123,10 @@ domcom_endowment_average = {
 }
 
 domcom_endowment_big = {
-    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
-    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_average domcom_endowment_hung domcom_endowment_massive }
+    # One trait per group is enforced natively, which also gives the six tiers a ladder instead of thirty
+    # opposites pairs. Same pattern Carnalitas uses.
+    group = domcom_endowment
+    level = 4
 
     desc = {
         first_valid = {
@@ -170,8 +166,10 @@ domcom_endowment_big = {
 }
 
 domcom_endowment_hung = {
-    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
-    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_average domcom_endowment_big domcom_endowment_massive }
+    # One trait per group is enforced natively, which also gives the six tiers a ladder instead of thirty
+    # opposites pairs. Same pattern Carnalitas uses.
+    group = domcom_endowment
+    level = 5
 
     desc = {
         first_valid = {
@@ -211,8 +209,10 @@ domcom_endowment_hung = {
 }
 
 domcom_endowment_massive = {
-    # Ruler Designer safeguard: exactly one Endowment tier may be selected.
-    opposites = { domcom_endowment_micro domcom_endowment_small domcom_endowment_average domcom_endowment_big domcom_endowment_hung }
+    # One trait per group is enforced natively, which also gives the six tiers a ladder instead of thirty
+    # opposites pairs. Same pattern Carnalitas uses.
+    group = domcom_endowment
+    level = 6
 
     desc = {
         first_valid = {

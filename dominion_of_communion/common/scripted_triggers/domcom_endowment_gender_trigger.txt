@@ -1,0 +1,5 @@
+# Compatibility override point; keep this path stable.
+
+domcom_should_express_endowment_trigger = {
+    is_male = yes
+}

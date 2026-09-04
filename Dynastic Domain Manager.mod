@@ -1,4 +1,4 @@
-version="1.0.0"
+version="1.2"
 tags={
 	"Character Interactions"
 	"Decisions"
@@ -6,4 +6,5 @@ tags={
 }
 name="Dynastic Domain Manager"
 supported_version="1.19.*"
-path="C:/Users/Creators Cumdumpster/Documents/Paradox Interactive/Crusader Kings III/mod/Dynastic_Domain_Manager"
+path="mod/Dynastic_Domain_Manager"
+remote_file_id="3794248036"
